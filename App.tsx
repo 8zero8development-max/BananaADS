@@ -196,8 +196,8 @@ const App: React.FC = () => {
     brandName: '',
     productName: '',
     targetAudience: '',
-    tone: 'Premium, Cinematic, Inspiring',
-    keyFeatures: '',
+    tone: ['Premium', 'Cinematic', 'Inspiring'],
+    keyFeatures: [],
     creativeDirection: '',
     voiceName: 'Kore' // Default voice
   });
@@ -505,7 +505,7 @@ const App: React.FC = () => {
                 <h1>${project.brief.brandName}</h1>
                 <div class="meta">
                     Campaign Concept: <strong>${project.selectedConcept?.title}</strong><br>
-                    Tone: ${project.brief.tone} &bull; Audience: ${project.brief.targetAudience}
+                    Tone: ${project.brief.tone.join(', ')} &bull; Audience: ${project.brief.targetAudience}
                 </div>
             </header>
             ${project.brief.moodBoard ? `<section><h2>Visual Identity</h2><div class="moodboard-container"><img src="${project.brief.moodBoard}" alt="Mood Board" /></div></section>` : ''}
@@ -645,8 +645,8 @@ const App: React.FC = () => {
                   <div className="space-y-2">
                     <label className="text-xs uppercase tracking-widest text-white/40 font-bold">Brand Tone</label>
                     <input 
-                        value={brief.tone}
-                        onChange={(e) => setBrief({...brief, tone: e.target.value})}
+                        value={brief.tone.join(', ')}
+                        onChange={(e) => setBrief({...brief, tone: e.target.value.split(',').map(t => t.trim())})}
                         className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 focus:outline-none focus:border-yellow-500 transition"
                         placeholder="Premium, Cinematic..."
                       />
@@ -684,10 +684,10 @@ const App: React.FC = () => {
                   <label className="text-xs uppercase tracking-widest text-white/40 font-bold">Key Selling Points</label>
                   <textarea 
                     required
-                    value={brief.keyFeatures}
-                    onChange={(e) => setBrief({...brief, keyFeatures: e.target.value})}
+                    value={brief.keyFeatures.join('\n')}
+                    onChange={(e) => setBrief({...brief, keyFeatures: e.target.value.split('\n').filter(t => t.trim())})}
                     className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 h-32 focus:outline-none focus:border-yellow-500 transition resize-none"
-                    placeholder="What makes this product special?"
+                    placeholder="What makes this product special? (Enter each point on a new line)"
                   />
                   {brief.researchSources && brief.researchSources.length > 0 && (
                      <div className="text-[10px] text-white/30 mt-1">
@@ -786,7 +786,7 @@ const App: React.FC = () => {
                            {!brief.moodBoard && (
                              <button 
                               onClick={handleGenerateMoodBoard}
-                              disabled={generatingMoodBoard || !brief.tone}
+                              disabled={generatingMoodBoard || brief.tone.length === 0}
                               className="text-xs bg-yellow-500/20 hover:bg-yellow-500/40 text-yellow-300 px-3 py-1.5 rounded-lg transition disabled:opacity-50 flex items-center gap-2"
                              >
                                {generatingMoodBoard ? <BananaPro role="artist" size="sm" /> : "Generate"}
@@ -820,7 +820,7 @@ const App: React.FC = () => {
                           <div>
                             <span className="text-white/40 text-xs block mb-1">Tone</span>
                             <div className="flex flex-wrap gap-2">
-                               {brief.tone ? brief.tone.split(',').map((t, i) => (
+                               {brief.tone.length > 0 ? brief.tone.map((t, i) => (
                                  <span key={i} className="px-2 py-1 bg-white/10 rounded text-xs text-white/80">{t.trim()}</span>
                                )) : <span className="text-white/20 text-sm italic">Define tone...</span>}
                             </div>

@@ -16,8 +16,16 @@ export class GeminiService {
     try {
       return await fn();
     } catch (error: any) {
-      // Check for 429 (Too Many Requests) or 503 (Service Unavailable)
-      if (retries > 0 && (error.status === 429 || error.status === 503 || error.message?.includes('429'))) {
+      const status = error?.status || error?.response?.status;
+      const message = error?.message || '';
+      // Check for 429, 503, or specific error codes/messages indicating resource exhaustion or unavailability
+      if (retries > 0 && (
+          status === 429 || 
+          status === 503 || 
+          message.includes('429') || 
+          message.includes('RESOURCE_EXHAUSTED') ||
+          message.includes('UNAVAILABLE')
+      )) {
         console.warn(`Rate limit hit. Retrying in ${delay}ms... (${retries} retries left)`);
         await new Promise(resolve => setTimeout(resolve, delay));
         return this.retry(fn, retries - 1, delay * 2); // Exponential backoff
@@ -35,8 +43,8 @@ export class GeminiService {
 
     Return a JSON object with suggested fields for an ad brief: 
     - 'targetAudience'
-    - 'tone' (3-5 adjectives)
-    - 'keyFeatures' (a concise list)
+    - 'tone' (List of 3-5 adjectives)
+    - 'keyFeatures' (List of key selling points)
     - 'logoImage' (URL string if found, otherwise empty string)`;
 
     const response = await ai.models.generateContent({
@@ -49,8 +57,8 @@ export class GeminiService {
           type: Type.OBJECT,
           properties: {
             targetAudience: { type: Type.STRING },
-            tone: { type: Type.STRING },
-            keyFeatures: { type: Type.STRING },
+            tone: { type: Type.ARRAY, items: { type: Type.STRING } },
+            keyFeatures: { type: Type.ARRAY, items: { type: Type.STRING } },
             logoImage: { type: Type.STRING, description: "URL to the brand logo if found on the web" },
           },
           required: ["targetAudience", "tone", "keyFeatures"],
@@ -70,10 +78,6 @@ export class GeminiService {
       });
     }
 
-    // Since the API might return a web URL for logoImage which isn't a direct image data, 
-    // we might just treat it as a suggestion or a source, but the UI will handle the actual 'image' upload/override.
-    // If the model actually found a direct image link in the search, great, but often it's just a page.
-    
     return { ...data, researchSources: sources };
   }
 
@@ -87,7 +91,7 @@ export class GeminiService {
     - Create a cohesive graphic design layout on a textured background (paper or digital noise).
     - FEATURE 1: A prominent color palette strip with 5 distinct color swatches extracted from the brand vibe.
     - FEATURE 2: High-end lifestyle imagery representing the audience: ${brief.targetAudience}.
-    - FEATURE 3: Visual textures (e.g. concrete, silk, film grain) that match the tone: ${brief.tone}.
+    - FEATURE 3: Visual textures (e.g. concrete, silk, film grain) that match the tone: ${brief.tone.join(', ')}.
     - FEATURE 4: Large, stylish typography displaying the brand name "${brief.brandName}".
     - FEATURE 5: The product itself, integrated artistically into the collage.
     ${logoImage ? '- FEATURE 6: Include the provided Brand Logo in the corner or as a design element.' : ''}
@@ -120,22 +124,24 @@ export class GeminiService {
 
     parts.push({ text: prompt });
 
-    const response = await ai.models.generateContent({
-      model: "gemini-2.5-flash-image",
-      contents: { parts },
-      config: {
-        imageConfig: {
-          aspectRatio: "16:9",
-        },
-      },
-    });
+    return this.retry(async () => {
+        const response = await ai.models.generateContent({
+          model: "gemini-2.5-flash-image",
+          contents: { parts },
+          config: {
+            imageConfig: {
+              aspectRatio: "16:9",
+            },
+          },
+        });
 
-    for (const part of response.candidates[0].content.parts) {
-      if (part.inlineData) {
-        return `data:image/png;base64,${part.inlineData.data}`;
-      }
-    }
-    throw new Error("Failed to generate mood board image");
+        for (const part of response.candidates[0].content.parts) {
+          if (part.inlineData) {
+            return `data:image/png;base64,${part.inlineData.data}`;
+          }
+        }
+        throw new Error("Failed to generate mood board image");
+    });
   }
 
   static async generateConceptPreview(concept: AdConcept, productImage?: string): Promise<string> {
@@ -192,8 +198,8 @@ export class GeminiService {
     Brand: ${brief.brandName}
     Product: ${brief.productName}
     Standard Audience: ${brief.targetAudience}
-    Standard Tone: ${brief.tone}
-    Key Selling Points: ${brief.keyFeatures}
+    Standard Tone: ${brief.tone.join(', ')}
+    Key Selling Points: ${brief.keyFeatures.join(', ')}
 
     ${brief.creativeDirection ? `
     IMPORTANT - CAMPAIGN STRATEGY PIVOT:
@@ -272,9 +278,9 @@ export class GeminiService {
   }
 
   // New method to polish/rewrite script
-  static async polishSceneScript(script: string, tone: string): Promise<string> {
+  static async polishSceneScript(script: string, tone: string[]): Promise<string> {
     const ai = this.getClient();
-    const prompt = `Rewrite the following advertisement script line to be more ${tone}, punchy, and professional for a commercial voiceover. Keep it concise.
+    const prompt = `Rewrite the following advertisement script line to be more ${tone.join(', ')}, punchy, and professional for a commercial voiceover. Keep it concise.
     
     Original Script: "${script}"`;
 
@@ -363,34 +369,50 @@ export class GeminiService {
     const ai = this.getClient();
     
     // Explicitly optimize prompt for Image-to-Video
-    // When an image is provided, Veo uses the prompt to understand MOTION, not object existence.
-    // "No Fluff" means telling Veo exactly what moves.
     const veoPrompt = `Cinematic commercial shot. ${prompt}. High consistency with input image. Photorealistic 8k.`;
+    
+    // Determine mimeType if image exists, default to 'image/png' if unclear but safer to parse
+    const mimeType = initialImage ? initialImage.split(';')[0].split(':')[1] : undefined;
 
-    let operation = await ai.models.generateVideos({
-      model: 'veo-3.1-fast-generate-preview',
-      prompt: veoPrompt,
-      image: initialImage ? {
-        imageBytes: initialImage.split(',')[1],
-        mimeType: 'image/png'
-      } : undefined,
-      config: {
-        numberOfVideos: 1,
-        resolution: '720p',
-        aspectRatio: '16:9'
-      }
+    // Wrap initial generation request in retry
+    let operation = await this.retry(async () => {
+        return await ai.models.generateVideos({
+            model: 'veo-3.1-fast-generate-preview',
+            prompt: veoPrompt,
+            image: initialImage && mimeType ? {
+                imageBytes: initialImage.split(',')[1],
+                mimeType: mimeType
+            } : undefined,
+            config: {
+                numberOfVideos: 1,
+                resolution: '720p',
+                aspectRatio: '16:9'
+            }
+        });
     });
 
+    // Polling with Timeout and Retry
+    const startTime = Date.now();
+    const TIMEOUT_MS = 300000; // 5 minutes timeout
+
     while (!operation.done) {
+      if (Date.now() - startTime > TIMEOUT_MS) {
+        throw new Error("Video generation timed out after 5 minutes");
+      }
       await new Promise(resolve => setTimeout(resolve, 5000));
-      operation = await ai.operations.getVideosOperation({ operation: operation });
+      // Wrap polling in retry to handle transient API errors during check
+      operation = await this.retry(async () => await ai.operations.getVideosOperation({ operation: operation }));
     }
 
     const downloadLink = operation.response?.generatedVideos?.[0]?.video?.uri;
     if (!downloadLink) throw new Error("Video generation failed");
 
+    // Client-side download (Note: Server-side proxy is recommended for production to hide keys and handle CORS)
     const apiKey = process.env.API_KEY;
     const videoResponse = await fetch(`${downloadLink}&key=${apiKey}`);
+    if (!videoResponse.ok) {
+        throw new Error(`Failed to download video: ${videoResponse.statusText}`);
+    }
     const videoBlob = await videoResponse.blob();
     return URL.createObjectURL(videoBlob);
   }

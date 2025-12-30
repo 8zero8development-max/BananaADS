@@ -3,8 +3,8 @@ export interface AdBrief {
   brandName: string;
   productName: string;
   targetAudience: string;
-  tone: string;
-  keyFeatures: string;
+  tone: string[]; // Changed to array for structured handling
+  keyFeatures: string[]; // Changed to array for structured handling
   creativeDirection?: string; // New field for niche pivot/strategy
   voiceName?: string; // New field for selecting the AI narrator
   productImage?: string;
