@@ -190,7 +190,7 @@ const App: React.FC = () => {
   const [researching, setResearching] = useState(false);
   const [generatingMoodBoard, setGeneratingMoodBoard] = useState(false);
   const [generatingPreviews, setGeneratingPreviews] = useState(false);
-  const [copiedPromptIndex, setCopiedPromptIndex] = useState<number | null>(null);
+  const [copiedId, setCopiedId] = useState<string | null>(null);
   
   const [brief, setBrief] = useState<AdBrief>({
     brandName: '',
@@ -457,11 +457,11 @@ const App: React.FC = () => {
     }
   };
 
-  const handleCopyPrompt = async (text: string, idx: number) => {
+  const handleCopyPrompt = async (text: string, id: string) => {
     try {
       await navigator.clipboard.writeText(text);
-      setCopiedPromptIndex(idx);
-      setTimeout(() => setCopiedPromptIndex(null), 2000);
+      setCopiedId(id);
+      setTimeout(() => setCopiedId(null), 2000);
     } catch (err) {
       console.error("Failed to copy", err);
     }
@@ -1002,10 +1002,10 @@ const App: React.FC = () => {
                       <div className="flex justify-between items-end mb-2">
                           <label className="text-[10px] uppercase tracking-widest text-white/30 font-bold block">Cinematography Prompt</label>
                           <button 
-                            onClick={() => handleCopyPrompt(scene.visualPrompt, idx)}
+                            onClick={() => handleCopyPrompt(scene.visualPrompt, `${idx}-vis`)}
                             className="text-[10px] text-white/40 hover:text-white transition flex items-center gap-1.5"
                           >
-                             {copiedPromptIndex === idx ? (
+                             {copiedId === `${idx}-vis` ? (
                                 <><i className="fa-solid fa-check text-green-400"></i> <span className="text-green-400 font-bold">Copied</span></>
                              ) : (
                                 <><i className="fa-regular fa-copy"></i> Copy</>
@@ -1014,6 +1014,34 @@ const App: React.FC = () => {
                       </div>
                       <p className="text-white/80 text-sm leading-relaxed italic border-l-2 border-yellow-500/30 pl-4">"{scene.visualPrompt}"</p>
                     </div>
+                    
+                    {/* Nano Banana Image Prompt Section */}
+                    <div className="mb-8">
+                       <div className="flex justify-between items-end mb-2">
+                          <label className="text-[10px] uppercase tracking-widest text-white/30 font-bold block">Nano Banana Prompt <span className="text-[9px] font-normal normal-case text-white/20">(Image Gen)</span></label>
+                          <button 
+                            onClick={() => handleCopyPrompt(
+                              `Generate a high-end cinematic advertising shot. Description: ${scene.visualPrompt}. 8k, professional lighting, photorealistic.`, 
+                              `${idx}-nano`
+                            )}
+                            className="text-[10px] text-white/40 hover:text-white transition flex items-center gap-1.5"
+                          >
+                             {copiedId === `${idx}-nano` ? (
+                                <><i className="fa-solid fa-check text-green-400"></i> <span className="text-green-400 font-bold">Copied</span></>
+                             ) : (
+                                <><i className="fa-regular fa-copy"></i> Copy</>
+                             )}
+                          </button>
+                      </div>
+                      <div className="bg-black/40 rounded p-3 border border-white/5 relative group">
+                        <p className="text-white/60 text-xs font-mono break-words leading-tight">
+                           <span className="text-yellow-500/50">generate_img(</span>
+                           "Generate a high-end cinematic advertising shot. Description: <span className="text-white">{scene.visualPrompt}</span>. 8k, professional lighting, photorealistic."
+                           <span className="text-yellow-500/50">)</span>
+                        </p>
+                      </div>
+                    </div>
+
                     <div>
                       <div className="flex items-center justify-between mb-2">
                          <label className="text-[10px] uppercase tracking-widest text-white/30 font-bold block">Audio Script</label>
