@@ -116,26 +116,49 @@ export class GeminiService {
     throw new Error("Failed to generate mood board image");
   }
 
-  static async generateConceptPreview(concept: AdConcept): Promise<string> {
+  static async generateConceptPreview(concept: AdConcept, productImage?: string): Promise<string> {
     const ai = this.getClient();
-    const response = await ai.models.generateContent({
-      model: "gemini-2.5-flash-image",
-      contents: {
-        parts: [{ text: `Cinematic concept art key visual for an advertisement. Title: ${concept.title}. Scene description: ${concept.summary}. High quality, atmospheric, 4k.` }],
-      },
-      config: {
-        imageConfig: {
-          aspectRatio: "16:9",
-        },
-      },
-    });
-
-    for (const part of response.candidates[0].content.parts) {
-      if (part.inlineData) {
-        return `data:image/png;base64,${part.inlineData.data}`;
-      }
+    const parts: any[] = [];
+    
+    // 1. Add Product Reference
+    if (productImage) {
+      parts.push({
+        inlineData: {
+          mimeType: productImage.split(';')[0].split(':')[1],
+          data: productImage.split(',')[1]
+        }
+      });
+      parts.push({ text: "REFERENCE PRODUCT: The image must feature this exact product. It is the hero of the shot." });
     }
-    throw new Error("No image data found");
+
+    // 2. Add Prompt
+    parts.push({ text: `Create a cinematic concept art visual for an advertisement.
+    Title: ${concept.title}.
+    Summary: ${concept.summary}.
+    
+    Directives:
+    - REALISM: The product must be placed realistically in the scene defined by the summary.
+    - NO FLUFF: No abstract backgrounds or generic graphics.
+    - FOCUS: High-end product photography style.` });
+
+    return this.retry(async () => {
+        const response = await ai.models.generateContent({
+            model: "gemini-2.5-flash-image",
+            contents: { parts },
+            config: {
+                imageConfig: {
+                    aspectRatio: "16:9",
+                },
+            },
+        });
+
+        for (const part of response.candidates[0].content.parts) {
+            if (part.inlineData) {
+                return `data:image/png;base64,${part.inlineData.data}`;
+            }
+        }
+        throw new Error("No image data found");
+    });
   }
 
   static async generateConcepts(brief: AdBrief): Promise<AdConcept[]> {

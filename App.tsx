@@ -169,7 +169,8 @@ const App: React.FC = () => {
       setGeneratingPreviews(true);
       generatedConcepts.forEach(async (concept) => {
         try {
-          const url = await GeminiService.generateConceptPreview(concept);
+          // Pass the real product image to ensure "no fluff" results
+          const url = await GeminiService.generateConceptPreview(concept, brief.productImage);
           setConcepts(prev => prev.map(c => c.id === concept.id ? { ...c, thumbnailUrl: url } : c));
         } catch (e) {
           console.error("Failed to generate preview for concept", concept.id);
