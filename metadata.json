@@ -1,0 +1,7 @@
+{
+  "name": "Banana Ads - AI Cinematography Agent",
+  "description": "A high-end cinematic advertisement creation platform that uses Gemini models to generate scripts, storyboards, voiceovers, and cinematic video clips for brands.",
+  "requestFramePermissions": [
+    "microphone"
+  ]
+}
