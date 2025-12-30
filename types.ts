@@ -8,6 +8,7 @@ export interface AdBrief {
   creativeDirection?: string; // New field for niche pivot/strategy
   voiceName?: string; // New field for selecting the AI narrator
   productImage?: string;
+  logoImage?: string; // New field for Brand Logo
   productUrl?: string;
   moodBoard?: string;
   researchSources?: string[];

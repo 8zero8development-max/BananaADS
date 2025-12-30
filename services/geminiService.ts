@@ -30,7 +30,14 @@ export class GeminiService {
     const ai = this.getClient();
     const prompt = `Research the brand "${brandName}" and their product "${productName}". 
     Analyze their current marketing, target audience, brand voice, and key selling propositions.
-    Return a JSON object with suggested fields for an ad brief: 'targetAudience', 'tone' (3-5 adjectives), and 'keyFeatures' (a concise list).`;
+    
+    If possible, find a URL for their official logo (search for 'logo' or 'icon').
+
+    Return a JSON object with suggested fields for an ad brief: 
+    - 'targetAudience'
+    - 'tone' (3-5 adjectives)
+    - 'keyFeatures' (a concise list)
+    - 'logoImage' (URL string if found, otherwise empty string)`;
 
     const response = await ai.models.generateContent({
       model: "gemini-3-pro-preview",
@@ -44,6 +51,7 @@ export class GeminiService {
             targetAudience: { type: Type.STRING },
             tone: { type: Type.STRING },
             keyFeatures: { type: Type.STRING },
+            logoImage: { type: Type.STRING, description: "URL to the brand logo if found on the web" },
           },
           required: ["targetAudience", "tone", "keyFeatures"],
         },
@@ -62,10 +70,14 @@ export class GeminiService {
       });
     }
 
+    // Since the API might return a web URL for logoImage which isn't a direct image data, 
+    // we might just treat it as a suggestion or a source, but the UI will handle the actual 'image' upload/override.
+    // If the model actually found a direct image link in the search, great, but often it's just a page.
+    
     return { ...data, researchSources: sources };
   }
 
-  static async generateMoodBoard(brief: AdBrief, referenceImage?: string): Promise<string> {
+  static async generateMoodBoard(brief: AdBrief, referenceImage?: string, logoImage?: string): Promise<string> {
     const ai = this.getClient();
     
     // Prompt for a single collage image
@@ -78,29 +90,39 @@ export class GeminiService {
     - FEATURE 3: Visual textures (e.g. concrete, silk, film grain) that match the tone: ${brief.tone}.
     - FEATURE 4: Large, stylish typography displaying the brand name "${brief.brandName}".
     - FEATURE 5: The product itself, integrated artistically into the collage.
+    ${logoImage ? '- FEATURE 6: Include the provided Brand Logo in the corner or as a design element.' : ''}
     
     Style: Organized, aesthetic, "Urban Pulse" vibe, cinematic lighting, graphic design portfolio quality. 16:9 aspect ratio.`;
 
-    let contents;
-    
+    const parts: any[] = [];
+
+    // 1. Add Product Image
     if (referenceImage) {
-      const base64Data = referenceImage.split(',')[1];
-      const mimeType = referenceImage.split(';')[0].split(':')[1];
-      contents = {
-        parts: [
-          {
-            inlineData: { mimeType, data: base64Data }
-          },
-          { text: `Use this product image as the key reference in the collage. ${prompt}` }
-        ]
-      };
-    } else {
-      contents = { parts: [{ text: prompt }] };
+      parts.push({
+        inlineData: { 
+            mimeType: referenceImage.split(';')[0].split(':')[1], 
+            data: referenceImage.split(',')[1] 
+        }
+      });
+      parts.push({ text: "Use this product image as the key reference in the collage." });
     }
+
+    // 2. Add Logo Image
+    if (logoImage && logoImage.startsWith('data:')) {
+       parts.push({
+        inlineData: { 
+            mimeType: logoImage.split(';')[0].split(':')[1], 
+            data: logoImage.split(',')[1] 
+        }
+      });
+      parts.push({ text: "Use this image as the Brand Logo in the collage." });
+    }
+
+    parts.push({ text: prompt });
 
     const response = await ai.models.generateContent({
       model: "gemini-2.5-flash-image",
-      contents: contents,
+      contents: { parts },
       config: {
         imageConfig: {
           aspectRatio: "16:9",
@@ -215,7 +237,16 @@ export class GeminiService {
     Brand Context: ${brief.brandName} - ${brief.productName}
     ${brief.creativeDirection ? `Creative Direction Context: ${brief.creativeDirection}` : ''}
     
-    The script should have 5 high-impact scenes. For each scene provide a highly detailed visual prompt for an image/video generator and the spoken audio script (voiceover).`;
+    The script should have 5 scenes. 
+    
+    VEO OPTIMIZATION RULES (CRITICAL):
+    1. 'visualPrompt': Must be optimized for "Image-to-Video" generation with a strict 5-8 second duration limit.
+    2. MOTION FOCUS: Do not describe a complex sequence of events. Describe a SINGLE, continuous motion.
+       - Good: "Slow pan right across the product", "Water droplets splash in slow motion", "Camera pushes in on the dial".
+       - Bad: "The man walks in, sits down, and drinks coffee" (Too complex for 5s).
+    3. NO FLUFF: The visual prompt must align perfectly with a static image of the product. Focus on lighting changes, camera movement, or particle effects.
+    
+    Output a JSON array of scenes.`;
 
     const response = await ai.models.generateContent({
       model: "gemini-3-pro-preview",
@@ -228,7 +259,7 @@ export class GeminiService {
             type: Type.OBJECT,
             properties: {
               sceneNumber: { type: Type.NUMBER },
-              visualPrompt: { type: Type.STRING },
+              visualPrompt: { type: Type.STRING, description: "A prompt describing a single 5-8s motion, e.g., 'Slow camera push in'" },
               audioScript: { type: Type.STRING },
             },
             required: ["sceneNumber", "visualPrompt", "audioScript"],
@@ -331,9 +362,14 @@ export class GeminiService {
   static async generateCinematicVideo(prompt: string, initialImage?: string): Promise<string> {
     const ai = this.getClient();
     
+    // Explicitly optimize prompt for Image-to-Video
+    // When an image is provided, Veo uses the prompt to understand MOTION, not object existence.
+    // "No Fluff" means telling Veo exactly what moves.
+    const veoPrompt = `Cinematic commercial shot. ${prompt}. High consistency with input image. Photorealistic 8k.`;
+
     let operation = await ai.models.generateVideos({
       model: 'veo-3.1-fast-generate-preview',
-      prompt: `Cinematic commercial clip: ${prompt}`,
+      prompt: veoPrompt,
       image: initialImage ? {
         imageBytes: initialImage.split(',')[1],
         mimeType: 'image/png'

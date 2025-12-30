@@ -4,7 +4,62 @@ import { AdBrief, AdConcept, Scene, AppStep, AdProject } from './types';
 import { GeminiService } from './services/geminiService';
 import { decodeBase64, decodeAudioData } from './utils/audioUtils';
 
-// Helper Components
+// --- Custom Components ---
+
+type BananaRole = 'default' | 'research' | 'artist' | 'director' | 'cameraman' | 'voice' | 'writer';
+
+// Banana Pro: The specialized agent character component
+const BananaPro: React.FC<{ 
+  role?: BananaRole; 
+  size?: 'sm' | 'md' | 'lg' | 'xl'; 
+  text?: string;
+  className?: string;
+}> = ({ role = 'default', size = 'md', text, className = '' }) => {
+  
+  const sizeConfig = {
+    sm: { text: 'text-2xl', sub: 'text-[0.6rem]', emojiSize: 'text-lg' },
+    md: { text: 'text-4xl', sub: 'text-[0.7rem]', emojiSize: 'text-2xl' },
+    lg: { text: 'text-6xl', sub: 'text-xs', emojiSize: 'text-4xl' },
+    xl: { text: 'text-8xl', sub: 'text-sm', emojiSize: 'text-5xl' }
+  };
+
+  // Configuration for each banana persona
+  const personas: Record<BananaRole, { 
+    banana: string; 
+    accessory: string; 
+    animation: string; 
+    color: string;
+    accessoryPos: string;
+  }> = {
+    default: { banana: '🍌', accessory: '', animation: 'animate-banana-wiggle', color: 'text-yellow-400', accessoryPos: '' },
+    research: { banana: '🍌', accessory: '🧐', animation: 'animate-banana-scan', color: 'text-blue-400', accessoryPos: 'absolute -bottom-1 -right-2' },
+    artist: { banana: '🍌', accessory: '🎨', animation: 'animate-banana-bounce', color: 'text-pink-400', accessoryPos: 'absolute -top-1 -right-2' },
+    director: { banana: '🍌', accessory: '🎬', animation: 'animate-banana-wiggle', color: 'text-purple-400', accessoryPos: 'absolute bottom-0 -left-2 rotate-[-20deg]' },
+    cameraman: { banana: '🍌', accessory: '📹', animation: 'animate-banana-pulse', color: 'text-red-500', accessoryPos: 'absolute top-1/2 -right-3 -translate-y-1/2' },
+    voice: { banana: '🍌', accessory: '🎙️', animation: 'animate-banana-vibrate', color: 'text-green-400', accessoryPos: 'absolute bottom-0 -right-2' },
+    writer: { banana: '🍌', accessory: '✍️', animation: 'animate-banana-write', color: 'text-orange-400', accessoryPos: 'absolute bottom-0 -right-1' },
+  };
+
+  const p = personas[role];
+  const s = sizeConfig[size];
+
+  return (
+    <div className={`flex flex-col items-center justify-center gap-3 ${className}`}>
+      <div className={`relative ${p.animation} inline-block`}>
+        <span className={`${s.text} filter drop-shadow-lg`}>{p.banana}</span>
+        {p.accessory && (
+          <span className={`${s.emojiSize} ${p.accessoryPos} filter drop-shadow-md`}>{p.accessory}</span>
+        )}
+      </div>
+      {text && (
+        <p className={`${p.color} font-bold ${s.sub} uppercase tracking-widest animate-pulse text-center whitespace-nowrap`}>
+          {text}
+        </p>
+      )}
+    </div>
+  );
+};
+
 const StepIndicator: React.FC<{ currentStep: AppStep }> = ({ currentStep }) => {
   const steps = ["Brand Brief", "Creative Concepts", "Production"];
   return (
@@ -44,13 +99,10 @@ const ApiKeyConfig: React.FC<{ onConfigured: () => void }> = ({ onConfigured }) 
 
   useEffect(() => {
     const check = async () => {
-      // 1. Check for Environment Variable (Standard Deployment)
       if (process.env.API_KEY) {
         onConfigured();
         return;
       }
-
-      // 2. Check for AI Studio Context (Playground)
       const aiStudio = (window as any).aistudio;
       if (aiStudio) {
         setIsAiStudio(true);
@@ -60,7 +112,6 @@ const ApiKeyConfig: React.FC<{ onConfigured: () => void }> = ({ onConfigured }) 
           return;
         }
       }
-      
       setChecking(false);
     };
     check();
@@ -70,22 +121,17 @@ const ApiKeyConfig: React.FC<{ onConfigured: () => void }> = ({ onConfigured }) 
     const aiStudio = (window as any).aistudio;
     if (aiStudio) {
       await aiStudio.openSelectKey();
-      // Assume success and proceed per specific platform instructions
       onConfigured();
     }
   };
 
-  if (checking) return <div className="min-h-screen flex items-center justify-center"><i className="fa-solid fa-circle-notch fa-spin text-banana text-2xl"></i></div>;
+  if (checking) return <div className="min-h-screen flex items-center justify-center"><BananaPro size="lg" text="System Loading..." /></div>;
 
   return (
     <div className="fixed inset-0 z-[100] bg-black/90 backdrop-blur-xl flex flex-col items-center justify-center text-center p-8">
       <div className="max-w-md w-full glass p-10 rounded-3xl border border-white/10 relative overflow-hidden">
         <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-yellow-400 to-orange-500"></div>
-        
-        <div className="w-16 h-16 bg-white/5 rounded-2xl flex items-center justify-center mx-auto mb-8 border border-white/10">
-          <span className="text-3xl">🍌</span>
-        </div>
-        
+        <div className="w-16 h-16 bg-white/5 rounded-2xl flex items-center justify-center mx-auto mb-8 border border-white/10 text-3xl">🍌</div>
         <h2 className="text-3xl font-serif mb-4">Configuration Required</h2>
         
         {isAiStudio ? (
@@ -127,7 +173,6 @@ const ApiKeyConfig: React.FC<{ onConfigured: () => void }> = ({ onConfigured }) 
                  </div>
               </div>
             </div>
-            
             <button onClick={() => window.location.reload()} className="text-sm text-white/40 hover:text-white flex items-center justify-center gap-2 mx-auto transition">
               <i className="fa-solid fa-rotate-right"></i> Reload Application
             </button>
@@ -203,6 +248,7 @@ const App: React.FC = () => {
         targetAudience: researchData.targetAudience || prev.targetAudience,
         tone: researchData.tone || prev.tone,
         keyFeatures: researchData.keyFeatures || prev.keyFeatures,
+        logoImage: researchData.logoImage || prev.logoImage, // Use found logo if available
         researchSources: researchData.researchSources
       }));
     } catch (error) {
@@ -215,7 +261,8 @@ const App: React.FC = () => {
   const handleGenerateMoodBoard = async () => {
     setGeneratingMoodBoard(true);
     try {
-      const image = await GeminiService.generateMoodBoard(brief, brief.productImage);
+      // Pass both product image and logo image to mood board generator
+      const image = await GeminiService.generateMoodBoard(brief, brief.productImage, brief.logoImage);
       setBrief(prev => ({ ...prev, moodBoard: image }));
     } catch (error) {
       console.error("Mood board generation failed", error);
@@ -230,6 +277,17 @@ const App: React.FC = () => {
       const reader = new FileReader();
       reader.onloadend = () => {
         setBrief(prev => ({ ...prev, productImage: reader.result as string }));
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setBrief(prev => ({ ...prev, logoImage: reader.result as string }));
       };
       reader.readAsDataURL(file);
     }
@@ -555,7 +613,7 @@ const App: React.FC = () => {
                     }`}
                   >
                     {researching ? (
-                      <><i className="fa-solid fa-spinner fa-spin"></i> Researching Brand DNA...</>
+                      <BananaPro role="research" size="sm" />
                     ) : (
                       <><i className="fa-brands fa-google"></i> Auto-fill Brief with AI Research</>
                     )}
@@ -640,36 +698,70 @@ const App: React.FC = () => {
                   )}
                 </div>
 
-                <div className="space-y-2">
-                   <label className="text-xs uppercase tracking-widest text-white/40 font-bold flex justify-between">
-                     <span>Product Reference Anchor</span>
-                     <span className="text-yellow-400 font-normal normal-case">Required for Accurate Mood Board</span>
-                   </label>
-                   
-                   <div className="border border-dashed border-white/20 rounded-xl p-4 hover:bg-white/5 transition relative group flex items-center justify-center h-24">
-                      {brief.productImage ? (
-                         <div className="relative h-full w-full flex items-center justify-center">
-                           <img src={brief.productImage} className="h-full object-contain rounded-lg" alt="Product Reference" />
-                           <button 
-                             type="button"
-                             onClick={() => setBrief({...brief, productImage: undefined})}
-                             className="absolute top-0 right-0 -m-2 bg-red-500/80 text-white rounded-full p-1 w-6 h-6 flex items-center justify-center hover:bg-red-500 transition text-xs"
-                           >
-                             <i className="fa-solid fa-times"></i>
-                           </button>
-                         </div>
-                      ) : (
-                         <label className="flex flex-col items-center justify-center cursor-pointer w-full h-full">
-                            <span className="font-medium text-white/60 text-sm group-hover:text-white transition"><i className="fa-solid fa-upload mr-2"></i> Upload Image</span>
-                            <input 
-                              type="file" 
-                              accept="image/*" 
-                              onChange={handleImageUpload} 
-                              className="hidden"
-                            />
-                         </label>
-                      )}
-                   </div>
+                <div className="grid grid-cols-2 gap-6">
+                    <div className="space-y-2">
+                       <label className="text-xs uppercase tracking-widest text-white/40 font-bold flex justify-between">
+                         <span>Product Reference</span>
+                         <span className="text-yellow-400 font-normal normal-case">Required</span>
+                       </label>
+                       
+                       <div className="border border-dashed border-white/20 rounded-xl p-4 hover:bg-white/5 transition relative group flex items-center justify-center h-24">
+                          {brief.productImage ? (
+                             <div className="relative h-full w-full flex items-center justify-center">
+                               <img src={brief.productImage} className="h-full object-contain rounded-lg" alt="Product Reference" />
+                               <button 
+                                 type="button"
+                                 onClick={() => setBrief({...brief, productImage: undefined})}
+                                 className="absolute top-0 right-0 -m-2 bg-red-500/80 text-white rounded-full p-1 w-6 h-6 flex items-center justify-center hover:bg-red-500 transition text-xs"
+                               >
+                                 <i className="fa-solid fa-times"></i>
+                               </button>
+                             </div>
+                          ) : (
+                             <label className="flex flex-col items-center justify-center cursor-pointer w-full h-full">
+                                <span className="font-medium text-white/60 text-sm group-hover:text-white transition"><i className="fa-solid fa-upload mr-2"></i> Product</span>
+                                <input 
+                                  type="file" 
+                                  accept="image/*" 
+                                  onChange={handleImageUpload} 
+                                  className="hidden"
+                                />
+                             </label>
+                          )}
+                       </div>
+                    </div>
+                    
+                    <div className="space-y-2">
+                       <label className="text-xs uppercase tracking-widest text-white/40 font-bold flex justify-between">
+                         <span>Brand Logo</span>
+                         <span className="text-white/20 font-normal normal-case">Optional Override</span>
+                       </label>
+                       
+                       <div className="border border-dashed border-white/20 rounded-xl p-4 hover:bg-white/5 transition relative group flex items-center justify-center h-24">
+                          {brief.logoImage ? (
+                             <div className="relative h-full w-full flex items-center justify-center">
+                               <img src={brief.logoImage} className="h-full object-contain rounded-lg" alt="Brand Logo" />
+                               <button 
+                                 type="button"
+                                 onClick={() => setBrief({...brief, logoImage: undefined})}
+                                 className="absolute top-0 right-0 -m-2 bg-red-500/80 text-white rounded-full p-1 w-6 h-6 flex items-center justify-center hover:bg-red-500 transition text-xs"
+                               >
+                                 <i className="fa-solid fa-times"></i>
+                               </button>
+                             </div>
+                          ) : (
+                             <label className="flex flex-col items-center justify-center cursor-pointer w-full h-full">
+                                <span className="font-medium text-white/60 text-sm group-hover:text-white transition"><i className="fa-solid fa-upload mr-2"></i> Logo</span>
+                                <input 
+                                  type="file" 
+                                  accept="image/*" 
+                                  onChange={handleLogoUpload} 
+                                  className="hidden"
+                                />
+                             </label>
+                          )}
+                       </div>
+                    </div>
                 </div>
 
                 <button 
@@ -677,7 +769,7 @@ const App: React.FC = () => {
                   disabled={loading}
                   className="w-full gradient-accent text-black font-bold py-4 rounded-xl shadow-lg hover:opacity-90 transition flex items-center justify-center space-x-2 disabled:opacity-50"
                 >
-                  {loading ? <i className="fa-solid fa-circle-notch fa-spin"></i> : <i className="fa-solid fa-sparkles"></i>}
+                  {loading ? <BananaPro role="director" size="sm" /> : <i className="fa-solid fa-sparkles"></i>}
                   <span>{loading ? "Analyzing Brand DNA..." : "Generate Creative Concepts"}</span>
                 </button>
               </form>
@@ -695,9 +787,9 @@ const App: React.FC = () => {
                              <button 
                               onClick={handleGenerateMoodBoard}
                               disabled={generatingMoodBoard || !brief.tone}
-                              className="text-xs bg-yellow-500/20 hover:bg-yellow-500/40 text-yellow-300 px-3 py-1.5 rounded-lg transition disabled:opacity-50"
+                              className="text-xs bg-yellow-500/20 hover:bg-yellow-500/40 text-yellow-300 px-3 py-1.5 rounded-lg transition disabled:opacity-50 flex items-center gap-2"
                              >
-                               {generatingMoodBoard ? <i className="fa-solid fa-spinner fa-spin"></i> : "Generate"}
+                               {generatingMoodBoard ? <BananaPro role="artist" size="sm" /> : "Generate"}
                              </button>
                            )}
                         </div>
@@ -781,10 +873,7 @@ const App: React.FC = () => {
                       ) : (
                         <div className="w-full h-full flex items-center justify-center">
                            {generatingPreviews ? (
-                              <div className="flex flex-col items-center gap-2">
-                                <i className="fa-solid fa-circle-notch fa-spin text-white/20"></i>
-                                <span className="text-[10px] text-white/20 uppercase tracking-widest">Visualizing...</span>
-                              </div>
+                              <BananaPro role="artist" size="sm" text="Sketching..." />
                            ) : (
                               <i className="fa-solid fa-lightbulb text-white/10 text-4xl group-hover:text-white/20 transition"></i>
                            )}
@@ -802,8 +891,8 @@ const App: React.FC = () => {
              </div>
              {loading && (
                <div className="fixed inset-0 bg-black/80 flex flex-col items-center justify-center z-[100]">
-                 <div className="w-16 h-16 border-4 border-white/10 border-t-yellow-500 rounded-full animate-spin mb-6"></div>
-                 <p className="text-xl font-bold">Directing the scene...</p>
+                 <BananaPro role="director" size="lg" />
+                 <p className="text-xl font-bold mt-4">Directing the scene...</p>
                  <p className="text-white/50">Generating cinematic storyboard & scripts</p>
                </div>
              )}
@@ -847,7 +936,7 @@ const App: React.FC = () => {
                       <div className="w-full h-full flex flex-col items-center justify-center space-y-4 p-12 text-center">
                          {scene.isGeneratingImage ? (
                              <>
-                               <div className="w-12 h-12 border-4 border-white/10 border-t-yellow-500 rounded-full animate-spin"></div>
+                               <BananaPro role="artist" size="md" />
                                <p className="text-sm font-bold tracking-widest uppercase">Auto-Rendering Scene...</p>
                              </>
                          ) : (
@@ -878,7 +967,7 @@ const App: React.FC = () => {
                         disabled={scene.isGeneratingImage}
                         className="bg-white text-black px-4 py-2 rounded-full text-xs font-bold hover:bg-yellow-50 transition flex items-center space-x-2"
                       >
-                        {scene.isGeneratingImage ? <i className="fa-solid fa-spinner fa-spin"></i> : <i className="fa-solid fa-image"></i>}
+                        {scene.isGeneratingImage ? <BananaPro role="artist" size="sm" /> : <i className="fa-solid fa-image"></i>}
                         <span>{scene.imageUrl ? "Regenerate Image" : "Generate Image"}</span>
                       </button>
                       <button 
@@ -886,26 +975,27 @@ const App: React.FC = () => {
                         disabled={scene.isGeneratingVideo || !scene.imageUrl}
                         className="gradient-accent text-black px-4 py-2 rounded-full text-xs font-bold hover:scale-105 transition flex items-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
                       >
-                        {scene.isGeneratingVideo ? <i className="fa-solid fa-spinner fa-spin"></i> : <i className="fa-solid fa-play"></i>}
+                        {scene.isGeneratingVideo ? <BananaPro role="cameraman" size="sm" /> : <i className="fa-solid fa-play"></i>}
                         <span>Animate Cinematic Video</span>
                       </button>
                     </div>
                     {(scene.isGeneratingVideo) && (
                       <div className="absolute inset-0 bg-black/60 backdrop-blur-sm flex flex-col items-center justify-center z-10">
-                         <div className="w-12 h-12 border-4 border-white/10 border-t-yellow-500 rounded-full animate-spin mb-4"></div>
-                         <p className="text-sm font-bold tracking-widest uppercase">Rendering Cinematic Motion...</p>
+                         <BananaPro role="cameraman" size="md" />
+                         <p className="text-sm font-bold tracking-widest uppercase mt-4">Rendering Cinematic Motion...</p>
                       </div>
                     )}
                   </div>
                   <div className="md:w-2/5 p-10 flex flex-col border-l border-white/5">
                     <div className="flex items-center justify-between mb-8">
                        <span className="text-xs font-bold uppercase tracking-[0.2em] text-yellow-400">Scene {scene.sceneNumber}</span>
+                       <span className="bg-yellow-500/10 text-yellow-400 text-[10px] font-bold px-2 py-1 rounded">Veo Optimized (8s)</span>
                        <button 
                         onClick={() => playVoiceover(idx)}
                         disabled={scene.isGeneratingVoice}
                         className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center hover:bg-yellow-500/20 hover:text-yellow-400 transition"
                        >
-                         {scene.isGeneratingVoice ? <i className="fa-solid fa-spinner fa-spin"></i> : <i className="fa-solid fa-volume-high"></i>}
+                         {scene.isGeneratingVoice ? <BananaPro role="voice" size="sm" /> : <i className="fa-solid fa-volume-high"></i>}
                        </button>
                     </div>
                     <div className="mb-8">
@@ -932,7 +1022,7 @@ const App: React.FC = () => {
                             disabled={scene.isPolishingScript}
                             className="text-[10px] bg-yellow-500/10 hover:bg-yellow-500/30 text-yellow-300 px-2 py-1 rounded transition flex items-center gap-1"
                          >
-                            {scene.isPolishingScript ? <i className="fa-solid fa-circle-notch fa-spin"></i> : <i className="fa-solid fa-wand-magic-sparkles"></i>}
+                            {scene.isPolishingScript ? <BananaPro role="writer" size="sm" /> : <i className="fa-solid fa-wand-magic-sparkles"></i>}
                             <span>Polish Script</span>
                          </button>
                       </div>
