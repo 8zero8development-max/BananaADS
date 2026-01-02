@@ -212,16 +212,18 @@ const App: React.FC = () => {
       setStep(AppStep.CONCEPTS);
       
       setGeneratingPreviews(true);
-      generatedConcepts.forEach(async (concept) => {
-        try {
-          // Pass the real product image to ensure "no fluff" results
-          const url = await GeminiService.generateConceptPreview(concept, brief.productImage);
-          setConcepts(prev => prev.map(c => c.id === concept.id ? { ...c, thumbnailUrl: url } : c));
-        } catch (e) {
-          console.error("Failed to generate preview for concept", concept.id);
-        }
+      Promise.allSettled(
+        generatedConcepts.map(async (concept) => {
+          try {
+            const url = await GeminiService.generateConceptPreview(concept, brief.productImage);
+            setConcepts(prev => prev.map(c => c.id === concept.id ? { ...c, thumbnailUrl: url } : c));
+          } catch (e) {
+            console.error("Failed to generate preview for concept", concept.id);
+          }
+        })
+      ).finally(() => {
+        setGeneratingPreviews(false);
       });
-      setGeneratingPreviews(false);
     } catch (error) {
       console.error("Error generating concepts:", error);
       alert("Failed to generate concepts. Please try again.");
@@ -304,7 +306,7 @@ const App: React.FC = () => {
     try {
       const script = await GeminiService.generateScript(brief, concept);
       const newProject: AdProject = {
-        id: Math.random().toString(36).substr(2, 9),
+        id: Math.random().toString(36).slice(2, 11),
         brief,
         selectedConcept: concept,
         scenes: script,
@@ -327,15 +329,19 @@ const App: React.FC = () => {
     const currentProject = projectRef || project;
     if (!currentProject) return;
     
+    let previousSceneImage: string | undefined;
+    
     setProject(prev => {
       if(!prev) return null;
+      if (idx > 0) {
+        previousSceneImage = prev.scenes[idx - 1].imageUrl;
+      }
       const newScenes = [...prev.scenes];
       newScenes[idx] = { ...newScenes[idx], isGeneratingImage: true };
       return { ...prev, scenes: newScenes };
     });
 
     try {
-      const previousSceneImage = idx > 0 ? currentProject.scenes[idx - 1].imageUrl : undefined;
       const imageUrl = await GeminiService.generateStoryboardImage(
         currentProject.scenes[idx].visualPrompt,
         currentProject.brief.productImage,
@@ -365,7 +371,7 @@ const App: React.FC = () => {
     setProject(prev => {
         if(!prev) return null;
         const scenes = [...prev.scenes];
-        scenes[idx].isGeneratingVideo = true;
+        scenes[idx] = { ...scenes[idx], isGeneratingVideo: true };
         return { ...prev, scenes };
     });
 
@@ -388,7 +394,7 @@ const App: React.FC = () => {
       setProject(prev => {
         if(!prev) return null;
         const scenes = [...prev.scenes];
-        scenes[idx].isGeneratingVideo = false;
+        scenes[idx] = { ...scenes[idx], isGeneratingVideo: false };
         return { ...prev, scenes };
       });
     }
@@ -400,7 +406,7 @@ const App: React.FC = () => {
     setProject(prev => {
         if(!prev) return null;
         const scenes = [...prev.scenes];
-        scenes[idx].isGeneratingVoice = true;
+        scenes[idx] = { ...scenes[idx], isGeneratingVoice: true };
         return { ...prev, scenes };
     });
 
@@ -420,7 +426,7 @@ const App: React.FC = () => {
         setProject(prev => {
             if(!prev) return null;
             const scenes = [...prev.scenes];
-            scenes[idx].isGeneratingVoice = false;
+            scenes[idx] = { ...scenes[idx], isGeneratingVoice: false };
             return { ...prev, scenes };
         });
     }
@@ -433,7 +439,7 @@ const App: React.FC = () => {
     setProject(prev => {
       if(!prev) return null;
       const scenes = [...prev.scenes];
-      scenes[idx].isPolishingScript = true;
+      scenes[idx] = { ...scenes[idx], isPolishingScript: true };
       return { ...prev, scenes };
     });
 
@@ -442,8 +448,7 @@ const App: React.FC = () => {
       setProject(prev => {
         if(!prev) return null;
         const scenes = [...prev.scenes];
-        scenes[idx].audioScript = polished;
-        scenes[idx].isPolishingScript = false;
+        scenes[idx] = { ...scenes[idx], audioScript: polished, isPolishingScript: false };
         return { ...prev, scenes };
       });
     } catch (e) {
@@ -451,7 +456,7 @@ const App: React.FC = () => {
       setProject(prev => {
         if(!prev) return null;
         const scenes = [...prev.scenes];
-        scenes[idx].isPolishingScript = false;
+        scenes[idx] = { ...scenes[idx], isPolishingScript: false };
         return { ...prev, scenes };
       });
     }
@@ -691,9 +696,14 @@ const App: React.FC = () => {
                   />
                   {brief.researchSources && brief.researchSources.length > 0 && (
                      <div className="text-[10px] text-white/30 mt-1">
-                        <span className="font-bold">Sources:</span> {brief.researchSources.map((s,i) => (
-                           <a key={i} href={s} target="_blank" rel="noreferrer" className="underline hover:text-yellow-400 mr-2 truncate max-w-[200px] inline-block align-bottom">{new URL(s).hostname}</a>
-                        ))}
+                        <span className="font-bold">Sources:</span> {brief.researchSources.map((s,i) => {
+                           try {
+                             const hostname = new URL(s).hostname;
+                             return <a key={i} href={s} target="_blank" rel="noreferrer" className="underline hover:text-yellow-400 mr-2 truncate max-w-[200px] inline-block align-bottom">{hostname}</a>;
+                           } catch {
+                             return null;
+                           }
+                        })}
                      </div>
                   )}
                 </div>

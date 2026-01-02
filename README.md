@@ -45,11 +45,11 @@ This application is designed to work primarily on the **Free Tier**, with one ex
     # or
     yarn install
     ```
-    *Core dependencies: `react`, `react-dom`, `@google/genai`, `tailwindcss`.*
+    *Core dependencies: `react`, `react-dom`, `@google/genai`.*
 
 3.  **Run the Application**:
     ```bash
-    npm start
+    npm run dev
     ```
 
 ## 🛠️ Usage Guide

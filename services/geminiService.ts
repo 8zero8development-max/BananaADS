@@ -135,12 +135,16 @@ export class GeminiService {
           },
         });
 
-        for (const part of response.candidates[0].content.parts) {
+        const responseParts = response.candidates?.[0]?.content?.parts;
+        if (!responseParts) {
+          throw new Error("Failed to generate mood board image: No content in response");
+        }
+        for (const part of responseParts) {
           if (part.inlineData) {
             return `data:image/png;base64,${part.inlineData.data}`;
           }
         }
-        throw new Error("Failed to generate mood board image");
+        throw new Error("Failed to generate mood board image: No image data found");
     });
   }
 
@@ -180,7 +184,11 @@ export class GeminiService {
             },
         });
 
-        for (const part of response.candidates[0].content.parts) {
+        const responseParts = response.candidates?.[0]?.content?.parts;
+        if (!responseParts) {
+          throw new Error("No content in response");
+        }
+        for (const part of responseParts) {
             if (part.inlineData) {
                 return `data:image/png;base64,${part.inlineData.data}`;
             }
@@ -333,7 +341,11 @@ export class GeminiService {
           },
         });
 
-        for (const part of response.candidates[0].content.parts) {
+        const responseParts = response.candidates?.[0]?.content?.parts;
+        if (!responseParts) {
+          throw new Error("No content in response");
+        }
+        for (const part of responseParts) {
           if (part.inlineData) {
             return `data:image/png;base64,${part.inlineData.data}`;
           }
