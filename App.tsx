@@ -129,9 +129,9 @@ const ApiKeyConfig: React.FC<{ onConfigured: () => void }> = ({ onConfigured }) 
 
   return (
     <div className="fixed inset-0 z-[100] bg-black/90 backdrop-blur-xl flex flex-col items-center justify-center text-center p-8">
-      <div className="max-w-md w-full glass p-10 rounded-3xl border border-white/10 relative overflow-hidden">
+      <div className="max-w-md w-full glass p-10 rounded-3xl border border-yellow-500/30 relative overflow-hidden">
         <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-yellow-400 to-orange-500"></div>
-        <div className="w-16 h-16 bg-white/5 rounded-2xl flex items-center justify-center mx-auto mb-8 border border-white/10 text-3xl">🍌</div>
+        <div className="w-16 h-16 bg-white/5 rounded-2xl flex items-center justify-center mx-auto mb-8 border border-yellow-500/30 text-3xl">🍌</div>
         <h2 className="text-3xl font-serif mb-4">Configuration Required</h2>
         
         {isAiStudio ? (
@@ -155,7 +155,7 @@ const ApiKeyConfig: React.FC<{ onConfigured: () => void }> = ({ onConfigured }) 
                All features (Scripting, Storyboards, Voice) work on the <strong>Free Tier</strong>. <br/>
                Only Video Generation requires a paid key.
             </p>
-            <div className="bg-black/50 rounded-xl p-5 mb-8 text-left border border-white/5">
+            <div className="bg-black/50 rounded-xl p-5 mb-8 text-left border border-yellow-500/20">
               <p className="text-[10px] uppercase tracking-widest text-white/30 font-bold mb-3">Deployment Instructions</p>
               <div className="space-y-3">
                  <div className="flex items-start gap-3">
@@ -192,6 +192,12 @@ const App: React.FC = () => {
   const [generatingPreviews, setGeneratingPreviews] = useState(false);
   const [copiedId, setCopiedId] = useState<string | null>(null);
   
+  // New state for toggling production mode
+  const [productionType, setProductionType] = useState<'video' | 'social' | 'food-social'>('video');
+
+  // Edit instruction state
+  const [editInstruction, setEditInstruction] = useState<string>("");
+
   const [brief, setBrief] = useState<AdBrief>({
     brandName: '',
     productName: '',
@@ -207,10 +213,24 @@ const App: React.FC = () => {
   const generateConceptsLogic = async () => {
     setLoading(true);
     try {
-      const generatedConcepts = await GeminiService.generateConcepts(brief);
+      let generatedConcepts;
+      
+      if (productionType === 'food-social') {
+        // For Food Socials, we first need to extract the "visualStyle" Brand DNA
+        // based on the assets uploaded
+        const dna = await GeminiService.researchBrandDna(brief);
+        setBrief(prev => ({ ...prev, visualStyle: dna.visualStyle }));
+        
+        // Then generate concepts using this DNA
+        generatedConcepts = await GeminiService.generateFoodSocialConcepts({ ...brief, visualStyle: dna.visualStyle });
+      } else {
+        generatedConcepts = await GeminiService.generateConcepts(brief);
+      }
+      
       setConcepts(generatedConcepts);
       setStep(AppStep.CONCEPTS);
       
+      // Generate Previews
       setGeneratingPreviews(true);
       generatedConcepts.forEach(async (concept) => {
         try {
@@ -236,23 +256,49 @@ const App: React.FC = () => {
   };
 
   const handleResearchBrand = async () => {
-    if (!brief.brandName || !brief.productName) {
-      alert("Please enter a Brand Name and Product Name first.");
-      return;
+    // Basic validation
+    if (productionType === 'food-social') {
+        if (!brief.keyFeatures.length && !brief.productUrl) {
+            alert("For Food Socials, please provide a Description (in Key Selling Points) or a Product URL.");
+            return;
+        }
+    } else {
+        if (!brief.brandName || !brief.productName) {
+            alert("Please enter a Brand Name and Product Name first.");
+            return;
+        }
     }
+    
     setResearching(true);
     try {
-      const researchData = await GeminiService.researchBrand(brief.brandName, brief.productName);
-      setBrief(prev => ({
-        ...prev,
-        targetAudience: researchData.targetAudience || prev.targetAudience,
-        tone: researchData.tone || prev.tone,
-        keyFeatures: researchData.keyFeatures || prev.keyFeatures,
-        logoImage: researchData.logoImage || prev.logoImage, // Use found logo if available
-        researchSources: researchData.researchSources
-      }));
-    } catch (error) {
+      let researchData;
+      if (productionType === 'food-social') {
+          // Use autoFillFoodBrief which works better with just URL/Desc
+          const desc = brief.keyFeatures.join(', ');
+          researchData = await GeminiService.autoFillFoodBrief(desc, brief.productUrl || '');
+          setBrief(prev => ({
+            ...prev,
+            brandName: researchData.brandName || prev.brandName,
+            productName: researchData.productName || prev.productName,
+            targetAudience: researchData.targetAudience || prev.targetAudience,
+            tone: researchData.tone || prev.tone,
+            keyFeatures: researchData.keyFeatures || prev.keyFeatures,
+            logoImage: researchData.logoImage || prev.logoImage,
+          }));
+      } else {
+          researchData = await GeminiService.researchBrand(brief.brandName, brief.productName);
+          setBrief(prev => ({
+            ...prev,
+            targetAudience: researchData.targetAudience || prev.targetAudience,
+            tone: researchData.tone || prev.tone,
+            keyFeatures: researchData.keyFeatures || prev.keyFeatures,
+            logoImage: researchData.logoImage || prev.logoImage, // Use found logo if available
+            researchSources: researchData.researchSources
+          }));
+      }
+    } catch (error: any) {
       console.error("Research failed", error);
+      alert(`Research failed: ${error.message || "Unknown error"}`);
     } finally {
       setResearching(false);
     }
@@ -302,17 +348,40 @@ const App: React.FC = () => {
   const handleSelectConcept = async (concept: AdConcept) => {
     setLoading(true);
     try {
-      const script = await GeminiService.generateScript(brief, concept);
+      let script: Scene[] = [];
+      
+      if (productionType === 'video') {
+         script = await GeminiService.generateScript(brief, concept);
+      } else if (productionType === 'social') {
+         script = await GeminiService.generateSocialCampaign(brief, concept);
+      } else if (productionType === 'food-social') {
+         // Food Socials creates a single scene initially
+         script = [{
+             sceneNumber: 1,
+             visualPrompt: concept.visualPrompt || "",
+             audioScript: "", // Will be generated later
+             selectedCta: concept.overlayCtas?.[0]
+         }];
+      }
+
       const newProject: AdProject = {
         id: Math.random().toString(36).substr(2, 9),
         brief,
         selectedConcept: concept,
         scenes: script,
-        status: 'storyboarding'
+        status: 'storyboarding',
+        projectType: productionType
       };
       setProject(newProject);
       setStep(AppStep.STORYBOARDING);
       
+      // Auto-generate caption for food social immediately since script array is sparse
+      if (productionType === 'food-social') {
+           const caption = await GeminiService.generateFoodSocialPost(brief, concept, script[0]);
+           newProject.scenes[0].audioScript = caption;
+           setProject({...newProject}); // Update state
+      }
+
       setTimeout(() => startAutoGeneration(newProject), 100);
       
     } catch (error) {
@@ -335,12 +404,26 @@ const App: React.FC = () => {
     });
 
     try {
-      const previousSceneImage = idx > 0 ? currentProject.scenes[idx - 1].imageUrl : undefined;
-      const imageUrl = await GeminiService.generateStoryboardImage(
-        currentProject.scenes[idx].visualPrompt,
-        currentProject.brief.productImage,
-        previousSceneImage
-      );
+      const scene = currentProject.scenes[idx];
+      let imageUrl;
+
+      if (currentProject.projectType === 'food-social' && currentProject.selectedConcept) {
+         imageUrl = await GeminiService.generateFoodHeroImage(
+             currentProject.brief, 
+             currentProject.selectedConcept, 
+             scene.selectedCta || ""
+         );
+      } else {
+         const previousSceneImage = idx > 0 ? currentProject.scenes[idx - 1].imageUrl : undefined;
+         const aspectRatio = currentProject.projectType === 'video' ? '16:9' : '3:4';
+         
+         imageUrl = await GeminiService.generateStoryboardImage(
+            scene.visualPrompt,
+            currentProject.brief.productImage,
+            previousSceneImage,
+            aspectRatio
+         );
+      }
       
       setProject(prev => {
         if(!prev) return null;
@@ -358,6 +441,59 @@ const App: React.FC = () => {
         return { ...prev, scenes: newScenes };
       });
     }
+  };
+
+  const handleEditImage = async (idx: number) => {
+      if (!project || !project.scenes[idx].imageUrl || !editInstruction) return;
+      
+      setProject(prev => {
+        if(!prev) return null;
+        const newScenes = [...prev.scenes];
+        newScenes[idx] = { ...newScenes[idx], isGeneratingImage: true };
+        return { ...prev, scenes: newScenes };
+      });
+
+      try {
+          const newUrl = await GeminiService.editHeroImage(project.scenes[idx].imageUrl!, editInstruction);
+          setProject(prev => {
+            if(!prev) return null;
+            const newScenes = [...prev.scenes];
+            newScenes[idx] = { ...newScenes[idx], imageUrl: newUrl, isGeneratingImage: false };
+            return { ...prev, scenes: newScenes };
+          });
+          setEditInstruction(""); // Clear input
+      } catch (e) {
+          console.error("Edit failed", e);
+          setProject(prev => {
+            if(!prev) return null;
+            const newScenes = [...prev.scenes];
+            newScenes[idx] = { ...newScenes[idx], isGeneratingImage: false };
+            return { ...prev, scenes: newScenes };
+          });
+      }
+  };
+  
+  const handleCtaChange = async (idx: number, newCta: string) => {
+     if (!project) return;
+     // Update selected CTA
+     setProject(prev => {
+         if(!prev) return null;
+         const s = [...prev.scenes];
+         s[idx].selectedCta = newCta;
+         return { ...prev, scenes: s };
+     });
+     
+     // Regenerate Image with new CTA
+     await generateSceneImage(idx);
+     
+     // Also regenerate caption to reflect new CTA context
+     if (project.projectType === 'food-social' && project.selectedConcept) {
+         setProject(prev => { if(!prev) return null; const s = [...prev.scenes]; s[idx].isPolishingScript = true; return {...prev, scenes: s} });
+         try {
+             const caption = await GeminiService.generateFoodSocialPost(project.brief, project.selectedConcept, { ...project.scenes[idx], selectedCta: newCta });
+             setProject(prev => { if(!prev) return null; const s = [...prev.scenes]; s[idx].audioScript = caption; s[idx].isPolishingScript = false; return {...prev, scenes: s} });
+         } catch(e) { console.error(e); }
+     }
   };
 
   const generateSceneVideo = async (idx: number) => {
@@ -544,7 +680,7 @@ const App: React.FC = () => {
   return (
     <div className="min-h-screen pb-20">
       {/* Header */}
-      <nav className="fixed top-0 w-full z-50 glass border-b border-white/5 py-4 px-8 flex justify-between items-center">
+      <nav className="fixed top-0 w-full z-50 glass border-b border-yellow-500/10 py-4 px-8 flex justify-between items-center">
         <div className="flex items-center space-x-2">
           <div className="w-8 h-8 gradient-accent rounded-lg flex items-center justify-center text-black">
             <i className="fa-solid fa-play text-sm"></i>
@@ -574,27 +710,64 @@ const App: React.FC = () => {
           <div className="animate-fade-in grid grid-cols-1 lg:grid-cols-2 gap-12">
             <div>
               <h1 className="text-5xl font-serif mb-4 gradient-text">Tell us about your brand.</h1>
-              <p className="text-white/50 text-lg mb-8">Our AI cinematography agent will analyze your brief to craft a cinematic experience.</p>
+              <p className="text-white/50 text-lg mb-6">
+                Our AI {productionType === 'video' ? 'cinematography' : 'creative'} agent will analyze your brief to craft a 
+                {productionType === 'video' ? ' cinematic experience' : ' high-impact campaign'}.
+              </p>
+              
+              {/* Mode Selection Tab */}
+              <div className="flex bg-white/5 rounded-full p-1.5 border border-yellow-500/30 w-fit mb-8">
+                  <button 
+                     onClick={() => setProductionType('video')}
+                     className={`px-6 py-2.5 rounded-full text-sm font-bold transition-all flex items-center gap-2 ${
+                        productionType === 'video' 
+                        ? 'bg-white text-black shadow-lg' 
+                        : 'text-white/40 hover:text-white hover:bg-white/5'
+                     }`}
+                  >
+                     <i className="fa-solid fa-film"></i> Cinematic Video
+                  </button>
+                  <button 
+                     onClick={() => setProductionType('social')}
+                     className={`px-6 py-2.5 rounded-full text-sm font-bold transition-all flex items-center gap-2 ${
+                        productionType === 'social' 
+                        ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg' 
+                        : 'text-white/40 hover:text-white hover:bg-white/5'
+                     }`}
+                  >
+                     <i className="fa-brands fa-instagram"></i> Social Posters
+                  </button>
+                  <button 
+                     onClick={() => setProductionType('food-social')}
+                     className={`px-6 py-2.5 rounded-full text-sm font-bold transition-all flex items-center gap-2 ${
+                        productionType === 'food-social' 
+                        ? 'bg-gradient-to-r from-orange-400 to-red-500 text-white shadow-lg' 
+                        : 'text-white/40 hover:text-white hover:bg-white/5'
+                     }`}
+                  >
+                     <i className="fa-solid fa-burger"></i> Food Socials
+                  </button>
+               </div>
               
               <form onSubmit={handleStartBriefing} className="space-y-6">
                 <div className="grid grid-cols-2 gap-6">
                   <div className="space-y-2">
                     <label className="text-xs uppercase tracking-widest text-white/40 font-bold">Brand Name</label>
                     <input 
-                      required
+                      required={productionType !== 'food-social'} // Less strict for food socials auto-fill
                       value={brief.brandName}
                       onChange={(e) => setBrief({...brief, brandName: e.target.value})}
-                      className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 focus:outline-none focus:border-yellow-500 transition"
+                      className="w-full bg-white/5 border border-yellow-500/30 rounded-xl px-4 py-3 focus:outline-none focus:border-yellow-500 transition"
                       placeholder="e.g. Lumina Watches"
                     />
                   </div>
                   <div className="space-y-2">
                     <label className="text-xs uppercase tracking-widest text-white/40 font-bold">Product</label>
                     <input 
-                      required
+                      required={productionType !== 'food-social'}
                       value={brief.productName}
                       onChange={(e) => setBrief({...brief, productName: e.target.value})}
-                      className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 focus:outline-none focus:border-yellow-500 transition"
+                      className="w-full bg-white/5 border border-yellow-500/30 rounded-xl px-4 py-3 focus:outline-none focus:border-yellow-500 transition"
                       placeholder="e.g. Stellar Series"
                     />
                   </div>
@@ -607,7 +780,7 @@ const App: React.FC = () => {
                     onClick={handleResearchBrand}
                     disabled={researching}
                     className={`text-xs flex items-center gap-2 font-bold px-4 py-2 rounded-full border transition ${
-                      (brief.brandName && brief.productName) 
+                      ((brief.brandName && brief.productName) || (productionType === 'food-social' && (brief.productUrl || brief.keyFeatures.length)))
                         ? 'text-yellow-400 bg-yellow-500/10 border-yellow-500/20 hover:bg-yellow-500/20' 
                         : 'text-white/20 bg-white/5 border-white/10 hover:text-white/40'
                     }`}
@@ -615,7 +788,7 @@ const App: React.FC = () => {
                     {researching ? (
                       <BananaPro role="research" size="sm" />
                     ) : (
-                      <><i className="fa-brands fa-google"></i> Auto-fill Brief with AI Research</>
+                      <><i className="fa-brands fa-google"></i> {productionType === 'food-social' ? "Infer Brand DNA from URL" : "Auto-fill Brief with AI Research"}</>
                     )}
                   </button>
                 </div>
@@ -625,7 +798,7 @@ const App: React.FC = () => {
                   <input 
                     value={brief.productUrl || ''}
                     onChange={(e) => setBrief({...brief, productUrl: e.target.value})}
-                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 focus:outline-none focus:border-yellow-500 transition"
+                    className="w-full bg-white/5 border border-yellow-500/30 rounded-xl px-4 py-3 focus:outline-none focus:border-yellow-500 transition"
                     placeholder="https://yourbrand.com/product"
                   />
                 </div>
@@ -633,10 +806,10 @@ const App: React.FC = () => {
                 <div className="space-y-2">
                   <label className="text-xs uppercase tracking-widest text-white/40 font-bold">Target Audience</label>
                   <input 
-                    required
+                    required={productionType !== 'food-social'}
                     value={brief.targetAudience}
                     onChange={(e) => setBrief({...brief, targetAudience: e.target.value})}
-                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 focus:outline-none focus:border-yellow-500 transition"
+                    className="w-full bg-white/5 border border-yellow-500/30 rounded-xl px-4 py-3 focus:outline-none focus:border-yellow-500 transition"
                     placeholder="e.g. Modern minimalist professionals aged 25-40"
                   />
                 </div>
@@ -647,7 +820,7 @@ const App: React.FC = () => {
                     <input 
                         value={brief.tone.join(', ')}
                         onChange={(e) => setBrief({...brief, tone: e.target.value.split(',').map(t => t.trim())})}
-                        className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 focus:outline-none focus:border-yellow-500 transition"
+                        className="w-full bg-white/5 border border-yellow-500/30 rounded-xl px-4 py-3 focus:outline-none focus:border-yellow-500 transition"
                         placeholder="Premium, Cinematic..."
                       />
                   </div>
@@ -657,7 +830,7 @@ const App: React.FC = () => {
                       <select 
                         value={brief.voiceName}
                         onChange={(e) => setBrief({...brief, voiceName: e.target.value})}
-                        className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 focus:outline-none focus:border-yellow-500 transition appearance-none cursor-pointer"
+                        className="w-full bg-white/5 border border-yellow-500/30 rounded-xl px-4 py-3 focus:outline-none focus:border-yellow-500 transition appearance-none cursor-pointer"
                       >
                         <option value="Kore">Kore - Balanced Female</option>
                         <option value="Zephyr">Zephyr - Soft & Calm</option>
@@ -670,24 +843,26 @@ const App: React.FC = () => {
                   </div>
                 </div>
 
-                <div className="space-y-2">
-                  <label className="text-xs uppercase tracking-widest text-white/40 font-bold">Creative Direction <span className="text-[10px] normal-case font-normal text-white/30 ml-2">(Optional Niche Pivot)</span></label>
-                  <input 
-                    value={brief.creativeDirection || ''}
-                    onChange={(e) => setBrief({...brief, creativeDirection: e.target.value})}
-                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 focus:outline-none focus:border-yellow-500 transition"
-                    placeholder="e.g. Pivot to high-end audiophiles, strictly professional use"
-                  />
-                </div>
+                {productionType !== 'food-social' && (
+                  <div className="space-y-2">
+                    <label className="text-xs uppercase tracking-widest text-white/40 font-bold">Creative Direction <span className="text-[10px] normal-case font-normal text-white/30 ml-2">(Optional Niche Pivot)</span></label>
+                    <input 
+                      value={brief.creativeDirection || ''}
+                      onChange={(e) => setBrief({...brief, creativeDirection: e.target.value})}
+                      className="w-full bg-white/5 border border-yellow-500/30 rounded-xl px-4 py-3 focus:outline-none focus:border-yellow-500 transition"
+                      placeholder="e.g. Pivot to high-end audiophiles, strictly professional use"
+                    />
+                  </div>
+                )}
 
                 <div className="space-y-2">
-                  <label className="text-xs uppercase tracking-widest text-white/40 font-bold">Key Selling Points</label>
+                  <label className="text-xs uppercase tracking-widest text-white/40 font-bold">Key Selling Points / Description</label>
                   <textarea 
-                    required
+                    required={productionType !== 'food-social'}
                     value={brief.keyFeatures.join('\n')}
                     onChange={(e) => setBrief({...brief, keyFeatures: e.target.value.split('\n').filter(t => t.trim())})}
-                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 h-32 focus:outline-none focus:border-yellow-500 transition resize-none"
-                    placeholder="What makes this product special? (Enter each point on a new line)"
+                    className="w-full bg-white/5 border border-yellow-500/30 rounded-xl px-4 py-3 h-32 focus:outline-none focus:border-yellow-500 transition resize-none"
+                    placeholder={productionType === 'food-social' ? "Describe the food, ingredients, and vibe (or paste URL above to auto-fill)..." : "What makes this product special? (Enter each point on a new line)"}
                   />
                   {brief.researchSources && brief.researchSources.length > 0 && (
                      <div className="text-[10px] text-white/30 mt-1">
@@ -705,7 +880,7 @@ const App: React.FC = () => {
                          <span className="text-yellow-400 font-normal normal-case">Required</span>
                        </label>
                        
-                       <div className="border border-dashed border-white/20 rounded-xl p-4 hover:bg-white/5 transition relative group flex items-center justify-center h-24">
+                       <div className="border border-dashed border-yellow-500/30 rounded-xl p-4 hover:bg-white/5 transition relative group flex items-center justify-center h-24">
                           {brief.productImage ? (
                              <div className="relative h-full w-full flex items-center justify-center">
                                <img src={brief.productImage} className="h-full object-contain rounded-lg" alt="Product Reference" />
@@ -737,7 +912,7 @@ const App: React.FC = () => {
                          <span className="text-white/20 font-normal normal-case">Optional Override</span>
                        </label>
                        
-                       <div className="border border-dashed border-white/20 rounded-xl p-4 hover:bg-white/5 transition relative group flex items-center justify-center h-24">
+                       <div className="border border-dashed border-yellow-500/30 rounded-xl p-4 hover:bg-white/5 transition relative group flex items-center justify-center h-24">
                           {brief.logoImage ? (
                              <div className="relative h-full w-full flex items-center justify-center">
                                <img src={brief.logoImage} className="h-full object-contain rounded-lg" alt="Brand Logo" />
@@ -794,7 +969,7 @@ const App: React.FC = () => {
                            )}
                         </div>
                         {brief.moodBoard ? (
-                          <div className="relative group overflow-hidden rounded-xl shadow-2xl border border-white/10">
+                          <div className="relative group overflow-hidden rounded-xl shadow-2xl border border-yellow-500/30">
                               <img src={brief.moodBoard} className="w-full h-auto object-cover" alt="Brand Mood Board" />
                               <button
                                 onClick={() => handleDownload(brief.moodBoard!, 'NanoAds-MoodBoard.png')}
@@ -805,7 +980,7 @@ const App: React.FC = () => {
                               </button>
                           </div>
                         ) : (
-                          <div className="h-64 border-2 border-dashed border-white/10 rounded-xl flex items-center justify-center text-white/20">
+                          <div className="h-64 border-2 border-dashed border-yellow-500/30 rounded-xl flex items-center justify-center text-white/20">
                              <div className="text-center">
                                <i className="fa-solid fa-palette text-3xl mb-2"></i>
                                <p className="text-sm">Upload a product image & generate<br/>to see the cohesive mood board collage.</p>
@@ -829,6 +1004,12 @@ const App: React.FC = () => {
                             <span className="text-white/40 text-xs block mb-1">Audience</span>
                             <p className="text-sm text-white/80">{brief.targetAudience || <span className="text-white/20 italic">Define audience...</span>}</p>
                           </div>
+                          {brief.visualStyle && (
+                              <div>
+                                <span className="text-white/40 text-xs block mb-1">Inferred Visual Style</span>
+                                <p className="text-sm text-white/80 border-l-2 border-yellow-500 pl-2">{brief.visualStyle}</p>
+                              </div>
+                          )}
                        </div>
                     </div>
                  </div>
@@ -850,12 +1031,13 @@ const App: React.FC = () => {
              <div className="flex justify-between items-center mb-12">
                <div>
                   <h1 className="text-5xl font-serif mb-4 gradient-text text-center lg:text-left">Select your vision.</h1>
-                  <p className="text-white/50 text-lg text-center lg:text-left">Three unique cinematic directions based on your brief.</p>
+                  <p className="text-white/50 text-lg text-center lg:text-left">Three unique creative directions based on your brief.</p>
                </div>
+               
                <button 
                   onClick={generateConceptsLogic}
                   disabled={loading}
-                  className="px-6 py-3 rounded-full border border-white/10 hover:bg-white/10 transition flex items-center gap-2 text-sm font-bold"
+                  className="px-6 py-3 rounded-full border border-yellow-500/30 hover:bg-white/10 transition flex items-center gap-2 text-sm font-bold"
                >
                   <i className="fa-solid fa-rotate"></i> Regenerate Concepts
                </button>
@@ -883,7 +1065,17 @@ const App: React.FC = () => {
                    <h3 className="text-2xl font-bold mb-3">{concept.title}</h3>
                    <div className="text-xs font-bold uppercase tracking-widest text-yellow-400 mb-4">{concept.hook}</div>
                    <p className="text-white/50 leading-relaxed flex-grow">{concept.summary}</p>
-                   <button className="mt-8 border border-white/10 group-hover:bg-white group-hover:text-black font-bold py-3 rounded-xl transition-all">
+                   {concept.overlayCtas && (
+                       <div className="mt-4 pt-4 border-t border-white/5">
+                           <span className="text-[10px] uppercase text-white/30 block mb-1">Proposed Headlines</span>
+                           <div className="flex flex-wrap gap-1">
+                               {concept.overlayCtas.slice(0, 2).map((cta, i) => (
+                                   <span key={i} className="text-[10px] bg-white/10 px-2 py-1 rounded">{cta}</span>
+                               ))}
+                           </div>
+                       </div>
+                   )}
+                   <button className="mt-8 border border-yellow-500/30 group-hover:bg-white group-hover:text-black font-bold py-3 rounded-xl transition-all">
                      Choose Direction
                    </button>
                  </div>
@@ -902,178 +1094,301 @@ const App: React.FC = () => {
         {/* Step 3: Production */}
         {step === AppStep.STORYBOARDING && project && (
           <div className="animate-fade-in">
-            <div className="flex justify-between items-end mb-12">
+             <div className="flex justify-between items-end mb-8">
               <div>
-                <h1 className="text-4xl font-serif mb-2 gradient-text">{project.selectedConcept?.title}</h1>
-                <p className="text-white/50">Production Studio: Scene-by-scene cinematography</p>
+                <div className="flex items-center gap-4 mb-2">
+                    <h1 className="text-4xl font-serif gradient-text">{project.selectedConcept?.title}</h1>
+                    <span className="bg-yellow-500 text-black text-xs font-bold px-3 py-1 rounded-full uppercase tracking-widest">Selected</span>
+                </div>
+                {project.projectType === 'food-social' && project.scenes[0].selectedCta && (
+                    <p className="text-white/50">Using headline: <span className="text-white font-bold">"{project.scenes[0].selectedCta}"</span></p>
+                )}
               </div>
               <div className="flex space-x-4">
                 <button 
                   onClick={() => setStep(AppStep.CONCEPTS)}
-                  className="px-6 py-2 rounded-full border border-white/10 text-sm font-medium hover:bg-white/5 transition"
+                  className="px-6 py-2 rounded-full border border-yellow-500/30 text-sm font-medium hover:bg-white/5 transition"
                 >
                   Change Concept
                 </button>
               </div>
             </div>
-            <div className="space-y-12">
-              {project.scenes.map((scene, idx) => (
-                <div key={idx} className="glass rounded-[40px] overflow-hidden flex flex-col md:flex-row min-h-[400px]">
-                  <div className="md:w-3/5 bg-black relative group">
-                    {scene.videoUrl ? (
-                      <video 
-                        src={scene.videoUrl} 
-                        controls 
-                        className="w-full h-full object-cover"
-                      />
-                    ) : scene.imageUrl ? (
-                      <img 
-                        src={scene.imageUrl} 
-                        className="w-full h-full object-cover" 
-                        alt={`Scene ${scene.sceneNumber}`}
-                      />
-                    ) : (
-                      <div className="w-full h-full flex flex-col items-center justify-center space-y-4 p-12 text-center">
-                         {scene.isGeneratingImage ? (
-                             <>
-                               <BananaPro role="artist" size="md" />
-                               <p className="text-sm font-bold tracking-widest uppercase">Auto-Rendering Scene...</p>
-                             </>
-                         ) : (
-                             <>
-                                <div className="w-20 h-20 rounded-full bg-white/5 flex items-center justify-center">
-                                  <i className="fa-solid fa-camera-movie text-white/20 text-3xl"></i>
-                                </div>
-                                <div>
-                                  <p className="font-bold text-lg text-white/40">Visualization Required</p>
-                                  <p className="text-sm text-white/20">Scene {scene.sceneNumber} visualization not generated</p>
-                                </div>
-                             </>
-                         )}
-                      </div>
-                    )}
-                    {(scene.imageUrl || scene.videoUrl) && (
-                        <button
-                          onClick={() => handleDownload(scene.videoUrl || scene.imageUrl!, `NanoAds-Scene-${scene.sceneNumber}${scene.videoUrl ? '.mp4' : '.png'}`)}
-                          className="absolute top-6 right-6 w-10 h-10 rounded-full bg-black/40 hover:bg-black/60 text-white flex items-center justify-center backdrop-blur-md transition z-20 opacity-0 group-hover:opacity-100 border border-white/10"
-                          title="Download Asset"
-                        >
-                          <i className="fa-solid fa-download"></i>
-                        </button>
-                    )}
-                    <div className="absolute bottom-6 left-6 flex space-x-3 opacity-0 group-hover:opacity-100 transition-opacity z-20">
-                      <button 
-                        onClick={() => generateSceneImage(idx)}
-                        disabled={scene.isGeneratingImage}
-                        className="bg-white text-black px-4 py-2 rounded-full text-xs font-bold hover:bg-yellow-50 transition flex items-center space-x-2"
-                      >
-                        {scene.isGeneratingImage ? <BananaPro role="artist" size="sm" /> : <i className="fa-solid fa-image"></i>}
-                        <span>{scene.imageUrl ? "Regenerate Image" : "Generate Image"}</span>
-                      </button>
-                      <button 
-                        onClick={() => generateSceneVideo(idx)}
-                        disabled={scene.isGeneratingVideo || !scene.imageUrl}
-                        className="gradient-accent text-black px-4 py-2 rounded-full text-xs font-bold hover:scale-105 transition flex items-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
-                      >
-                        {scene.isGeneratingVideo ? <BananaPro role="cameraman" size="sm" /> : <i className="fa-solid fa-play"></i>}
-                        <span>Animate Cinematic Video</span>
-                      </button>
-                    </div>
-                    {(scene.isGeneratingVideo) && (
-                      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm flex flex-col items-center justify-center z-10">
-                         <BananaPro role="cameraman" size="md" />
-                         <p className="text-sm font-bold tracking-widest uppercase mt-4">Rendering Cinematic Motion...</p>
-                      </div>
-                    )}
-                  </div>
-                  <div className="md:w-2/5 p-10 flex flex-col border-l border-white/5">
-                    <div className="flex items-center justify-between mb-8">
-                       <span className="text-xs font-bold uppercase tracking-[0.2em] text-yellow-400">Scene {scene.sceneNumber}</span>
-                       <span className="bg-yellow-500/10 text-yellow-400 text-[10px] font-bold px-2 py-1 rounded">Veo Optimized (8s)</span>
-                       <button 
-                        onClick={() => playVoiceover(idx)}
-                        disabled={scene.isGeneratingVoice}
-                        className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center hover:bg-yellow-500/20 hover:text-yellow-400 transition"
-                       >
-                         {scene.isGeneratingVoice ? <BananaPro role="voice" size="sm" /> : <i className="fa-solid fa-volume-high"></i>}
-                       </button>
-                    </div>
-                    <div className="mb-8">
-                      <div className="flex justify-between items-end mb-2">
-                          <label className="text-[10px] uppercase tracking-widest text-white/30 font-bold block">Cinematography Prompt</label>
-                          <button 
-                            onClick={() => handleCopyPrompt(scene.visualPrompt, `${idx}-vis`)}
-                            className="text-[10px] text-white/40 hover:text-white transition flex items-center gap-1.5"
-                          >
-                             {copiedId === `${idx}-vis` ? (
-                                <><i className="fa-solid fa-check text-green-400"></i> <span className="text-green-400 font-bold">Copied</span></>
+
+            {project.projectType === 'food-social' ? (
+                // --- SPECIALIZED FOOD SOCIAL LAYOUT ---
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    {/* LEFT COLUMN: HERO IMAGE & EDITING */}
+                    <div className="space-y-6">
+                        <div className="flex items-center gap-2 text-yellow-400 font-bold uppercase tracking-widest text-xs">
+                            <i className="fa-regular fa-image text-lg"></i> Facebook Hero
+                        </div>
+
+                        {/* Image Container */}
+                        <div className="relative group rounded-xl overflow-hidden border border-yellow-500/20 bg-black">
+                             {project.scenes[0].imageUrl ? (
+                                <img src={project.scenes[0].imageUrl} className="w-full h-auto object-cover" alt="Hero Ad" />
                              ) : (
-                                <><i className="fa-regular fa-copy"></i> Copy</>
+                                <div className="aspect-video w-full flex flex-col items-center justify-center text-white/30">
+                                   {project.scenes[0].isGeneratingImage ? <BananaPro role="artist" text="Rendering..." /> : <i className="fa-solid fa-image text-4xl"></i>}
+                                </div>
                              )}
-                          </button>
-                      </div>
-                      <p className="text-white/80 text-sm leading-relaxed italic border-l-2 border-yellow-500/30 pl-4">"{scene.visualPrompt}"</p>
-                    </div>
-                    
-                    {/* Nano Banana Image Prompt Section */}
-                    <div className="mb-8">
-                       <div className="flex justify-between items-end mb-2">
-                          <label className="text-[10px] uppercase tracking-widest text-white/30 font-bold block">Nano Banana Prompt <span className="text-[9px] font-normal normal-case text-white/20">(Image Gen)</span></label>
-                          <button 
-                            onClick={() => handleCopyPrompt(
-                              `Generate a high-end cinematic advertising shot. Description: ${scene.visualPrompt}. 8k, professional lighting, photorealistic.`, 
-                              `${idx}-nano`
-                            )}
-                            className="text-[10px] text-white/40 hover:text-white transition flex items-center gap-1.5"
-                          >
-                             {copiedId === `${idx}-nano` ? (
-                                <><i className="fa-solid fa-check text-green-400"></i> <span className="text-green-400 font-bold">Copied</span></>
-                             ) : (
-                                <><i className="fa-regular fa-copy"></i> Copy</>
+                             {/* Floating Generate/Regenerate Button */}
+                             {!project.scenes[0].isGeneratingImage && (
+                                 <button 
+                                    onClick={() => generateSceneImage(0)}
+                                    className="absolute top-4 right-4 bg-black/60 hover:bg-black/80 backdrop-blur text-white px-3 py-1.5 rounded-lg text-xs font-bold border border-white/10 transition"
+                                 >
+                                    <i className="fa-solid fa-rotate-right mr-1"></i> Regenerate
+                                 </button>
                              )}
-                          </button>
-                      </div>
-                      <div className="bg-black/40 rounded p-3 border border-white/5 relative group">
-                        <p className="text-white/60 text-xs font-mono break-words leading-tight">
-                           <span className="text-yellow-500/50">generate_img(</span>
-                           "Generate a high-end cinematic advertising shot. Description: <span className="text-white">{scene.visualPrompt}</span>. 8k, professional lighting, photorealistic."
-                           <span className="text-yellow-500/50">)</span>
-                        </p>
-                      </div>
+                        </div>
+
+                        {/* Edit Bar */}
+                        <div className="flex gap-0">
+                            <div className="relative flex-grow">
+                                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-white/30"><i className="fa-solid fa-wand-magic-sparkles"></i></span>
+                                <input 
+                                    type="text"
+                                    value={editInstruction}
+                                    onChange={(e) => setEditInstruction(e.target.value)}
+                                    placeholder="Eg. Add more smoke, change background to blue..."
+                                    className="w-full bg-white/5 border border-yellow-500/30 rounded-l-xl pl-9 pr-4 py-3 text-sm focus:border-yellow-500 outline-none transition"
+                                />
+                            </div>
+                            <button 
+                                onClick={() => handleEditImage(0)}
+                                disabled={!editInstruction || !project.scenes[0].imageUrl || project.scenes[0].isGeneratingImage}
+                                className="bg-yellow-500/10 hover:bg-yellow-500/20 text-yellow-400 border-y border-r border-yellow-500/30 px-6 py-3 rounded-r-xl font-bold text-sm transition disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                                Edit
+                            </button>
+                        </div>
+                        
+                        {/* Prompt Box */}
+                        <div className="bg-white/5 rounded-xl p-0 border border-white/10 overflow-hidden">
+                            <div className="flex items-center justify-between px-4 py-2 border-b border-white/5 bg-white/5">
+                                <span className="text-[10px] uppercase font-bold text-white/40 tracking-widest"><i className="fa-solid fa-terminal mr-1"></i> Image Prompt</span>
+                                <button 
+                                    onClick={() => handleCopyPrompt(project.scenes[0].visualPrompt, 'main-prompt')}
+                                    className="text-[10px] text-yellow-500 hover:text-yellow-400 font-bold flex items-center gap-1 transition"
+                                >
+                                    {copiedId === 'main-prompt' ? <><i className="fa-solid fa-check"></i> Copied</> : <><i className="fa-regular fa-copy"></i> Copy Prompt</>}
+                                </button>
+                            </div>
+                            <div className="p-4">
+                                <p className="font-mono text-xs text-white/60 leading-relaxed whitespace-pre-wrap">
+                                    {project.scenes[0].visualPrompt}
+                                </p>
+                            </div>
+                        </div>
                     </div>
 
-                    <div>
-                      <div className="flex items-center justify-between mb-2">
-                         <label className="text-[10px] uppercase tracking-widest text-white/30 font-bold block">Audio Script</label>
-                         <button 
-                            onClick={() => handlePolishScript(idx)}
-                            disabled={scene.isPolishingScript}
-                            className="text-[10px] bg-yellow-500/10 hover:bg-yellow-500/30 text-yellow-300 px-2 py-1 rounded transition flex items-center gap-1"
-                         >
-                            {scene.isPolishingScript ? <BananaPro role="writer" size="sm" /> : <i className="fa-solid fa-wand-magic-sparkles"></i>}
-                            <span>Polish Script</span>
-                         </button>
-                      </div>
-                      <p className="text-xl font-medium leading-snug">{scene.audioScript}</p>
+                    {/* RIGHT COLUMN: CAPTION & DETAILS */}
+                    <div className="space-y-6">
+                        <div className="flex items-center gap-2 text-yellow-400 font-bold uppercase tracking-widest text-xs">
+                            <i className="fa-brands fa-facebook text-lg"></i> Facebook Post
+                        </div>
+
+                        <div className="glass rounded-xl p-8 min-h-[400px] border border-white/10">
+                            {project.scenes[0].isPolishingScript ? (
+                                <div className="h-full flex items-center justify-center opacity-50"><BananaPro role="writer" text="Writing copy..." /></div>
+                            ) : (
+                                <div className="prose prose-invert prose-sm max-w-none">
+                                    <div className="whitespace-pre-wrap text-white/80 leading-relaxed font-sans text-base">
+                                        {project.scenes[0].audioScript || "Generating caption..."}
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+
+                         <div className="flex justify-end pt-4">
+                            <button className="w-12 h-12 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition text-white/60 hover:text-white">
+                                <i className="fa-solid fa-gear"></i>
+                            </button>
+                        </div>
                     </div>
-                    <div className="mt-auto pt-10 flex items-center space-x-4">
-                       <div className="flex -space-x-2">
-                         <div className="w-8 h-8 rounded-full bg-white/10 border-2 border-black flex items-center justify-center text-[10px]"><i className="fa-solid fa-robot"></i></div>
-                         <div className="w-8 h-8 rounded-full bg-yellow-500 border-2 border-black flex items-center justify-center text-[10px] text-black"><i className="fa-solid fa-wand-magic-sparkles"></i></div>
-                       </div>
-                       <span className="text-[10px] text-white/40 uppercase font-bold tracking-widest">AI Assisted Production</span>
-                    </div>
-                  </div>
                 </div>
-              ))}
-            </div>
-            <div className="mt-20 glass p-12 rounded-[40px] text-center max-w-2xl mx-auto border-dashed">
-                <h2 className="text-3xl font-serif mb-4">Ready to premiere?</h2>
-                <p className="text-white/50 mb-8">Compile your scenes into a final high-bitrate MP4 with seamless transitions and professional sound mastering.</p>
-                <button className="gradient-accent px-10 py-4 rounded-2xl font-bold text-lg text-black hover:scale-105 transition-transform">
-                  Master Final Commercial
-                </button>
-            </div>
+            ) : (
+                // --- STANDARD SCENE LIST LAYOUT (Video & Regular Social) ---
+                <div className="space-y-12">
+                {project.scenes.map((scene, idx) => (
+                    <div key={idx} className={`glass rounded-[40px] overflow-hidden flex flex-col md:flex-row min-h-[400px]`}>
+                    
+                    {/* Visual Preview Area */}
+                    <div className={`${project.projectType === 'social' ? 'md:w-5/12' : 'md:w-3/5'} bg-black relative group flex items-center justify-center bg-zinc-900/50`}>
+                        <div className={`relative ${project.projectType === 'social' ? 'aspect-[3/4] h-[500px]' : 'aspect-video w-full'}`}>
+                            {scene.videoUrl ? (
+                            <video 
+                                src={scene.videoUrl} 
+                                controls 
+                                className="w-full h-full object-cover"
+                            />
+                            ) : scene.imageUrl ? (
+                            <img 
+                                src={scene.imageUrl} 
+                                className="w-full h-full object-cover" 
+                                alt={`Scene ${scene.sceneNumber}`}
+                            />
+                            ) : (
+                            <div className="w-full h-full flex flex-col items-center justify-center space-y-4 p-12 text-center bg-black">
+                                {scene.isGeneratingImage ? (
+                                    <>
+                                    <BananaPro role="artist" size="md" />
+                                    <p className="text-sm font-bold tracking-widest uppercase">Auto-Rendering...</p>
+                                    </>
+                                ) : (
+                                    <>
+                                        <div className="w-20 h-20 rounded-full bg-white/5 flex items-center justify-center">
+                                        <i className={`fa-solid ${project.projectType === 'social' ? 'fa-image' : 'fa-camera-movie'} text-white/20 text-3xl`}></i>
+                                        </div>
+                                        <div>
+                                        <p className="font-bold text-lg text-white/40">Visualization Required</p>
+                                        <p className="text-sm text-white/20">Scene {scene.sceneNumber} visualization not generated</p>
+                                        </div>
+                                    </>
+                                )}
+                            </div>
+                            )}
+                            
+                            {(scene.imageUrl || scene.videoUrl) && (
+                                <button
+                                onClick={() => handleDownload(scene.videoUrl || scene.imageUrl!, `NanoAds-Scene-${scene.sceneNumber}${scene.videoUrl ? '.mp4' : '.png'}`)}
+                                className="absolute top-6 right-6 w-10 h-10 rounded-full bg-black/40 hover:bg-black/60 text-white flex items-center justify-center backdrop-blur-md transition z-20 opacity-0 group-hover:opacity-100 border border-white/10"
+                                title="Download Asset"
+                                >
+                                <i className="fa-solid fa-download"></i>
+                                </button>
+                            )}
+                        </div>
+                        
+                        <div className="absolute bottom-6 left-6 flex space-x-3 opacity-0 group-hover:opacity-100 transition-opacity z-20">
+                        <button 
+                            onClick={() => generateSceneImage(idx)}
+                            disabled={scene.isGeneratingImage}
+                            className="bg-white text-black px-4 py-2 rounded-full text-xs font-bold hover:bg-yellow-50 transition flex items-center space-x-2"
+                        >
+                            {scene.isGeneratingImage ? <BananaPro role="artist" size="sm" /> : <i className="fa-solid fa-image"></i>}
+                            <span>{scene.imageUrl ? "Regenerate Image" : "Generate Image"}</span>
+                        </button>
+                        
+                        {/* Video Button only for Video Projects */}
+                        {project.projectType === 'video' && (
+                            <button 
+                                onClick={() => generateSceneVideo(idx)}
+                                disabled={scene.isGeneratingVideo || !scene.imageUrl}
+                                className="gradient-accent text-black px-4 py-2 rounded-full text-xs font-bold hover:scale-105 transition flex items-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                                {scene.isGeneratingVideo ? <BananaPro role="cameraman" size="sm" /> : <i className="fa-solid fa-play"></i>}
+                                <span>Animate Cinematic Video</span>
+                            </button>
+                        )}
+                        </div>
+                        {(scene.isGeneratingVideo) && (
+                        <div className="absolute inset-0 bg-black/60 backdrop-blur-sm flex flex-col items-center justify-center z-10">
+                            <BananaPro role="cameraman" size="md" />
+                            <p className="text-sm font-bold tracking-widest uppercase mt-4">Rendering Cinematic Motion...</p>
+                        </div>
+                        )}
+                    </div>
+                    
+                    {/* Content / Script Area */}
+                    <div className={`${project.projectType === 'social' ? 'md:w-7/12' : 'md:w-2/5'} p-10 flex flex-col border-l border-white/5`}>
+                        <div className="flex items-center justify-between mb-8">
+                        <span className="text-xs font-bold uppercase tracking-[0.2em] text-yellow-400">
+                            {project.projectType === 'social' ? `Post #${scene.sceneNumber}` : `Scene ${scene.sceneNumber}`}
+                        </span>
+                        
+                        {/* Only show Veo tag / Voice button for Video projects */}
+                        {project.projectType === 'video' ? (
+                            <>
+                                <span className="bg-yellow-500/10 text-yellow-400 text-[10px] font-bold px-2 py-1 rounded">Veo Optimized (8s)</span>
+                                <button 
+                                    onClick={() => playVoiceover(idx)}
+                                    disabled={scene.isGeneratingVoice}
+                                    className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center hover:bg-yellow-500/20 hover:text-yellow-400 transition"
+                                >
+                                    {scene.isGeneratingVoice ? <BananaPro role="voice" size="sm" /> : <i className="fa-solid fa-volume-high"></i>}
+                                </button>
+                            </>
+                        ) : (
+                            <span className="bg-pink-500/10 text-pink-400 text-[10px] font-bold px-2 py-1 rounded">Instagram / FB Format</span>
+                        )}
+                        </div>
+                        
+                        <div className="mb-8">
+                        <div className="flex justify-between items-end mb-2">
+                            <label className="text-[10px] uppercase tracking-widest text-white/30 font-bold block">
+                                {project.projectType === 'social' ? 'Graphic Design Prompt' : 'Cinematography Prompt'}
+                            </label>
+                            <button 
+                                onClick={() => handleCopyPrompt(scene.visualPrompt, `${idx}-vis`)}
+                                className="text-[10px] text-white/40 hover:text-white transition flex items-center gap-1.5"
+                            >
+                                {copiedId === `${idx}-vis` ? (
+                                    <><i className="fa-solid fa-check text-green-400"></i> <span className="text-green-400 font-bold">Copied</span></>
+                                ) : (
+                                    <><i className="fa-regular fa-copy"></i> Copy</>
+                                )}
+                            </button>
+                        </div>
+                        <p className="text-white/80 text-sm leading-relaxed italic border-l-2 border-yellow-500/30 pl-4">"{scene.visualPrompt}"</p>
+                        </div>
+
+                        {/* Nano Banana Image Prompt Section */}
+                        <div className="mb-8">
+                        <div className="flex justify-between items-end mb-2">
+                            <label className="text-[10px] uppercase tracking-widest text-white/30 font-bold block">Nano Banana Prompt <span className="text-[9px] font-normal normal-case text-white/20">(Image Gen)</span></label>
+                            <button 
+                                onClick={() => handleCopyPrompt(
+                                `Generate a high-end cinematic advertising shot. Description: ${scene.visualPrompt}. 8k, professional lighting, photorealistic.`, 
+                                `${idx}-nano`
+                                )}
+                                className="text-[10px] text-white/40 hover:text-white transition flex items-center gap-1.5"
+                            >
+                                {copiedId === `${idx}-nano` ? (
+                                    <><i className="fa-solid fa-check text-green-400"></i> <span className="text-green-400 font-bold">Copied</span></>
+                                ) : (
+                                    <><i className="fa-regular fa-copy"></i> Copy</>
+                                )}
+                            </button>
+                        </div>
+                        <div className="bg-black/40 rounded p-3 border border-yellow-500/20 relative group">
+                            <p className="text-white/60 text-xs font-mono break-words leading-tight">
+                            <span className="text-yellow-500/50">generate_img(</span>
+                            "Generate a high-end cinematic advertising shot. Description: <span className="text-white">{scene.visualPrompt}</span>. 8k, professional lighting, photorealistic."
+                            <span className="text-yellow-500/50">)</span>
+                            </p>
+                        </div>
+                        </div>
+
+                        <div>
+                        <div className="flex items-center justify-between mb-2">
+                            <label className="text-[10px] uppercase tracking-widest text-white/30 font-bold block">
+                                {project.projectType === 'social' ? 'Post Caption' : 'Audio Script'}
+                            </label>
+                            <button 
+                                onClick={() => handlePolishScript(idx)}
+                                disabled={scene.isPolishingScript}
+                                className="text-[10px] bg-yellow-500/10 hover:bg-yellow-500/30 text-yellow-300 px-2 py-1 rounded transition flex items-center gap-1"
+                            >
+                                {scene.isPolishingScript ? <BananaPro role="writer" size="sm" /> : <i className="fa-solid fa-wand-magic-sparkles"></i>}
+                                <span>Polish Copy</span>
+                            </button>
+                        </div>
+                        <p className="text-xl font-medium leading-snug whitespace-pre-wrap">{scene.audioScript}</p>
+                        </div>
+                        <div className="mt-auto pt-10 flex items-center space-x-4">
+                        <div className="flex -space-x-2">
+                            <div className="w-8 h-8 rounded-full bg-white/10 border-2 border-black flex items-center justify-center text-[10px]"><i className="fa-solid fa-robot"></i></div>
+                            <div className="w-8 h-8 rounded-full bg-yellow-500 border-2 border-black flex items-center justify-center text-[10px] text-black"><i className="fa-solid fa-wand-magic-sparkles"></i></div>
+                        </div>
+                        <span className="text-[10px] text-white/40 uppercase font-bold tracking-widest">AI Assisted Production</span>
+                        </div>
+                    </div>
+                    </div>
+                ))}
+                </div>
+            )}
           </div>
         )}
       </main>

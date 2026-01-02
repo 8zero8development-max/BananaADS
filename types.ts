@@ -12,6 +12,7 @@ export interface AdBrief {
   productUrl?: string;
   moodBoard?: string;
   researchSources?: string[];
+  visualStyle?: string; // For Food Socials Brand DNA
 }
 
 export interface AdConcept {
@@ -20,12 +21,17 @@ export interface AdConcept {
   hook: string;
   summary: string;
   thumbnailUrl?: string;
+  // Food Socials Specifics
+  rationale?: string;
+  visualPrompt?: string;
+  copyAngle?: string;
+  overlayCtas?: string[];
 }
 
 export interface Scene {
   sceneNumber: number;
   visualPrompt: string;
-  audioScript: string;
+  audioScript: string; // Used for "Post Caption" in Social mode
   imageUrl?: string;
   videoUrl?: string;
   voiceoverUrl?: string;
@@ -33,6 +39,7 @@ export interface Scene {
   isGeneratingVideo?: boolean;
   isGeneratingVoice?: boolean;
   isPolishingScript?: boolean; // New state for script refinement
+  selectedCta?: string; // For Food Socials overlay text
 }
 
 export interface AdProject {
@@ -41,6 +48,7 @@ export interface AdProject {
   selectedConcept?: AdConcept;
   scenes: Scene[];
   status: 'briefing' | 'concepts' | 'storyboarding';
+  projectType: 'video' | 'social' | 'food-social'; // Added food-social
 }
 
 export enum AppStep {

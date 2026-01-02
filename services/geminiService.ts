@@ -34,6 +34,58 @@ export class GeminiService {
     }
   }
 
+  // --- Helpers for Food Socials ---
+
+  private static convertSvgToPng(base64Svg: string): Promise<string> {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        canvas.width = img.width || 800;
+        canvas.height = img.height || 800;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) {
+          reject(new Error('Canvas context not available'));
+          return;
+        }
+        ctx.drawImage(img, 0, 0);
+        resolve(canvas.toDataURL('image/png'));
+      };
+      img.onerror = (e) => reject(e);
+      img.src = base64Svg;
+    });
+  }
+
+  private static async resolveImage(base64String: string): Promise<{ mimeType: string, data: string }> {
+      let finalString = base64String;
+      
+      // Check for SVG mime type in header
+      if (finalString.includes('image/svg+xml')) {
+          try {
+              finalString = await this.convertSvgToPng(finalString);
+          } catch (e) {
+              console.error("Failed to convert SVG to PNG", e);
+              // Fallback to try and use it anyway if conversion fails (unlikely to work with GenAI but worth a shot)
+          }
+      }
+
+      const match = finalString.match(/^data:(.*?);base64,(.*)$/);
+      if (match) {
+          return {
+              mimeType: match[1],
+              data: match[2]
+          };
+      }
+      
+      // Fallback for raw base64, assume jpeg
+      return {
+          mimeType: 'image/jpeg',
+          data: finalString
+      };
+  }
+
+  // --- Existing Methods ---
+
   static async researchBrand(brandName: string, productName: string): Promise<Partial<AdBrief>> {
     const ai = this.getClient();
     const prompt = `Research the brand "${brandName}" and their product "${productName}". 
@@ -79,6 +131,118 @@ export class GeminiService {
     }
 
     return { ...data, researchSources: sources };
+  }
+  
+  // Refactored to use manual parsing as requested for better Search tool compatibility
+  static async autoFillFoodBrief(description: string, websiteUrl: string): Promise<Partial<AdBrief>> {
+      const ai = this.getClient();
+      const prompt = `Based on the brand description and URL provided, research the brand to infer details and find their official logo.
+      
+      Description: "${description}"
+      URL: "${websiteUrl}"
+      
+      Task:
+      1. Infer a likely "Brand Name" and "Product Name" (if not obvious, create a catchy placeholder).
+      2. Return short, punchy summaries for Audience, Tone, and Key Features.
+      3. Search for a direct URL to the brand's logo (preferably PNG/JPG).
+    
+      IMPORTANT: Return the result strictly as a raw JSON object. Do not include markdown formatting (like \`\`\`json).
+      
+      Expected JSON Structure:
+      {
+        "brandName": "string",
+        "productName": "string",
+        "targetAudience": "string",
+        "tone": ["string"],
+        "keyFeatures": ["string"],
+        "logoImage": "string (url)"
+      }
+      `;
+    
+      const response = await ai.models.generateContent({
+        model: 'gemini-2.5-flash',
+        contents: { parts: [{ text: prompt }] },
+        config: {
+          tools: [{ googleSearch: {} }]
+          // Removed responseSchema here to allow flexible search result processing
+        }
+      });
+    
+      let text = response.text;
+      if (!text) throw new Error("No response from Gemini");
+
+      // Clean up potential markdown formatting from the model
+      text = text.replace(/```json/g, '').replace(/```/g, '').trim();
+
+      try {
+        const data = JSON.parse(text);
+        return {
+             brandName: data.brandName,
+             productName: data.productName,
+             targetAudience: data.targetAudience,
+             tone: Array.isArray(data.tone) ? data.tone : [data.tone],
+             keyFeatures: Array.isArray(data.keyFeatures) ? data.keyFeatures : [data.keyFeatures],
+             logoImage: data.logoImage
+        };
+      } catch (e) {
+        console.error("Failed to parse JSON from autoFillFoodBrief:", text);
+        // Fallback or re-throw
+        throw new Error("AI returned invalid JSON format. Please try again.");
+      }
+  }
+
+  // Brand DNA Research logic for Food Socials
+  static async researchBrandDna(brief: AdBrief): Promise<Partial<AdBrief>> {
+      const ai = this.getClient();
+      
+      let prompt = `Analyze the provided brand assets to extract a structured Brand DNA profile.
+      
+      Inputs:
+      - Description/Features: "${brief.keyFeatures.join(', ')}"
+      - Website: "${brief.productUrl}"
+      - Target Audience: "${brief.targetAudience}"
+      - Desired Tone: "${brief.tone.join(', ')}"
+      ${brief.creativeDirection ? `- Creative Direction: "${brief.creativeDirection}"` : ""}
+      ${brief.productName ? `- Product Name: "${brief.productName}"` : ""}
+      ${brief.logoImage ? "- A logo image is attached." : ""}
+      ${brief.productImage ? "- A sample product/food photo is attached." : ""}
+    
+      Task:
+      1. Analyze the visual style (colors, fonts, lighting, plating, vibe) from the logo, sample product photo, and the Creative Direction input.
+      2. Extract a 'visualStyle' string description.
+      `;
+    
+      const parts: any[] = [{ text: prompt }];
+      
+      if (brief.logoImage && brief.logoImage.startsWith('data:')) {
+        const { mimeType, data } = await this.resolveImage(brief.logoImage);
+        parts.push({ inlineData: { mimeType, data } });
+      }
+    
+      if (brief.productImage && brief.productImage.startsWith('data:')) {
+        const { mimeType, data } = await this.resolveImage(brief.productImage);
+        parts.push({ inlineData: { mimeType, data } });
+      }
+    
+      const response = await ai.models.generateContent({
+        model: 'gemini-2.5-flash',
+        contents: { parts },
+        config: {
+          responseMimeType: "application/json",
+          responseSchema: {
+            type: Type.OBJECT,
+            properties: {
+              visualStyle: { type: Type.STRING, description: "Description of colors, shapes, and visual identity inferred from logo/desc/photo/direction" },
+            },
+            required: ["visualStyle"]
+          }
+        }
+      });
+    
+      const text = response.text;
+      if (!text) throw new Error("No response from Gemini");
+      const data = JSON.parse(text);
+      return { visualStyle: data.visualStyle };
   }
 
   static async generateMoodBoard(brief: AdBrief, referenceImage?: string, logoImage?: string): Promise<string> {
@@ -234,6 +398,69 @@ export class GeminiService {
     return JSON.parse(response.text || "[]");
   }
 
+  // Specialized Concept Generation for Food Socials
+  static async generateFoodSocialConcepts(brief: AdBrief): Promise<AdConcept[]> {
+      const ai = this.getClient();
+      
+      const prompt = `You are a world-class Art Director & Graphic Designer. 
+      
+      Context:
+      We need to design a professional Advertising Poster for "${brief.brandName}" featuring "${brief.productName}".
+      
+      Brand DNA:
+      - Tone: ${brief.tone.join(', ')}
+      - Visual Style: ${brief.visualStyle || 'High-end appetizing'}
+      - Keywords: ${brief.keyFeatures.join(', ')}
+    
+      Task:
+      Generate 3 DISTINCT Art Direction concepts for a Social Media Ad.
+      Focus on LAYOUT, TYPOGRAPHY, and COMPOSITION.
+      Think: Magazine Ads, Billboards, Pop-Art, Modern Minimalist, 90s Retro.
+    
+      For each concept, provide:
+      1. Title: A short internal name for the concept.
+      2. Hook: A short tagline/hook.
+      3. Summary: Rationale why this works.
+      4. visualPrompt: A highly detailed prompt describing a "Professional Advertising Poster". Include details about typography style, background graphics, color palette.
+      5. copyAngle: Instructions for the copywriter.
+      6. overlayCtas: Provide 3 distinct, punchy headline options (2-5 words) that could be rendered on the image.
+      `;
+    
+      const parts: any[] = [{ text: prompt }];
+
+      if (brief.productImage && brief.productImage.startsWith('data:')) {
+        const { mimeType, data } = await this.resolveImage(brief.productImage);
+        parts.push({ inlineData: { mimeType, data } });
+        parts.push({ text: "Use this product image as a key reference for the visual style." });
+      }
+
+      const response = await ai.models.generateContent({
+        model: 'gemini-2.5-flash',
+        contents: { parts },
+        config: {
+          responseMimeType: "application/json",
+          responseSchema: {
+            type: Type.ARRAY,
+            items: {
+              type: Type.OBJECT,
+              properties: {
+                id: { type: Type.STRING },
+                title: { type: Type.STRING },
+                hook: { type: Type.STRING },
+                summary: { type: Type.STRING },
+                visualPrompt: { type: Type.STRING },
+                copyAngle: { type: Type.STRING },
+                overlayCtas: { type: Type.ARRAY, items: { type: Type.STRING } },
+              },
+              required: ["id", "title", "hook", "summary", "visualPrompt", "copyAngle", "overlayCtas"]
+            }
+          }
+        }
+      });
+    
+      return JSON.parse(response.text || "[]");
+  }
+
   static async generateScript(brief: AdBrief, concept: AdConcept): Promise<Scene[]> {
     const ai = this.getClient();
     const prompt = `Write a detailed cinematic script for this advertisement concept:
@@ -277,6 +504,78 @@ export class GeminiService {
     return JSON.parse(response.text || "[]");
   }
 
+  static async generateSocialCampaign(brief: AdBrief, concept: AdConcept): Promise<Scene[]> {
+    const ai = this.getClient();
+    const prompt = `Act as a Senior Graphic Designer & Ad Strategist. Create 3 High-Impact Social Media Posters for this concept.
+    
+    Brand: ${brief.brandName}
+    Product: ${brief.productName}
+    Concept: ${concept.title} - ${concept.summary}
+    Tone: ${brief.tone.join(', ')}
+
+    Create 3 unique advertising poster designs.
+    
+    DESIGN RULES:
+    1. 'visualPrompt': Describe a "Graphic Advertising Composition". 
+       - DO NOT ask for simple photography. 
+       - Ask for "Bold Typography integration", "Color Blocking", "Surrealist Product Placement", "Collage elements", or "Magazine Editorial Layouts".
+       - Example: "Graphic design poster, product floating in center with bold yellow sans-serif typography overlay reading 'FASTER', diagonal geometric shadows, high contrast."
+    2. 'audioScript': This will be the POST CAPTION. Write a snappy hook + benefit + CTA. Include hashtags.
+    
+    Output JSON array of scenes (mapping sceneNumber to postNumber).`;
+
+    const response = await ai.models.generateContent({
+      model: "gemini-3-pro-preview",
+      contents: prompt,
+      config: {
+        responseMimeType: "application/json",
+        responseSchema: {
+          type: Type.ARRAY,
+          items: {
+            type: Type.OBJECT,
+            properties: {
+              sceneNumber: { type: Type.NUMBER },
+              visualPrompt: { type: Type.STRING },
+              audioScript: { type: Type.STRING, description: "The Facebook/Instagram caption" },
+            },
+            required: ["sceneNumber", "visualPrompt", "audioScript"],
+          },
+        },
+      },
+    });
+
+    return JSON.parse(response.text || "[]");
+  }
+  
+  // Specialized method for generating the caption for Food Socials
+  static async generateFoodSocialPost(brief: AdBrief, concept: AdConcept, scene: Scene): Promise<string> {
+      const ai = this.getClient();
+      const prompt = `Write a Facebook/Instagram post for "${brief.brandName}" promoting the "${brief.productName}".
+      
+      Concept Strategy: "${concept.title}"
+      Copy Instructions: "${concept.copyAngle}"
+      Selected CTA in image: "${scene.selectedCta || 'Check it out'}"
+      
+      Brand DNA:
+      - Tone: ${brief.tone.join(', ')}
+      - Keywords: ${brief.keyFeatures.join(', ')}
+      - Website: ${brief.productUrl || 'N/A'}
+    
+      Format:
+      - Headline (Catchy)
+      - Body (Engaging, ~2 paragraphs)
+      - Call to Action (Link to website if available)
+      - Hashtags
+      `;
+    
+      const response = await ai.models.generateContent({
+        model: 'gemini-2.5-flash',
+        contents: { parts: [{ text: prompt }] }
+      });
+    
+      return response.text?.trim() || "Could not generate caption.";
+  }
+
   // New method to polish/rewrite script
   static async polishSceneScript(script: string, tone: string[]): Promise<string> {
     const ai = this.getClient();
@@ -292,7 +591,7 @@ export class GeminiService {
     return response.text?.trim() || script;
   }
 
-  static async generateStoryboardImage(visualPrompt: string, productImage?: string, styleReferenceImage?: string): Promise<string> {
+  static async generateStoryboardImage(visualPrompt: string, productImage?: string, styleReferenceImage?: string, aspectRatio: string = "16:9"): Promise<string> {
     const ai = this.getClient();
     const parts: any[] = [];
 
@@ -319,7 +618,7 @@ export class GeminiService {
     }
 
     // 3. Main Prompt
-    parts.push({ text: `Generate a high-end cinematic advertising shot. Description: ${visualPrompt}. 8k, professional lighting, photorealistic.` });
+    parts.push({ text: `Generate a high-end commercial visual. Description: ${visualPrompt}. 8k, professional lighting, photorealistic.` });
 
     // WRAP IN RETRY LOGIC for free tier
     return this.retry(async () => {
@@ -328,7 +627,7 @@ export class GeminiService {
           contents: { parts },
           config: {
             imageConfig: {
-              aspectRatio: "16:9",
+              aspectRatio: aspectRatio, // Dynamic aspect ratio
             },
           },
         });
@@ -340,6 +639,93 @@ export class GeminiService {
         }
         throw new Error("No image data found in response");
     });
+  }
+
+  // Specialized Image Gen for Food Socials with Text Overlay logic support (via prompt)
+  static async generateFoodHeroImage(brief: AdBrief, concept: AdConcept, ctaText: string): Promise<string> {
+      const ai = this.getClient();
+      
+      const prompt = `Design a professional, high-quality advertising poster.
+      
+      Subject: ${brief.productName}
+      Style/Concept: ${concept.title}
+      Art Direction: ${concept.visualPrompt}
+      
+      CRITICAL LAYOUT INSTRUCTIONS:
+      1. TEXT: Render the headline "${ctaText}" directly into the image. Use bold, professional typography that matches the art direction. Ensure the text is legible and integrated into the design.
+      2. BRANDING: Incorporate the brand logo naturally if provided.
+      3. FOOD: The food should look appetizing and premium.
+      
+      Brand Identity:
+      - Name: ${brief.brandName}
+      - Vibe: ${brief.visualStyle}
+      
+      Output: A seamless, finished advertisement graphic.
+      `;
+    
+      const parts: any[] = [{ text: prompt }];
+    
+      // 1. Pass source food image
+      if (brief.productImage && brief.productImage.startsWith('data:')) {
+        const { mimeType, data } = await this.resolveImage(brief.productImage);
+        parts.push({ inlineData: { mimeType, data } });
+        parts.push({ text: `REFERENCE IMAGE 1 (Product): Use this as the main subject.` });
+      }
+    
+      // 2. Pass logo as reference
+      if (brief.logoImage && brief.logoImage.startsWith('data:')) {
+        const { mimeType, data } = await this.resolveImage(brief.logoImage);
+        parts.push({ inlineData: { mimeType, data } });
+        parts.push({ text: "REFERENCE IMAGE 2 (Logo): Place this logo in the design or redraw it to match the style." });
+      }
+    
+      const response = await ai.models.generateContent({
+        model: 'gemini-2.5-flash-image',
+        contents: { parts },
+        config: {
+          imageConfig: {
+            aspectRatio: "16:9"
+          }
+        }
+      });
+    
+      for (const part of response.candidates?.[0]?.content?.parts || []) {
+        if (part.inlineData) {
+          return `data:image/png;base64,${part.inlineData.data}`;
+        }
+      }
+    
+      throw new Error("No image generated.");
+  }
+
+  static async editHeroImage(currentImageBase64: string, editInstruction: string): Promise<string> {
+      const ai = this.getClient();
+      const { mimeType, data } = await this.resolveImage(currentImageBase64);
+    
+      const prompt = `Edit this image. Instruction: ${editInstruction}. Maintain the high-quality professional advertising aesthetic, the layout, and the aspect ratio.`;
+    
+      const response = await ai.models.generateContent({
+        model: 'gemini-2.5-flash-image',
+        contents: {
+          parts: [
+            { inlineData: { mimeType, data } },
+            { text: prompt }
+          ]
+        },
+        config: {
+            imageConfig: {
+                aspectRatio: "16:9"
+            }
+        }
+      });
+    
+      for (const part of response.candidates?.[0]?.content?.parts || []) {
+        if (part.inlineData) {
+          return `data:image/png;base64,${part.inlineData.data}`;
+        }
+      }
+    
+      throw new Error("No image generated.");
   }
 
   static async generateVoiceover(text: string, voiceName: string = 'Kore'): Promise<string> {
