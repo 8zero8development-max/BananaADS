@@ -2,11 +2,53 @@
 import { GoogleGenAI, Type, Modality } from "@google/genai";
 import { AdBrief, AdConcept, Scene } from "../types";
 
+// Shared localStorage key for API key storage
+export const API_KEY_STORAGE_KEY = "bananaads:gemini_api_key";
+
 export class GeminiService {
+  // Get API key from localStorage first, then fall back to environment variable
+  static getApiKey(): string | null {
+    // Check localStorage first (browser environment)
+    if (typeof window !== 'undefined') {
+      try {
+        const storedKey = localStorage.getItem(API_KEY_STORAGE_KEY);
+        if (storedKey) {
+          return storedKey;
+        }
+      } catch {
+        // localStorage may be unavailable (e.g., private browsing)
+      }
+    }
+    // Fall back to environment variable
+    return process.env.API_KEY || null;
+  }
+
+  // Store API key in localStorage
+  static setApiKey(apiKey: string): void {
+    if (typeof window !== 'undefined') {
+      try {
+        localStorage.setItem(API_KEY_STORAGE_KEY, apiKey);
+      } catch {
+        // localStorage may be unavailable
+      }
+    }
+  }
+
+  // Clear API key from localStorage
+  static clearApiKey(): void {
+    if (typeof window !== 'undefined') {
+      try {
+        localStorage.removeItem(API_KEY_STORAGE_KEY);
+      } catch {
+        // localStorage may be unavailable
+      }
+    }
+  }
+
   private static getClient() {
-    const apiKey = process.env.API_KEY;
+    const apiKey = this.getApiKey();
     if (!apiKey) {
-      throw new Error("API_KEY is missing. Please add it to your environment variables.");
+      throw new Error("API_KEY is missing. Please configure your API key.");
     }
     return new GoogleGenAI({ apiKey });
   }

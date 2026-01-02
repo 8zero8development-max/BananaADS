@@ -96,13 +96,24 @@ const StepIndicator: React.FC<{ currentStep: AppStep }> = ({ currentStep }) => {
 const ApiKeyConfig: React.FC<{ onConfigured: () => void }> = ({ onConfigured }) => {
   const [isAiStudio, setIsAiStudio] = useState(false);
   const [checking, setChecking] = useState(true);
+  const [apiKeyInput, setApiKeyInput] = useState('');
+  const [error, setError] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     const check = async () => {
+      // Check localStorage first
+      const storedKey = GeminiService.getApiKey();
+      if (storedKey) {
+        onConfigured();
+        return;
+      }
+      // Check environment variable
       if (process.env.API_KEY) {
         onConfigured();
         return;
       }
+      // Check AI Studio environment
       const aiStudio = (window as any).aistudio;
       if (aiStudio) {
         setIsAiStudio(true);
@@ -123,6 +134,21 @@ const ApiKeyConfig: React.FC<{ onConfigured: () => void }> = ({ onConfigured }) 
       await aiStudio.openSelectKey();
       onConfigured();
     }
+  };
+
+  const handleSubmitApiKey = async () => {
+    const trimmedKey = apiKeyInput.trim();
+    if (!trimmedKey) {
+      setError('Please enter an API key');
+      return;
+    }
+    
+    setIsSubmitting(true);
+    setError(null);
+    
+    // Store the key and proceed
+    GeminiService.setApiKey(trimmedKey);
+    onConfigured();
   };
 
   if (checking) return <div className="min-h-screen flex items-center justify-center"><BananaPro size="lg" text="System Loading..." /></div>;
@@ -155,27 +181,36 @@ const ApiKeyConfig: React.FC<{ onConfigured: () => void }> = ({ onConfigured }) 
                All features (Scripting, Storyboards, Voice) work on the <strong>Free Tier</strong>. <br/>
                Only Video Generation requires a paid key.
             </p>
-            <div className="bg-black/50 rounded-xl p-5 mb-8 text-left border border-white/5">
-              <p className="text-[10px] uppercase tracking-widest text-white/30 font-bold mb-3">Deployment Instructions</p>
-              <div className="space-y-3">
-                 <div className="flex items-start gap-3">
-                    <span className="flex-shrink-0 w-5 h-5 rounded-full bg-white/10 flex items-center justify-center text-xs">1</span>
-                    <p className="text-xs text-white/60">Get a free key from <a href="https://aistudio.google.com/app/apikey" target="_blank" className="text-yellow-400 hover:underline">Google AI Studio</a></p>
-                 </div>
-                 <div className="flex items-start gap-3">
-                    <span className="flex-shrink-0 w-5 h-5 rounded-full bg-white/10 flex items-center justify-center text-xs">2</span>
-                    <div className="min-w-0">
-                      <p className="text-xs text-white/60 mb-1">Set environment variable:</p>
-                      <code className="block bg-white/5 p-2 rounded text-green-400 text-[10px] font-mono break-all border border-white/5">
-                        API_KEY="AIzaSy..."
-                      </code>
-                    </div>
-                 </div>
-              </div>
+            
+            <div className="bg-black/50 rounded-xl p-5 mb-6 text-left border border-white/5">
+              <p className="text-[10px] uppercase tracking-widest text-white/30 font-bold mb-3">Enter Your API Key</p>
+              <input
+                type="password"
+                value={apiKeyInput}
+                onChange={(e) => setApiKeyInput(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && handleSubmitApiKey()}
+                placeholder="AIzaSy..."
+                className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white placeholder-white/30 focus:outline-none focus:border-yellow-400/50 transition mb-3"
+              />
+              {error && <p className="text-red-400 text-xs mb-3">{error}</p>}
+              <button 
+                onClick={handleSubmitApiKey}
+                disabled={isSubmitting}
+                className="w-full gradient-accent py-3 rounded-lg font-bold text-black shadow-lg hover:scale-[1.02] transition disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isSubmitting ? 'Configuring...' : 'Save & Continue'}
+              </button>
+              <p className="text-[9px] text-white/30 mt-3 leading-relaxed">
+                Your key is stored locally in your browser and never sent to any server other than Google's API.
+              </p>
             </div>
-            <button onClick={() => window.location.reload()} className="text-sm text-white/40 hover:text-white flex items-center justify-center gap-2 mx-auto transition">
-              <i className="fa-solid fa-rotate-right"></i> Reload Application
-            </button>
+
+            <div className="bg-black/30 rounded-xl p-4 mb-6 text-left border border-white/5">
+              <p className="text-[10px] uppercase tracking-widest text-white/30 font-bold mb-2">Get a Free Key</p>
+              <p className="text-xs text-white/60">
+                Visit <a href="https://aistudio.google.com/app/apikey" target="_blank" className="text-yellow-400 hover:underline">Google AI Studio</a> to create your free API key.
+              </p>
+            </div>
           </>
         )}
       </div>
@@ -537,7 +572,8 @@ const App: React.FC = () => {
     if ((window as any).aistudio) {
         await (window as any).aistudio.openSelectKey();
     } else {
-        // If local, show the config screen again
+        // Clear stored API key and show the config screen again
+        GeminiService.clearApiKey();
         setIsConfigured(false);
     }
   };
