@@ -6,6 +6,9 @@ import adKFC from '@assets/poster-KFC_1767401674348.png';
 import adKebab from '@assets/poster-King_Kebab_1767401686129.png';
 import adPizza from '@assets/poster-Rocket_Pizza_&_Ice_Cream_1767401693311.png';
 import adBurger from '@assets/poster-Dopey_Dan\'s_Burger_Ranch_(4)_1767401798890.png';
+import moodKFC from '@assets/download_(8)_1767402167301.png';
+import moodPizza from '@assets/mood-board_(3)_1767402249246.png';
+import moodNike from '@assets/mood-board_(4)_1767402268781.png';
 
 interface LandingPageProps {
   onGetStarted: () => void;
@@ -273,6 +276,51 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
                 <div>
                   <p className="text-yellow-400 font-bold text-lg">Dopey Dan's</p>
                   <p className="text-white/70 text-sm">Saddle Up!</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="py-24 px-8 border-t border-white/5">
+        <div className="max-w-6xl mx-auto">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl md:text-5xl font-serif mb-4">
+              <span className="text-white">Impress Your Clients with</span>
+              <br />
+              <span className="text-yellow-400">Professional Mood Boards</span>
+            </h2>
+            <p className="text-white/50 text-lg max-w-2xl mx-auto">
+              AI-generated mood boards that capture your brand essence and wow stakeholders
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="group relative overflow-hidden rounded-2xl border border-yellow-500/20 hover:border-yellow-500/50 transition-all duration-300 shadow-lg shadow-black/20">
+              <img src={moodKFC} alt="KFC Zinger Tower Mood Board" className="w-full h-auto transform group-hover:scale-105 transition-transform duration-500" />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-6">
+                <div>
+                  <p className="text-yellow-400 font-bold text-lg">KFC Zinger Tower</p>
+                  <p className="text-white/70 text-sm">Color palette + lifestyle imagery</p>
+                </div>
+              </div>
+            </div>
+            <div className="group relative overflow-hidden rounded-2xl border border-yellow-500/20 hover:border-yellow-500/50 transition-all duration-300 shadow-lg shadow-black/20">
+              <img src={moodPizza} alt="Rocket Pizza Mood Board" className="w-full h-auto transform group-hover:scale-105 transition-transform duration-500" />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-6">
+                <div>
+                  <p className="text-yellow-400 font-bold text-lg">Rocket Rush Pizza</p>
+                  <p className="text-white/70 text-sm">Taste at warp speed</p>
+                </div>
+              </div>
+            </div>
+            <div className="group relative overflow-hidden rounded-2xl border border-yellow-500/20 hover:border-yellow-500/50 transition-all duration-300 shadow-lg shadow-black/20">
+              <img src={moodNike} alt="Nike Monarch IV Mood Board" className="w-full h-auto transform group-hover:scale-105 transition-transform duration-500" />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-6">
+                <div>
+                  <p className="text-yellow-400 font-bold text-lg">Nike Monarch IV</p>
+                  <p className="text-white/70 text-sm">Engineered for your everyday</p>
                 </div>
               </div>
             </div>
