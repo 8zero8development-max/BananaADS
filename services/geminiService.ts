@@ -5,9 +5,21 @@ import { AdBrief, AdConcept, Scene } from "../types";
 const API_KEY_STORAGE_KEY = 'banana_ads_gemini_api_key';
 
 export class GeminiService {
+  private static encodeKey(key: string): string {
+    const encoded = btoa(key);
+    return encoded.split('').reverse().join('');
+  }
+
+  private static decodeKey(encoded: string): string {
+    const reversed = encoded.split('').reverse().join('');
+    return atob(reversed);
+  }
+
   private static getStoredApiKey(): string | null {
     try {
-      return localStorage.getItem(API_KEY_STORAGE_KEY);
+      const encoded = sessionStorage.getItem(API_KEY_STORAGE_KEY);
+      if (!encoded) return null;
+      return this.decodeKey(encoded);
     } catch {
       return null;
     }
@@ -15,7 +27,8 @@ export class GeminiService {
 
   static setApiKey(apiKey: string): void {
     try {
-      localStorage.setItem(API_KEY_STORAGE_KEY, apiKey);
+      const encoded = this.encodeKey(apiKey);
+      sessionStorage.setItem(API_KEY_STORAGE_KEY, encoded);
     } catch (e) {
       console.error('Failed to store API key');
     }
@@ -23,7 +36,7 @@ export class GeminiService {
 
   static clearApiKey(): void {
     try {
-      localStorage.removeItem(API_KEY_STORAGE_KEY);
+      sessionStorage.removeItem(API_KEY_STORAGE_KEY);
     } catch (e) {
       console.error('Failed to clear API key');
     }
@@ -190,7 +203,7 @@ export class GeminiService {
       `;
     
       const response = await ai.models.generateContent({
-        model: 'gemini-2.5-flash',
+        model: 'gemini-3-pro-preview',
         contents: { parts: [{ text: prompt }] },
         config: {
           tools: [{ googleSearch: {} }]

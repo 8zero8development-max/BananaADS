@@ -542,6 +542,12 @@ const App: React.FC<AppProps> = ({ onBackToLanding }) => {
     } catch (error) {
       if ((error as any).message?.includes("Requested entity was not found")) {
         await (window as any).aistudio.openSelectKey();
+      } else if ((error as any).message?.includes("timed out")) {
+        // Handle timeout gracefully
+        console.error("Video generation timed out");
+      } else if ((error as any).status === 429) {
+        // Handle rate limiting
+        console.error("Rate limit exceeded, please try again later");
       }
       console.error("Error generating video:", error);
       setProject(prev => {
