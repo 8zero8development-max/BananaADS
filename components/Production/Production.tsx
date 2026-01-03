@@ -10,6 +10,8 @@ interface ProductionProps {
   setSelectedFoodPostIdx: React.Dispatch<React.SetStateAction<number>>;
   selectedSocialPostIdx: number;
   setSelectedSocialPostIdx: React.Dispatch<React.SetStateAction<number>>;
+  selectedEmailSectionIdx: number;
+  setSelectedEmailSectionIdx: React.Dispatch<React.SetStateAction<number>>;
   editInstruction: string;
   setEditInstruction: React.Dispatch<React.SetStateAction<string>>;
   copiedId: string | null;
@@ -29,6 +31,8 @@ const Production: React.FC<ProductionProps> = ({
   setSelectedFoodPostIdx,
   selectedSocialPostIdx,
   setSelectedSocialPostIdx,
+  selectedEmailSectionIdx,
+  setSelectedEmailSectionIdx,
   editInstruction,
   setEditInstruction,
   copiedId,
@@ -127,6 +131,22 @@ const Production: React.FC<ProductionProps> = ({
           generateSceneVideo={generateSceneVideo}
           playVoiceover={playVoiceover}
           handlePolishScript={handlePolishScript}
+          handleCopyPrompt={handleCopyPrompt}
+          handleDownload={handleDownload}
+        />
+      )}
+
+      {project.projectType === 'email' && (
+        <EmailLayout
+          project={project}
+          selectedEmailSectionIdx={selectedEmailSectionIdx}
+          setSelectedEmailSectionIdx={setSelectedEmailSectionIdx}
+          editInstruction={editInstruction}
+          setEditInstruction={setEditInstruction}
+          copiedId={copiedId}
+          generateSceneImage={generateSceneImage}
+          handlePolishScript={handlePolishScript}
+          handleEditImage={handleEditImage}
           handleCopyPrompt={handleCopyPrompt}
           handleDownload={handleDownload}
         />
@@ -750,5 +770,201 @@ const VideoLayout = memo<VideoLayoutProps>(({
 });
 
 VideoLayout.displayName = 'VideoLayout';
+
+interface EmailLayoutProps {
+  project: AdProject;
+  selectedEmailSectionIdx: number;
+  setSelectedEmailSectionIdx: React.Dispatch<React.SetStateAction<number>>;
+  editInstruction: string;
+  setEditInstruction: React.Dispatch<React.SetStateAction<string>>;
+  copiedId: string | null;
+  generateSceneImage: (idx: number, projectRef?: AdProject) => Promise<void>;
+  handlePolishScript: (idx: number) => Promise<void>;
+  handleEditImage: (idx: number) => Promise<void>;
+  handleCopyPrompt: (text: string, id: string) => Promise<void>;
+  handleDownload: (url: string, filename: string) => void;
+}
+
+const EmailLayout = memo<EmailLayoutProps>(({
+  project,
+  selectedEmailSectionIdx,
+  setSelectedEmailSectionIdx,
+  editInstruction,
+  setEditInstruction,
+  copiedId,
+  generateSceneImage,
+  handlePolishScript,
+  handleEditImage,
+  handleCopyPrompt,
+  handleDownload
+}) => {
+  const scene = useMemo(() => project.scenes[selectedEmailSectionIdx], [project.scenes, selectedEmailSectionIdx]);
+  const idx = selectedEmailSectionIdx;
+
+  const sectionLabels = ['Header', 'Hero', 'Body', 'Footer'];
+
+  return (
+    <div className="space-y-8">
+      <div className="grid grid-cols-4 gap-4">
+        {project.scenes.map((s, i) => (
+          <div 
+            key={i}
+            onClick={() => setSelectedEmailSectionIdx(i)}
+            className={`glass rounded-2xl overflow-hidden cursor-pointer transition-all hover:scale-[1.02] ${selectedEmailSectionIdx === i ? 'ring-2 ring-blue-500 ring-offset-2 ring-offset-black' : 'opacity-70 hover:opacity-100'}`}
+          >
+            <div className="aspect-video bg-zinc-900 relative">
+              {s.imageUrl ? (
+                <img src={s.imageUrl} className="w-full h-full object-cover" alt={`Section ${i + 1}`} />
+              ) : s.isGeneratingImage ? (
+                <div className="w-full h-full flex items-center justify-center">
+                  <BananaPro role="artist" size="sm" />
+                </div>
+              ) : (
+                <div className="w-full h-full flex items-center justify-center">
+                  <i className="fa-solid fa-envelope text-white/20 text-2xl"></i>
+                </div>
+              )}
+              {selectedEmailSectionIdx === i && (
+                <div className="absolute top-2 right-2 w-6 h-6 rounded-full bg-blue-500 flex items-center justify-center">
+                  <i className="fa-solid fa-check text-white text-xs"></i>
+                </div>
+              )}
+            </div>
+            <div className="p-3 bg-zinc-900/50">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold text-blue-400">{sectionLabels[i] || `Section ${i + 1}`}</span>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {scene && (
+        <div className="glass rounded-[40px] overflow-hidden">
+          <div className="flex flex-col lg:flex-row">
+            <div className="lg:w-3/5 bg-black relative group">
+              <div className="aspect-video w-full">
+                {scene.imageUrl ? (
+                  <img src={scene.imageUrl} className="w-full h-full object-cover" alt={`Section ${idx + 1}`} />
+                ) : scene.isGeneratingImage ? (
+                  <div className="w-full h-full flex flex-col items-center justify-center bg-zinc-900">
+                    <BananaPro role="artist" size="md" />
+                    <p className="text-sm font-bold tracking-widest uppercase mt-4">Generating Email Section...</p>
+                  </div>
+                ) : (
+                  <div className="w-full h-full flex flex-col items-center justify-center bg-zinc-900">
+                    <div className="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center mb-4">
+                      <i className="fa-solid fa-envelope text-white/20 text-2xl"></i>
+                    </div>
+                    <p className="text-white/40 font-medium">Section visual not generated</p>
+                  </div>
+                )}
+              </div>
+              
+              <div className="absolute bottom-4 left-4 flex space-x-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                <button 
+                  onClick={() => generateSceneImage(idx)}
+                  disabled={scene.isGeneratingImage}
+                  className="bg-white text-black px-4 py-2 rounded-full text-xs font-bold hover:bg-blue-50 transition flex items-center space-x-2"
+                >
+                  {scene.isGeneratingImage ? <BananaPro role="artist" size="sm" /> : <i className="fa-solid fa-image"></i>}
+                  <span>{scene.imageUrl ? "Regenerate" : "Generate"}</span>
+                </button>
+                {scene.imageUrl && (
+                  <button
+                    onClick={() => handleDownload(scene.imageUrl!, `Email-${sectionLabels[idx] || `Section-${idx + 1}`}.png`)}
+                    className="bg-white/20 backdrop-blur text-white px-3 py-2 rounded-full text-xs font-bold hover:bg-white/30 transition"
+                  >
+                    <i className="fa-solid fa-download"></i>
+                  </button>
+                )}
+              </div>
+            </div>
+
+            <div className="lg:w-2/5 p-6 flex flex-col border-l border-white/5">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-3">
+                  <span className="text-sm font-bold text-blue-400">{sectionLabels[idx] || `Section ${idx + 1}`}</span>
+                  <span className="bg-blue-500/10 text-blue-400 text-[10px] font-bold px-2 py-1 rounded">Email Section</span>
+                </div>
+              </div>
+
+              <div className="flex-1 mb-4">
+                <div className="flex items-center justify-between mb-2">
+                  <label className="text-[10px] uppercase tracking-widest text-white/30 font-bold">Email Content</label>
+                  <button 
+                    onClick={() => handlePolishScript(idx)}
+                    disabled={scene.isPolishingScript}
+                    className="text-[10px] bg-blue-500/10 hover:bg-blue-500/30 text-blue-300 px-2 py-1 rounded transition flex items-center gap-1"
+                  >
+                    {scene.isPolishingScript ? <BananaPro role="writer" size="sm" /> : <i className="fa-solid fa-wand-magic-sparkles"></i>}
+                    <span>Polish</span>
+                  </button>
+                </div>
+                <div className="bg-black/30 rounded-xl p-4 max-h-[200px] overflow-y-auto">
+                  <p className="text-sm leading-relaxed whitespace-pre-wrap">{scene.audioScript}</p>
+                </div>
+              </div>
+
+              <div className="mb-4">
+                <label className="text-[10px] uppercase tracking-widest text-white/30 font-bold block mb-2">Edit Section with AI</label>
+                <div className="flex gap-0">
+                  <div className="relative flex-grow">
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-white/30"><i className="fa-solid fa-wand-magic-sparkles"></i></span>
+                    <input 
+                      type="text"
+                      value={editInstruction}
+                      onChange={(e) => setEditInstruction(e.target.value)}
+                      placeholder="Change colors, add CTA button..."
+                      className="w-full bg-white/5 border border-blue-500/30 rounded-l-xl pl-9 pr-4 py-2.5 text-sm focus:border-blue-500 outline-none transition"
+                    />
+                  </div>
+                  <button 
+                    onClick={() => handleEditImage(idx)}
+                    disabled={!editInstruction || !scene.imageUrl || scene.isGeneratingImage}
+                    className="bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 border-y border-r border-blue-500/30 px-4 py-2.5 rounded-r-xl font-bold text-sm transition disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    Edit
+                  </button>
+                </div>
+              </div>
+
+              <details className="group">
+                <summary className="text-[10px] uppercase tracking-widest text-white/30 font-bold cursor-pointer hover:text-white/50 transition flex items-center gap-2 mb-2">
+                  <i className="fa-solid fa-chevron-right text-[8px] transition-transform group-open:rotate-90"></i>
+                  Advanced Prompts
+                </summary>
+                <div className="space-y-3 pl-4 border-l border-white/10">
+                  <div>
+                    <div className="flex justify-between items-center mb-1">
+                      <span className="text-[9px] text-white/40">Visual Prompt</span>
+                      <button 
+                        onClick={() => handleCopyPrompt(scene.visualPrompt, `${idx}-vis`)}
+                        className="text-[9px] text-white/40 hover:text-white transition"
+                      >
+                        {copiedId === `${idx}-vis` ? <span className="text-green-400">Copied</span> : 'Copy'}
+                      </button>
+                    </div>
+                    <p className="text-white/60 text-[11px] leading-relaxed italic line-clamp-3">"{scene.visualPrompt}"</p>
+                  </div>
+                </div>
+              </details>
+
+              <div className="mt-auto pt-4 flex items-center space-x-3 border-t border-white/5">
+                <div className="flex -space-x-2">
+                  <div className="w-6 h-6 rounded-full bg-white/10 border-2 border-black flex items-center justify-center text-[8px]"><i className="fa-solid fa-robot"></i></div>
+                  <div className="w-6 h-6 rounded-full bg-blue-500 border-2 border-black flex items-center justify-center text-[8px] text-white"><i className="fa-solid fa-envelope"></i></div>
+                </div>
+                <span className="text-[9px] text-white/40 uppercase font-bold tracking-widest">AI Email Designer</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+});
+
+EmailLayout.displayName = 'EmailLayout';
 
 export default Production;

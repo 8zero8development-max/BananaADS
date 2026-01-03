@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
-import { AdBrief, AdConcept, AdProject, AppStep } from '../types';
+import { AdBrief, AdConcept, AdProject, AppStep, ProductionType } from '../types';
 import { saveState, loadState, clearState, SavedState } from '../utils/storageService';
 
 function debounce<T extends (...args: any[]) => void>(fn: T, delay: number): T {
@@ -29,8 +29,8 @@ interface UseAdCampaignReturn {
   setConcepts: React.Dispatch<React.SetStateAction<AdConcept[]>>;
   project: AdProject | null;
   setProject: React.Dispatch<React.SetStateAction<AdProject | null>>;
-  productionType: 'video' | 'social' | 'food-social';
-  setProductionType: React.Dispatch<React.SetStateAction<'video' | 'social' | 'food-social'>>;
+  productionType: ProductionType;
+  setProductionType: React.Dispatch<React.SetStateAction<ProductionType>>;
   handleClearData: () => void;
   resetToDefaults: () => void;
 }
@@ -40,7 +40,7 @@ export function useAdCampaign(isConfigured: boolean): UseAdCampaignReturn {
   const [brief, setBrief] = useState<AdBrief>(DEFAULT_BRIEF);
   const [concepts, setConcepts] = useState<AdConcept[]>([]);
   const [project, setProject] = useState<AdProject | null>(null);
-  const [productionType, setProductionType] = useState<'video' | 'social' | 'food-social'>('video');
+  const [productionType, setProductionType] = useState<ProductionType>('video');
 
   const debouncedSaveRef = useRef(
     debounce((state: SavedState) => {
