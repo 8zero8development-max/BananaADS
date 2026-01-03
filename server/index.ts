@@ -1,6 +1,7 @@
 import 'dotenv/config';
 import express from 'express';
 import path from 'path';
+import fs from 'fs';
 import { fileURLToPath } from 'url';
 import { runMigrations } from 'stripe-replit-sync';
 import { getStripeSync, getStripePublishableKey, getUncachableStripeClient } from './stripeClient';
@@ -19,7 +20,6 @@ const PORT = process.env.PORT ? parseInt(process.env.PORT) : (isProd ? 5000 : 30
 
 // Resolve dist path - try process.cwd() first (more reliable in deployments), fallback to __dirname
 function resolveDistPath(): string {
-  const fs = require('fs');
   const candidates = [
     path.join(process.cwd(), 'dist'),
     path.join(__dirname, '..', 'dist'),
