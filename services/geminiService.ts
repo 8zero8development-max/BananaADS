@@ -618,6 +618,119 @@ export class GeminiService {
     return JSON.parse(response.text || "[]");
   }
 
+  static async generateEmailHTML(brief: AdBrief, concept: AdConcept, scenes: Scene[]): Promise<string> {
+    const ai = this.getClient();
+    
+    const sectionLabels = ['Header', 'Hero', 'Body', 'Footer'];
+    const sectionsData = scenes.map((scene, idx) => ({
+      section: sectionLabels[idx] || `Section ${idx + 1}`,
+      content: scene.audioScript,
+      hasImage: !!scene.imageUrl
+    }));
+
+    const prompt = `You are an expert HTML email developer. Create a complete, production-ready HTML email template.
+
+    Brand Information:
+    - Brand Name: ${brief.brandName}
+    - Product: ${brief.productName}
+    - Target Audience: ${brief.targetAudience}
+    - Tone: ${brief.tone.join(', ')}
+    - Visual Style: ${brief.visualStyle || 'Professional and modern'}
+    
+    Campaign Details:
+    - Campaign Title: ${concept.title}
+    - Subject Line: ${concept.hook}
+    - Strategy: ${concept.summary}
+    
+    Email Sections Content:
+    ${sectionsData.map(s => `${s.section}: ${s.content}`).join('\n    ')}
+    
+    Requirements:
+    1. Create a COMPLETE HTML email with inline CSS (email clients don't support external stylesheets)
+    2. Use a responsive design that works on mobile and desktop
+    3. Include proper email DOCTYPE and meta tags
+    4. Use table-based layout for maximum email client compatibility
+    5. Include placeholder image tags with src="{{IMAGE_HEADER}}", "{{IMAGE_HERO}}", "{{IMAGE_BODY}}", "{{IMAGE_FOOTER}}" where images should go
+    6. Include placeholder for logo: src="{{LOGO}}"
+    7. Style the email to match the brand tone (colors, fonts, spacing)
+    8. Include a prominent CTA button styled to match the brand
+    9. Add social media icon placeholders in the footer
+    10. Use web-safe fonts with fallbacks
+    
+    Color Scheme Guidelines based on tone:
+    - If tone includes "Premium/Luxury": Use dark backgrounds (#1a1a1a), gold accents (#d4af37)
+    - If tone includes "Fresh/Modern": Use white backgrounds, bright accent colors
+    - If tone includes "Professional": Use navy (#1e3a5f), white, subtle grays
+    - If tone includes "Energetic": Use bold colors, high contrast
+    - Default: Use brand-appropriate professional colors
+    
+    Output ONLY the complete HTML code, starting with <!DOCTYPE html> and ending with </html>.
+    Do not include any explanation or markdown code blocks.`;
+
+    const response = await ai.models.generateContent({
+      model: "gemini-2.5-flash",
+      contents: prompt,
+    });
+
+    let html = response.text || "";
+    
+    // Clean up any markdown code blocks if present
+    html = html.replace(/```html\n?/g, '').replace(/```\n?/g, '').trim();
+    
+    // Replace image placeholders with actual images if available
+    if (scenes[0]?.imageUrl) {
+      html = html.replace(/\{\{IMAGE_HEADER\}\}/g, scenes[0].imageUrl);
+    }
+    if (scenes[1]?.imageUrl) {
+      html = html.replace(/\{\{IMAGE_HERO\}\}/g, scenes[1].imageUrl);
+    }
+    if (scenes[2]?.imageUrl) {
+      html = html.replace(/\{\{IMAGE_BODY\}\}/g, scenes[2].imageUrl);
+    }
+    if (scenes[3]?.imageUrl) {
+      html = html.replace(/\{\{IMAGE_FOOTER\}\}/g, scenes[3].imageUrl);
+    }
+    if (brief.logoImage) {
+      html = html.replace(/\{\{LOGO\}\}/g, brief.logoImage);
+    }
+    
+    return html;
+  }
+
+  static async editEmailHTML(currentHTML: string, editInstruction: string, brief: AdBrief): Promise<string> {
+    const ai = this.getClient();
+    
+    const prompt = `You are an expert HTML email developer. Edit the following HTML email template based on the user's instruction.
+
+    Current HTML:
+    ${currentHTML}
+    
+    User's Edit Instruction: "${editInstruction}"
+    
+    Brand Context:
+    - Brand Name: ${brief.brandName}
+    - Tone: ${brief.tone.join(', ')}
+    
+    Requirements:
+    1. Make ONLY the changes requested by the user
+    2. Maintain email client compatibility (inline CSS, table layout)
+    3. Keep the overall structure intact unless specifically asked to change it
+    4. Preserve all image placeholders and actual image URLs
+    
+    Output ONLY the complete modified HTML code, starting with <!DOCTYPE html> and ending with </html>.
+    Do not include any explanation or markdown code blocks.`;
+
+    const response = await ai.models.generateContent({
+      model: "gemini-2.5-flash",
+      contents: prompt,
+    });
+
+    let html = response.text || "";
+    html = html.replace(/```html\n?/g, '').replace(/```\n?/g, '').trim();
+    
+    return html;
+  }
+
   static async generateScript(brief: AdBrief, concept: AdConcept): Promise<Scene[]> {
     const ai = this.getClient();
     const prompt = `Write a detailed cinematic script for this advertisement concept:

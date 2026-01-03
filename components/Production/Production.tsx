@@ -1,6 +1,7 @@
-import React, { memo, useMemo, useCallback } from 'react';
+import React, { memo, useMemo, useCallback, useState } from 'react';
 import { AdProject, AppStep, Scene } from '../../types';
 import BananaPro from '../shared/BananaPro';
+import EmailTemplateEditor from '../EmailEditor/EmailTemplateEditor';
 
 interface ProductionProps {
   project: AdProject;
@@ -798,13 +799,89 @@ const EmailLayout = memo<EmailLayoutProps>(({
   handleCopyPrompt,
   handleDownload
 }) => {
+  const [showTemplateEditor, setShowTemplateEditor] = useState(false);
+  const [savedEmailHTML, setSavedEmailHTML] = useState<string>('');
+  
   const scene = useMemo(() => project.scenes[selectedEmailSectionIdx], [project.scenes, selectedEmailSectionIdx]);
   const idx = selectedEmailSectionIdx;
 
   const sectionLabels = ['Header', 'Hero', 'Body', 'Footer'];
+  
+  const allSectionsGenerated = project.scenes.every(s => s.imageUrl);
+
+  const handleSaveTemplate = (html: string) => {
+    setSavedEmailHTML(html);
+    setShowTemplateEditor(false);
+  };
 
   return (
     <div className="space-y-8">
+      {/* Generate HTML Template Button */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h3 className="text-lg font-bold text-white">Email Campaign Sections</h3>
+          <p className="text-sm text-white/50">Generate all sections, then create your HTML email template</p>
+        </div>
+        <button
+          onClick={() => setShowTemplateEditor(true)}
+          disabled={!allSectionsGenerated}
+          className={`bg-gradient-to-r from-yellow-400 to-orange-500 text-black px-6 py-3 rounded-xl font-bold text-sm transition flex items-center gap-2 ${
+            allSectionsGenerated ? 'hover:scale-105' : 'opacity-50 cursor-not-allowed'
+          }`}
+        >
+          <i className="fa-solid fa-code"></i>
+          Generate HTML Email
+        </button>
+      </div>
+
+      {/* Email Template Editor Modal */}
+      {showTemplateEditor && project.selectedConcept && (
+        <EmailTemplateEditor
+          brief={project.brief}
+          concept={project.selectedConcept}
+          scenes={project.scenes}
+          onClose={() => setShowTemplateEditor(false)}
+          onSave={handleSaveTemplate}
+        />
+      )}
+
+      {/* Saved HTML Preview */}
+      {savedEmailHTML && !showTemplateEditor && (
+        <div className="glass rounded-2xl p-4 border border-green-500/30">
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-2">
+              <i className="fa-solid fa-check-circle text-green-400"></i>
+              <span className="text-sm font-bold text-green-400">HTML Email Template Saved</span>
+            </div>
+            <div className="flex gap-2">
+              <button
+                onClick={() => setShowTemplateEditor(true)}
+                className="bg-white/10 hover:bg-white/20 text-white px-3 py-1.5 rounded-lg text-xs font-medium transition"
+              >
+                <i className="fa-solid fa-edit mr-1"></i>Edit
+              </button>
+              <button
+                onClick={() => {
+                  const blob = new Blob([savedEmailHTML], { type: 'text/html' });
+                  const url = URL.createObjectURL(blob);
+                  const a = document.createElement('a');
+                  a.href = url;
+                  a.download = `${project.brief.brandName}-email.html`;
+                  document.body.appendChild(a);
+                  a.click();
+                  document.body.removeChild(a);
+                  URL.revokeObjectURL(url);
+                }}
+                className="bg-green-500/20 hover:bg-green-500/30 text-green-400 px-3 py-1.5 rounded-lg text-xs font-medium transition"
+              >
+                <i className="fa-solid fa-download mr-1"></i>Download HTML
+              </button>
+            </div>
+          </div>
+          <p className="text-xs text-white/40">{savedEmailHTML.length.toLocaleString()} characters</p>
+        </div>
+      )}
+
       <div className="grid grid-cols-4 gap-4">
         {project.scenes.map((s, i) => (
           <div 
