@@ -2,6 +2,7 @@ import React, { useState, Component, ErrorInfo, ReactNode } from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App';
 import LandingPage from './LandingPage';
+import './styles.css';
 
 interface ErrorBoundaryProps {
   children: ReactNode;
