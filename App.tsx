@@ -283,11 +283,15 @@ const AppContent: React.FC<AppProps> = ({ onBackToLanding }) => {
         const aspectRatio = currentProject.projectType === 'video' ? '16:9' : 
                            currentProject.projectType === 'email' ? '16:9' : '3:4';
         
+        // Pass logo image for email and social campaigns to ensure brand continuity
+        const shouldIncludeLogo = currentProject.projectType === 'email' || currentProject.projectType === 'social';
+        
         imageUrl = await GeminiService.generateStoryboardImage(
           scene.visualPrompt,
           currentProject.brief.productImage,
           previousSceneImage,
-          aspectRatio
+          aspectRatio,
+          shouldIncludeLogo ? currentProject.brief.logoImage : undefined
         );
       }
       
