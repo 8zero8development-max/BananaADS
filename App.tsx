@@ -378,13 +378,14 @@ const App: React.FC<AppProps> = ({ onBackToLanding }) => {
       } else if (productionType === 'social') {
          script = await GeminiService.generateSocialCampaign(brief, concept);
       } else if (productionType === 'food-social') {
-         // Food Socials creates a single scene initially
-         script = [{
-             sceneNumber: 1,
+         // Food Socials creates 3 scenes, one for each CTA option
+         const ctas = concept.overlayCtas || ['Check it out', 'Order Now', 'Try Today'];
+         script = ctas.slice(0, 3).map((cta, idx) => ({
+             sceneNumber: idx + 1,
              visualPrompt: concept.visualPrompt || "",
              audioScript: "", // Will be generated later
-             selectedCta: concept.overlayCtas?.[0]
-         }];
+             selectedCta: cta
+         }));
       }
 
       const newProject: AdProject = {
@@ -398,10 +399,12 @@ const App: React.FC<AppProps> = ({ onBackToLanding }) => {
       setProject(newProject);
       setStep(AppStep.STORYBOARDING);
       
-      // Auto-generate caption for food social immediately since script array is sparse
+      // Auto-generate captions for all food social scenes
       if (productionType === 'food-social') {
-           const caption = await GeminiService.generateFoodSocialPost(brief, concept, script[0]);
-           newProject.scenes[0].audioScript = caption;
+           for (let i = 0; i < script.length; i++) {
+               const caption = await GeminiService.generateFoodSocialPost(brief, concept, script[i]);
+               newProject.scenes[i].audioScript = caption;
+           }
            setProject({...newProject}); // Update state
       }
 
