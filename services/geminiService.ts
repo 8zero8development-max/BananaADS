@@ -454,17 +454,20 @@ export class GeminiService {
       - Tone: ${brief.tone.join(', ')}
       - Visual Style: ${brief.visualStyle || 'High-end appetizing'}
       - Keywords: ${brief.keyFeatures.join(', ')}
+      ${brief.logoImage ? '- Brand logo is attached for reference - incorporate it into the designs.' : ''}
+      ${brief.productImage ? '- Product image is attached for reference.' : ''}
     
       Task:
       Generate 3 DISTINCT Art Direction concepts for a Social Media Ad.
       Focus on LAYOUT, TYPOGRAPHY, and COMPOSITION.
       Think: Magazine Ads, Billboards, Pop-Art, Modern Minimalist, 90s Retro.
+      IMPORTANT: Each concept MUST incorporate the brand logo for brand consistency.
     
       For each concept, provide:
       1. Title: A short internal name for the concept.
       2. Hook: A short tagline/hook.
       3. Summary: Rationale why this works.
-      4. visualPrompt: A highly detailed prompt describing a "Professional Advertising Poster". Include details about typography style, background graphics, color palette.
+      4. visualPrompt: A highly detailed prompt describing a "Professional Advertising Poster". Include details about typography style, background graphics, color palette, and WHERE the brand logo should be placed.
       5. copyAngle: Instructions for the copywriter.
       6. overlayCtas: Provide 3 distinct, punchy headline options (2-5 words) that could be rendered on the image.
       `;
@@ -474,7 +477,13 @@ export class GeminiService {
       if (brief.productImage && brief.productImage.startsWith('data:')) {
         const { mimeType, data } = await this.resolveImage(brief.productImage);
         parts.push({ inlineData: { mimeType, data } });
-        parts.push({ text: "Use this product image as a key reference for the visual style." });
+        parts.push({ text: "REFERENCE IMAGE (PRODUCT): Use this product image as the hero subject in the poster designs." });
+      }
+
+      if (brief.logoImage && brief.logoImage.startsWith('data:')) {
+        const { mimeType, data } = await this.resolveImage(brief.logoImage);
+        parts.push({ inlineData: { mimeType, data } });
+        parts.push({ text: "REFERENCE IMAGE (LOGO): This is the brand logo. It MUST be incorporated into each poster design for brand consistency." });
       }
 
       const response = await ai.models.generateContent({
@@ -517,19 +526,21 @@ export class GeminiService {
     - Keywords: ${brief.keyFeatures.join(', ')}
     - Target Audience: ${brief.targetAudience}
     ${brief.creativeDirection ? `- Creative Direction: "${brief.creativeDirection}"` : ''}
+    ${brief.logoImage ? '- Brand logo is attached for reference.' : ''}
+    ${brief.productImage ? '- Product image is attached for reference.' : ''}
     
     Task: Generate 3 DISTINCT email campaign concepts focusing on:
     1. Subject lines and preview text
     2. Visual layout and composition
     3. Call-to-action placement
-    4. Brand consistency
+    4. Brand consistency - ensure the brand logo is prominently featured in the header
     
     For each concept, provide:
     - id: A unique identifier
     - title: Campaign name
     - hook: A compelling subject line
     - summary: Campaign strategy rationale
-    - visualPrompt: Detailed email template description (header, hero image, body layout, footer)
+    - visualPrompt: Detailed email template description (header with brand logo, hero image featuring the product, body layout, footer with logo)
     - subjectLines: 3 compelling subject line options
     - ctaText: Primary call-to-action text
     - layoutStyle: Email layout approach (newsletter, promotional, announcement, etc.)
@@ -540,7 +551,13 @@ export class GeminiService {
     if (brief.productImage && brief.productImage.startsWith('data:')) {
       const { mimeType, data } = await this.resolveImage(brief.productImage);
       parts.push({ inlineData: { mimeType, data } });
-      parts.push({ text: "Use this product image as a key reference for the visual style." });
+      parts.push({ text: "REFERENCE IMAGE (PRODUCT): Use this product image as the hero product in the email designs." });
+    }
+
+    if (brief.logoImage && brief.logoImage.startsWith('data:')) {
+      const { mimeType, data } = await this.resolveImage(brief.logoImage);
+      parts.push({ inlineData: { mimeType, data } });
+      parts.push({ text: "REFERENCE IMAGE (LOGO): This is the brand logo. It MUST appear in the email header and optionally in the footer for brand consistency." });
     }
 
     const response = await ai.models.generateContent({
@@ -923,7 +940,7 @@ export class GeminiService {
     return response.text?.trim() || script;
   }
 
-  static async generateStoryboardImage(visualPrompt: string, productImage?: string, styleReferenceImage?: string, aspectRatio: string = "16:9"): Promise<string> {
+  static async generateStoryboardImage(visualPrompt: string, productImage?: string, styleReferenceImage?: string, aspectRatio: string = "16:9", logoImage?: string): Promise<string> {
     const ai = this.getClient();
     const parts: any[] = [];
 
@@ -949,8 +966,20 @@ export class GeminiService {
       parts.push({ text: "REFERENCE IMAGE 2 (STYLE/CONTINUITY): Maintain the visual style, lighting, color grading, and character consistency of this previous scene." });
     }
 
-    // 3. Main Prompt
-    parts.push({ text: `Generate a high-end commercial visual. Description: ${visualPrompt}. 8k, professional lighting, photorealistic.` });
+    // 3. Add Logo Reference if available
+    if (logoImage && logoImage.startsWith('data:')) {
+      parts.push({
+        inlineData: {
+          mimeType: logoImage.split(';')[0].split(':')[1],
+          data: logoImage.split(',')[1]
+        }
+      });
+      parts.push({ text: "REFERENCE IMAGE 3 (LOGO): This is the brand logo. Incorporate it naturally into the scene where appropriate (e.g., header, corner, or as part of the product branding)." });
+    }
+
+    // 4. Main Prompt
+    const logoInstruction = logoImage ? " Include the brand logo naturally in the composition." : "";
+    parts.push({ text: `Generate a high-end commercial visual. Description: ${visualPrompt}.${logoInstruction} 8k, professional lighting, photorealistic.` });
 
     // WRAP IN RETRY LOGIC for free tier
     return this.retry(async () => {
