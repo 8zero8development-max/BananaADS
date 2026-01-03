@@ -697,13 +697,36 @@ export class GeminiService {
     return html;
   }
 
+  private static stripBase64FromHtml(html: string): { strippedHtml: string; placeholders: Map<string, string> } {
+    const placeholders = new Map<string, string>();
+    let counter = 0;
+    
+    const strippedHtml = html.replace(/data:image\/[^;]+;base64,[A-Za-z0-9+/=]+/g, (match) => {
+      const placeholder = `{{BASE64_IMAGE_${counter++}}}`;
+      placeholders.set(placeholder, match);
+      return placeholder;
+    });
+    
+    return { strippedHtml, placeholders };
+  }
+
+  private static restoreBase64ToHtml(html: string, placeholders: Map<string, string>): string {
+    let result = html;
+    for (const [placeholder, original] of placeholders) {
+      result = result.replace(placeholder, original);
+    }
+    return result;
+  }
+
   static async editEmailHTML(currentHTML: string, editInstruction: string, brief: AdBrief): Promise<string> {
     const ai = this.getClient();
+    
+    const { strippedHtml, placeholders } = this.stripBase64FromHtml(currentHTML);
     
     const prompt = `You are an expert HTML email developer. Edit the following HTML email template based on the user's instruction.
 
     Current HTML:
-    ${currentHTML}
+    ${strippedHtml}
     
     User's Edit Instruction: "${editInstruction}"
     
@@ -715,20 +738,37 @@ export class GeminiService {
     1. Make ONLY the changes requested by the user
     2. Maintain email client compatibility (inline CSS, table layout)
     3. Keep the overall structure intact unless specifically asked to change it
-    4. Preserve all image placeholders and actual image URLs
+    4. Preserve all image placeholders (like {{BASE64_IMAGE_0}}, {{BASE64_IMAGE_1}}, etc.) exactly as they appear
+    5. Preserve all other image URLs
     
     Output ONLY the complete modified HTML code, starting with <!DOCTYPE html> and ending with </html>.
     Do not include any explanation or markdown code blocks.`;
 
-    const response = await ai.models.generateContent({
-      model: "gemini-2.5-flash",
-      contents: prompt,
-    });
+    try {
+      const response = await ai.models.generateContent({
+        model: "gemini-2.5-flash",
+        contents: prompt,
+      });
 
-    let html = response.text || "";
-    html = html.replace(/```html\n?/g, '').replace(/```\n?/g, '').trim();
-    
-    return html;
+      let html = response.text || "";
+      html = html.replace(/```html\n?/g, '').replace(/```\n?/g, '').trim();
+      
+      html = this.restoreBase64ToHtml(html, placeholders);
+      
+      return html;
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      
+      if (errorMessage.includes('token count exceeds') || errorMessage.includes('INVALID_ARGUMENT')) {
+        throw new Error('The email content is too large to edit. Please try a simpler edit or reduce the email size.');
+      }
+      
+      if (errorMessage.includes('RESOURCE_EXHAUSTED') || errorMessage.includes('429')) {
+        throw new Error('API rate limit reached. Please wait a moment and try again.');
+      }
+      
+      throw error;
+    }
   }
 
   static async generateScript(brief: AdBrief, concept: AdConcept): Promise<Scene[]> {

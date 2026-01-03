@@ -17,6 +17,28 @@ const app = express();
 const isProd = process.env.NODE_ENV === 'production' || !!process.env.REPLIT_DEPLOYMENT;
 const PORT = process.env.PORT ? parseInt(process.env.PORT) : (isProd ? 5000 : 3001);
 
+// Resolve dist path - try process.cwd() first (more reliable in deployments), fallback to __dirname
+function resolveDistPath(): string {
+  const fs = require('fs');
+  const candidates = [
+    path.join(process.cwd(), 'dist'),
+    path.join(__dirname, '..', 'dist'),
+    path.join(__dirname, 'dist'),
+  ];
+  
+  for (const candidate of candidates) {
+    if (fs.existsSync(path.join(candidate, 'index.html'))) {
+      console.log(`Using dist path: ${candidate}`);
+      return candidate;
+    }
+  }
+  
+  // Default to process.cwd() based path
+  const defaultPath = candidates[0];
+  console.warn(`No dist/index.html found, defaulting to: ${defaultPath}`);
+  return defaultPath;
+}
+
 async function initDatabase() {
   console.log('Initializing database tables...');
   await db.execute(sql`
@@ -264,7 +286,7 @@ app.get('/api/health', (req, res) => {
 });
 
 if (isProd) {
-  const distPath = path.join(__dirname, '..', 'dist');
+  const distPath = resolveDistPath();
   app.use(express.static(distPath));
   app.get('*', (req, res) => {
     res.sendFile(path.join(distPath, 'index.html'));
