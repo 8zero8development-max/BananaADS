@@ -1132,8 +1132,8 @@ const App: React.FC<AppProps> = ({ onBackToLanding }) => {
                     <h1 className="text-4xl font-serif gradient-text">{project.selectedConcept?.title}</h1>
                     <span className="bg-yellow-500 text-black text-xs font-bold px-3 py-1 rounded-full uppercase tracking-widest">Selected</span>
                 </div>
-                {project.projectType === 'food-social' && project.scenes[0].selectedCta && (
-                    <p className="text-white/50">Using headline: <span className="text-white font-bold">"{project.scenes[0].selectedCta}"</span></p>
+                {project.projectType === 'food-social' && project.scenes.length > 0 && (
+                    <p className="text-white/50">Generating {project.scenes.length} posts with different CTAs</p>
                 )}
               </div>
               <div className="flex space-x-4">
@@ -1146,185 +1146,14 @@ const App: React.FC<AppProps> = ({ onBackToLanding }) => {
               </div>
             </div>
 
-            {project.projectType === 'food-social' ? (
-                // --- SPECIALIZED FOOD SOCIAL LAYOUT ---
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                    {/* LEFT COLUMN: HERO IMAGE & EDITING */}
-                    <div className="space-y-6">
-                        <div className="flex items-center gap-2 text-yellow-400 font-bold uppercase tracking-widest text-xs">
-                            <i className="fa-regular fa-image text-lg"></i> Facebook Hero
-                        </div>
-
-                        {/* Image Container */}
-                        <div className="relative group rounded-xl overflow-hidden border border-yellow-500/20 bg-black">
-                             {project.scenes[0].imageUrl ? (
-                                <img src={project.scenes[0].imageUrl} className="w-full h-auto object-cover" alt="Hero Ad" />
-                             ) : (
-                                <div className="aspect-video w-full flex flex-col items-center justify-center text-white/30">
-                                   {project.scenes[0].isGeneratingImage ? <BananaPro role="artist" text="Rendering..." /> : <i className="fa-solid fa-image text-4xl"></i>}
-                                </div>
-                             )}
-                             {/* Floating Generate/Regenerate Button */}
-                             {!project.scenes[0].isGeneratingImage && (
-                                 <button 
-                                    onClick={() => generateSceneImage(0)}
-                                    className="absolute top-4 right-4 bg-black/60 hover:bg-black/80 backdrop-blur text-white px-3 py-1.5 rounded-lg text-xs font-bold border border-white/10 transition"
-                                 >
-                                    <i className="fa-solid fa-rotate-right mr-1"></i> Regenerate
-                                 </button>
-                             )}
-                        </div>
-
-                        {/* Edit Bar */}
-                        <div className="flex gap-0">
-                            <div className="relative flex-grow">
-                                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-white/30"><i className="fa-solid fa-wand-magic-sparkles"></i></span>
-                                <input 
-                                    type="text"
-                                    value={editInstruction}
-                                    onChange={(e) => setEditInstruction(e.target.value)}
-                                    placeholder="Eg. Add more smoke, change background to blue..."
-                                    className="w-full bg-white/5 border border-yellow-500/30 rounded-l-xl pl-9 pr-4 py-3 text-sm focus:border-yellow-500 outline-none transition"
-                                />
-                            </div>
-                            <button 
-                                onClick={() => handleEditImage(0)}
-                                disabled={!editInstruction || !project.scenes[0].imageUrl || project.scenes[0].isGeneratingImage}
-                                className="bg-yellow-500/10 hover:bg-yellow-500/20 text-yellow-400 border-y border-r border-yellow-500/30 px-6 py-3 rounded-r-xl font-bold text-sm transition disabled:opacity-50 disabled:cursor-not-allowed"
-                            >
-                                Edit
-                            </button>
-                        </div>
-                        
-                        {/* Prompt Box */}
-                        <div className="bg-white/5 rounded-xl p-0 border border-white/10 overflow-hidden">
-                            <div className="flex items-center justify-between px-4 py-2 border-b border-white/5 bg-white/5">
-                                <span className="text-[10px] uppercase font-bold text-white/40 tracking-widest"><i className="fa-solid fa-terminal mr-1"></i> Image Prompt</span>
-                                <button 
-                                    onClick={() => handleCopyPrompt(project.scenes[0].visualPrompt, 'main-prompt')}
-                                    className="text-[10px] text-yellow-500 hover:text-yellow-400 font-bold flex items-center gap-1 transition"
-                                >
-                                    {copiedId === 'main-prompt' ? <><i className="fa-solid fa-check"></i> Copied</> : <><i className="fa-regular fa-copy"></i> Copy Prompt</>}
-                                </button>
-                            </div>
-                            <div className="p-4">
-                                <p className="font-mono text-xs text-white/60 leading-relaxed whitespace-pre-wrap">
-                                    {project.scenes[0].visualPrompt}
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* RIGHT COLUMN: FACEBOOK POST MOCK */}
-                    <div className="space-y-6">
-                        <div className="flex items-center gap-2 text-yellow-400 font-bold uppercase tracking-widest text-xs">
-                            <i className="fa-brands fa-facebook text-lg"></i> Facebook Post Preview
-                        </div>
-
-                        {/* Facebook Post Mock */}
-                        <div className="rounded-2xl border border-white/10 bg-zinc-950/60 backdrop-blur-md shadow-[0_20px_60px_-30px_rgba(0,0,0,0.9)] overflow-hidden">
-                            {/* Post Header */}
-                            <div className="flex items-start justify-between px-4 pt-4">
-                                <div className="flex items-center gap-3 min-w-0">
-                                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-yellow-400 to-orange-500 text-black flex items-center justify-center font-bold text-sm">
-                                        {brief.brandName ? brief.brandName.charAt(0).toUpperCase() : 'B'}
-                                    </div>
-                                    <div className="min-w-0">
-                                        <div className="flex items-center gap-2 min-w-0">
-                                            <span className="truncate text-sm font-semibold text-white">{brief.brandName || 'Brand Name'}</span>
-                                            <span className="text-[10px] px-1.5 py-0.5 rounded bg-blue-500/15 text-blue-300 border border-blue-500/20 flex items-center gap-1">
-                                                <i className="fa-solid fa-circle-check text-[8px]"></i> Verified
-                                            </span>
-                                        </div>
-                                        <div className="flex items-center gap-1.5 text-xs text-white/50">
-                                            <span>Just now</span>
-                                            <span>·</span>
-                                            <span className="text-white/40">Sponsored</span>
-                                            <span>·</span>
-                                            <i className="fa-solid fa-earth-americas text-[11px]"></i>
-                                        </div>
-                                    </div>
-                                </div>
-                                <button className="w-9 h-9 rounded-full hover:bg-white/5 text-white/40 hover:text-white transition flex items-center justify-center">
-                                    <i className="fa-solid fa-ellipsis"></i>
-                                </button>
-                            </div>
-
-                            {/* Post Body / Caption */}
-                            <div className="px-4 py-3">
-                                {project.scenes[0].isPolishingScript ? (
-                                    <div className="flex items-center justify-center py-8 opacity-60">
-                                        <BananaPro role="writer" text="Writing copy..." />
-                                    </div>
-                                ) : (
-                                    <div className="whitespace-pre-wrap text-[15px] leading-relaxed text-white/90 max-h-[200px] overflow-auto pr-1">
-                                        {project.scenes[0].audioScript || "Generating caption..."}
-                                    </div>
-                                )}
-                            </div>
-
-                            {/* Post Media */}
-                            {project.scenes[0].imageUrl && (
-                                <div className="border-y border-white/10 bg-black">
-                                    <img src={project.scenes[0].imageUrl} className="w-full object-cover max-h-[300px]" alt="Post media" />
-                                </div>
-                            )}
-
-                            {/* Reactions Summary */}
-                            <div className="px-4 py-2 text-xs text-white/50 flex items-center justify-between border-b border-white/5">
-                                <div className="flex items-center gap-2">
-                                    <div className="flex -space-x-1">
-                                        <span className="w-5 h-5 rounded-full bg-blue-500 text-white flex items-center justify-center text-[10px] border border-black/50">
-                                            <i className="fa-solid fa-thumbs-up"></i>
-                                        </span>
-                                        <span className="w-5 h-5 rounded-full bg-red-500 text-white flex items-center justify-center text-[10px] border border-black/50">
-                                            <i className="fa-solid fa-heart"></i>
-                                        </span>
-                                        <span className="w-5 h-5 rounded-full bg-yellow-500 text-black flex items-center justify-center text-[10px] border border-black/50">
-                                            <i className="fa-solid fa-face-laugh-squint"></i>
-                                        </span>
-                                    </div>
-                                    <span>1.2K</span>
-                                </div>
-                                <div className="flex items-center gap-3">
-                                    <span>84 comments</span>
-                                    <span>12 shares</span>
-                                </div>
-                            </div>
-
-                            {/* Action Buttons */}
-                            <div className="grid grid-cols-3">
-                                <button className="py-3 flex items-center justify-center gap-2 text-sm text-white/70 hover:bg-white/5 hover:text-white transition">
-                                    <i className="fa-regular fa-thumbs-up"></i>
-                                    <span>Like</span>
-                                </button>
-                                <button className="py-3 flex items-center justify-center gap-2 text-sm text-white/70 hover:bg-white/5 hover:text-white transition">
-                                    <i className="fa-regular fa-comment"></i>
-                                    <span>Comment</span>
-                                </button>
-                                <button className="py-3 flex items-center justify-center gap-2 text-sm text-white/70 hover:bg-white/5 hover:text-white transition">
-                                    <i className="fa-solid fa-share"></i>
-                                    <span>Share</span>
-                                </button>
-                            </div>
-                        </div>
-
-                         <div className="flex justify-end pt-4">
-                            <button className="w-12 h-12 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition text-white/60 hover:text-white">
-                                <i className="fa-solid fa-gear"></i>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            ) : (
-                // --- STANDARD SCENE LIST LAYOUT (Video & Regular Social) ---
+            {/* --- STANDARD SCENE LIST LAYOUT (Video, Social & Food Social) --- */}
                 <div className="space-y-12">
                 {project.scenes.map((scene, idx) => (
                     <div key={idx} className={`glass rounded-[40px] overflow-hidden flex flex-col md:flex-row min-h-[400px]`}>
                     
                     {/* Visual Preview Area */}
-                    <div className={`${project.projectType === 'social' ? 'md:w-5/12' : 'md:w-3/5'} bg-black relative group flex items-center justify-center bg-zinc-900/50`}>
-                        <div className={`relative ${project.projectType === 'social' ? 'aspect-[3/4] h-[500px]' : 'aspect-video w-full'}`}>
+                    <div className={`${project.projectType === 'social' || project.projectType === 'food-social' ? 'md:w-5/12' : 'md:w-3/5'} bg-black relative group flex items-center justify-center bg-zinc-900/50`}>
+                        <div className={`relative ${project.projectType === 'social' || project.projectType === 'food-social' ? 'aspect-[3/4] h-[500px]' : 'aspect-video w-full'}`}>
                             {scene.videoUrl ? (
                             <video 
                                 src={scene.videoUrl} 
@@ -1347,7 +1176,7 @@ const App: React.FC<AppProps> = ({ onBackToLanding }) => {
                                 ) : (
                                     <>
                                         <div className="w-20 h-20 rounded-full bg-white/5 flex items-center justify-center">
-                                        <i className={`fa-solid ${project.projectType === 'social' ? 'fa-image' : 'fa-camera-movie'} text-white/20 text-3xl`}></i>
+                                        <i className={`fa-solid ${project.projectType === 'social' || project.projectType === 'food-social' ? 'fa-image' : 'fa-camera-movie'} text-white/20 text-3xl`}></i>
                                         </div>
                                         <div>
                                         <p className="font-bold text-lg text-white/40">Visualization Required</p>
@@ -1400,10 +1229,10 @@ const App: React.FC<AppProps> = ({ onBackToLanding }) => {
                     </div>
                     
                     {/* Content / Script Area */}
-                    <div className={`${project.projectType === 'social' ? 'md:w-7/12' : 'md:w-2/5'} p-10 flex flex-col border-l border-white/5`}>
+                    <div className={`${project.projectType === 'social' || project.projectType === 'food-social' ? 'md:w-7/12' : 'md:w-2/5'} p-10 flex flex-col border-l border-white/5`}>
                         <div className="flex items-center justify-between mb-8">
                         <span className="text-xs font-bold uppercase tracking-[0.2em] text-yellow-400">
-                            {project.projectType === 'social' ? `Post #${scene.sceneNumber}` : `Scene ${scene.sceneNumber}`}
+                            {project.projectType === 'social' || project.projectType === 'food-social' ? `Post #${scene.sceneNumber}` : `Scene ${scene.sceneNumber}`}
                         </span>
                         
                         {/* Only show Veo tag / Voice button for Video projects */}
@@ -1426,7 +1255,7 @@ const App: React.FC<AppProps> = ({ onBackToLanding }) => {
                         <div className="mb-8">
                         <div className="flex justify-between items-end mb-2">
                             <label className="text-[10px] uppercase tracking-widest text-white/30 font-bold block">
-                                {project.projectType === 'social' ? 'Graphic Design Prompt' : 'Cinematography Prompt'}
+                                {project.projectType === 'social' || project.projectType === 'food-social' ? 'Graphic Design Prompt' : 'Cinematography Prompt'}
                             </label>
                             <button 
                                 onClick={() => handleCopyPrompt(scene.visualPrompt, `${idx}-vis`)}
@@ -1472,7 +1301,7 @@ const App: React.FC<AppProps> = ({ onBackToLanding }) => {
                         <div>
                         <div className="flex items-center justify-between mb-2">
                             <label className="text-[10px] uppercase tracking-widest text-white/30 font-bold block">
-                                {project.projectType === 'social' ? 'Post Caption' : 'Audio Script'}
+                                {project.projectType === 'social' || project.projectType === 'food-social' ? 'Post Caption' : 'Audio Script'}
                             </label>
                             <button 
                                 onClick={() => handlePolishScript(idx)}
@@ -1496,7 +1325,6 @@ const App: React.FC<AppProps> = ({ onBackToLanding }) => {
                     </div>
                 ))}
                 </div>
-            )}
           </div>
         )}
       </main>
