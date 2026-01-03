@@ -104,26 +104,29 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
       period: '/month',
       description: 'Perfect for small brands and creators',
       features: ['5 Ad Campaigns/month', 'AI Storyboards', 'Script Generation', 'Mood Boards', 'Email Support'],
-      cta: 'Start Free Trial',
-      popular: false
+      cta: 'Sign Up Now',
+      popular: false,
+      originalPrice: null
     },
     {
-      name: 'Professional',
-      price: '$24.99',
-      period: '/month',
-      description: 'For growing businesses and agencies',
-      features: ['Unlimited Campaigns', 'AI Storyboards', 'Script Generation', 'Neural Voiceovers', 'Priority Support', 'Export to All Formats'],
-      cta: 'Start Free Trial',
-      popular: true
-    },
-    {
-      name: 'Life time',
+      name: 'Lifetime',
       price: '£59.99',
       period: '/lifetime',
       description: 'Limited time deal',
       features: ['Everything in Pro', 'Video Generation (Veo)', 'Custom Branding', 'API Access', 'Dedicated Account Manager', 'Custom Integrations'],
-      cta: 'Contact Sales',
-      popular: false
+      cta: 'Sign Up Now',
+      popular: true,
+      originalPrice: '£299'
+    },
+    {
+      name: 'Professional',
+      price: '£24.99',
+      period: '/month',
+      description: 'For growing businesses and agencies',
+      features: ['Unlimited Campaigns', 'AI Storyboards', 'Script Generation', 'Neural Voiceovers', 'Priority Support', 'Export to All Formats'],
+      cta: 'Sign Up Now',
+      popular: false,
+      originalPrice: null
     }
   ];
 
@@ -551,6 +554,9 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
                 <p className="text-white/40 text-sm mb-6">{plan.description}</p>
                 
                 <div className="mb-6">
+                  {plan.originalPrice && (
+                    <div className="text-sm text-white/40 line-through mb-1">Reduced from {plan.originalPrice}</div>
+                  )}
                   <span className="text-4xl font-bold text-white">{plan.price}</span>
                   <span className="text-white/40">{plan.period}</span>
                 </div>
