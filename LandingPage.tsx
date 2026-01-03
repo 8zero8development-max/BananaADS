@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import appScreenshot from '@assets/generated_images/ai_cinematography_dashboard_ui.png';
+import screenshot1 from '@assets/Screenshot_2025-12-31_at_16.38.43_1767400681070.png';
+import screenshot2 from '@assets/Screenshot_2025-12-31_at_16.41.00_1767400725339.png';
+import screenshot3 from '@assets/Screenshot_2025-12-31_at_16.42.49_1767400752193.png';
 
 interface LandingPageProps {
   onGetStarted: () => void;
@@ -174,14 +176,33 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
             </a>
           </div>
 
-          <div className="relative max-w-4xl mx-auto">
+          <div className="relative max-w-5xl mx-auto">
             <div className="absolute inset-0 bg-gradient-to-r from-yellow-500/20 to-orange-500/20 blur-3xl rounded-3xl"></div>
-            <div className="relative bg-black/50 backdrop-blur border border-yellow-500/20 rounded-2xl p-2 shadow-2xl">
-              <img 
-                src={appScreenshot} 
-                alt="Banana Ads Interface"
-                className="rounded-xl w-full"
-              />
+            <div className="relative grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="bg-black/50 backdrop-blur border border-yellow-500/20 rounded-2xl p-2 shadow-2xl transform hover:scale-105 transition-transform">
+                <img 
+                  src={screenshot1} 
+                  alt="Brand Brief - Tell us about your brand"
+                  className="rounded-xl w-full"
+                />
+                <p className="text-center text-sm text-white/60 mt-2">Brand Brief</p>
+              </div>
+              <div className="bg-black/50 backdrop-blur border border-yellow-500/20 rounded-2xl p-2 shadow-2xl transform hover:scale-105 transition-transform md:-translate-y-4">
+                <img 
+                  src={screenshot2} 
+                  alt="Creative Concepts - Select your vision"
+                  className="rounded-xl w-full"
+                />
+                <p className="text-center text-sm text-white/60 mt-2">Creative Concepts</p>
+              </div>
+              <div className="bg-black/50 backdrop-blur border border-yellow-500/20 rounded-2xl p-2 shadow-2xl transform hover:scale-105 transition-transform">
+                <img 
+                  src={screenshot3} 
+                  alt="Production - Storyboard and video generation"
+                  className="rounded-xl w-full"
+                />
+                <p className="text-center text-sm text-white/60 mt-2">Production</p>
+              </div>
             </div>
           </div>
         </div>
