@@ -1,4 +1,4 @@
-import { AppStep, AdBrief, AdConcept, AdProject } from '../types';
+import { AppStep, AdBrief, AdConcept, AdProject, ProductionType } from '../types';
 
 const STORAGE_PREFIX = 'bananaads_';
 const STORAGE_KEYS = {
@@ -17,7 +17,7 @@ export interface SavedState {
   brief: AdBrief;
   concepts: AdConcept[];
   project: AdProject | null;
-  productionType: 'video' | 'social' | 'food-social';
+  productionType: ProductionType;
 }
 
 export function saveState(state: SavedState): void {
@@ -56,7 +56,7 @@ export function loadState(): SavedState | null {
     const concepts = conceptsStr ? JSON.parse(conceptsStr) as AdConcept[] : [];
     const project = projectStr ? JSON.parse(projectStr) as AdProject | null : null;
     const productionType = productionTypeStr 
-      ? JSON.parse(productionTypeStr) as 'video' | 'social' | 'food-social'
+      ? JSON.parse(productionTypeStr) as ProductionType
       : 'video';
 
     if (typeof step !== 'number' || brief.brandName === undefined) {

@@ -1,12 +1,12 @@
 import React from 'react';
-import { AdBrief } from '../../types';
+import { AdBrief, ProductionType } from '../../types';
 import BananaPro from '../shared/BananaPro';
 
 interface BriefingFormProps {
   brief: AdBrief;
   setBrief: React.Dispatch<React.SetStateAction<AdBrief>>;
-  productionType: 'video' | 'social' | 'food-social';
-  setProductionType: React.Dispatch<React.SetStateAction<'video' | 'social' | 'food-social'>>;
+  productionType: ProductionType;
+  setProductionType: React.Dispatch<React.SetStateAction<ProductionType>>;
   onSubmit: (e: React.FormEvent) => Promise<void>;
   onResearchBrand: () => Promise<void>;
   onGenerateMoodBoard: () => Promise<void>;
@@ -38,8 +38,8 @@ const BriefingForm: React.FC<BriefingFormProps> = ({
       <div>
         <h1 className="text-5xl font-serif mb-4 gradient-text">Tell us about your brand.</h1>
         <p className="text-white/50 text-lg mb-6">
-          Our AI {productionType === 'video' ? 'cinematography' : 'creative'} agent will analyze your brief to craft a 
-          {productionType === 'video' ? ' cinematic experience' : ' high-impact campaign'}.
+          Our AI {productionType === 'video' ? 'cinematography' : productionType === 'email' ? 'email marketing' : 'creative'} agent will analyze your brief to craft a 
+          {productionType === 'video' ? ' cinematic experience' : productionType === 'email' ? ' engaging email campaign' : ' high-impact campaign'}.
         </p>
         
         <div className="flex bg-white/5 rounded-full p-1.5 border border-yellow-500/30 w-fit mb-8">
@@ -72,6 +72,16 @@ const BriefingForm: React.FC<BriefingFormProps> = ({
             }`}
           >
             <i className="fa-solid fa-burger"></i> Food Socials
+          </button>
+          <button 
+            onClick={() => setProductionType('email')}
+            className={`px-6 py-2.5 rounded-full text-sm font-bold transition-all flex items-center gap-2 ${
+              productionType === 'email' 
+              ? 'bg-gradient-to-r from-blue-500 to-cyan-500 text-white shadow-lg' 
+              : 'text-white/40 hover:text-white hover:bg-white/5'
+            }`}
+          >
+            <i className="fa-solid fa-envelope"></i> Email Campaign
           </button>
         </div>
         

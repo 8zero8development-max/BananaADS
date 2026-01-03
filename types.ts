@@ -13,7 +13,10 @@ export interface AdBrief {
   moodBoard?: string;
   researchSources?: string[];
   visualStyle?: string; // For Food Socials Brand DNA
+  emailTemplate?: string; // For email-specific template selection
 }
+
+export type ProductionType = 'video' | 'social' | 'food-social' | 'email';
 
 export interface AdConcept {
   id: string;
@@ -48,7 +51,7 @@ export interface AdProject {
   selectedConcept?: AdConcept;
   scenes: Scene[];
   status: 'briefing' | 'concepts' | 'storyboarding';
-  projectType: 'video' | 'social' | 'food-social'; // Added food-social
+  projectType: ProductionType;
 }
 
 export enum AppStep {

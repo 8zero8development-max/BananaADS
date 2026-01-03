@@ -15,6 +15,7 @@ import ConceptSelection from './components/ConceptSelection/ConceptSelection';
 import Production from './components/Production/Production';
 import { useAdCampaign } from './hooks/useAdCampaign';
 import BananaAdsAssistant from './components/BananaAdsAssistant';
+import HelpSystem from './components/Help/HelpSystem';
 
 interface AppProps {
   onBackToLanding?: () => void;
@@ -30,6 +31,8 @@ const AppContent: React.FC<AppProps> = ({ onBackToLanding }) => {
   const [editInstruction, setEditInstruction] = useState<string>("");
   const [selectedFoodPostIdx, setSelectedFoodPostIdx] = useState<number>(0);
   const [selectedSocialPostIdx, setSelectedSocialPostIdx] = useState<number>(0);
+  const [selectedEmailSectionIdx, setSelectedEmailSectionIdx] = useState<number>(0);
+  const [showHelp, setShowHelp] = useState<boolean>(false);
 
   const { showToast } = useToast();
 
@@ -62,6 +65,10 @@ const AppContent: React.FC<AppProps> = ({ onBackToLanding }) => {
         const dna = await GeminiService.researchBrandDna(brief);
         setBrief(prev => ({ ...prev, visualStyle: dna.visualStyle }));
         generatedConcepts = await GeminiService.generateFoodSocialConcepts({ ...brief, visualStyle: dna.visualStyle });
+      } else if (productionType === 'email') {
+        const dna = await GeminiService.researchBrandDna(brief);
+        setBrief(prev => ({ ...prev, visualStyle: dna.visualStyle }));
+        generatedConcepts = await GeminiService.generateEmailCampaign({ ...brief, visualStyle: dna.visualStyle });
       } else {
         generatedConcepts = await GeminiService.generateConcepts(brief);
       }
@@ -213,6 +220,8 @@ const AppContent: React.FC<AppProps> = ({ onBackToLanding }) => {
           audioScript: "",
           selectedCta: cta
         }));
+      } else if (productionType === 'email') {
+        script = await GeminiService.generateEmailContent(brief, concept);
       }
 
       const newProject: AdProject = {
@@ -267,7 +276,8 @@ const AppContent: React.FC<AppProps> = ({ onBackToLanding }) => {
         );
       } else {
         const previousSceneImage = idx > 0 ? currentProject.scenes[idx - 1].imageUrl : undefined;
-        const aspectRatio = currentProject.projectType === 'video' ? '16:9' : '3:4';
+        const aspectRatio = currentProject.projectType === 'video' ? '16:9' : 
+                           currentProject.projectType === 'email' ? '16:9' : '3:4';
         
         imageUrl = await GeminiService.generateStoryboardImage(
           scene.visualPrompt,
@@ -439,9 +449,99 @@ const AppContent: React.FC<AppProps> = ({ onBackToLanding }) => {
     document.body.removeChild(link);
   };
 
-  const handleExport = () => {
+  const handleExport = async (format: 'html' | 'pdf' = 'html') => {
     if (!project) return;
-    const htmlContent = `<!DOCTYPE html>
+    
+    if (format === 'pdf') {
+      const { jsPDF } = await import('jspdf');
+      const doc = new jsPDF();
+      const pageWidth = doc.internal.pageSize.getWidth();
+      const margin = 20;
+      const contentWidth = pageWidth - (margin * 2);
+      let yPosition = 20;
+      
+      doc.setFontSize(24);
+      doc.setTextColor(250, 204, 21);
+      doc.text(project.brief.brandName, pageWidth / 2, yPosition, { align: 'center' });
+      yPosition += 15;
+      
+      doc.setFontSize(12);
+      doc.setTextColor(100, 100, 100);
+      doc.text(`Campaign: ${project.selectedConcept?.title || 'Untitled'}`, pageWidth / 2, yPosition, { align: 'center' });
+      yPosition += 8;
+      doc.text(`Tone: ${project.brief.tone.join(', ')} | Audience: ${project.brief.targetAudience}`, pageWidth / 2, yPosition, { align: 'center' });
+      yPosition += 20;
+      
+      doc.setDrawColor(250, 204, 21);
+      doc.line(margin, yPosition, pageWidth - margin, yPosition);
+      yPosition += 15;
+      
+      const sectionLabels = project.projectType === 'email' 
+        ? ['Header', 'Hero', 'Body', 'Footer']
+        : project.projectType === 'food-social' || project.projectType === 'social'
+        ? ['Post']
+        : ['Scene'];
+      
+      for (let i = 0; i < project.scenes.length; i++) {
+        const scene = project.scenes[i];
+        
+        if (yPosition > 250) {
+          doc.addPage();
+          yPosition = 20;
+        }
+        
+        doc.setFontSize(14);
+        doc.setTextColor(250, 204, 21);
+        const sectionTitle = project.projectType === 'email' 
+          ? sectionLabels[i] || `Section ${i + 1}`
+          : project.projectType === 'food-social' || project.projectType === 'social'
+          ? `Post ${i + 1}`
+          : `Scene ${scene.sceneNumber}`;
+        doc.text(sectionTitle, margin, yPosition);
+        yPosition += 10;
+        
+        if (scene.imageUrl && scene.imageUrl.startsWith('data:image')) {
+          try {
+            const imgFormat = scene.imageUrl.includes('image/png') ? 'PNG' : 'JPEG';
+            const imgWidth = contentWidth;
+            const imgHeight = project.projectType === 'video' || project.projectType === 'email' ? imgWidth * (9/16) : imgWidth * (4/3);
+            
+            if (yPosition + imgHeight > 280) {
+              doc.addPage();
+              yPosition = 20;
+            }
+            
+            doc.addImage(scene.imageUrl, imgFormat, margin, yPosition, imgWidth, imgHeight);
+            yPosition += imgHeight + 10;
+          } catch {
+            doc.setFontSize(10);
+            doc.setTextColor(150, 150, 150);
+            doc.text('[Image could not be embedded]', margin, yPosition);
+            yPosition += 10;
+          }
+        }
+        
+        doc.setFontSize(10);
+        doc.setTextColor(150, 150, 150);
+        const visualPromptLines = doc.splitTextToSize(`Visual: "${scene.visualPrompt}"`, contentWidth);
+        doc.text(visualPromptLines, margin, yPosition);
+        yPosition += visualPromptLines.length * 5 + 5;
+        
+        doc.setFontSize(11);
+        doc.setTextColor(50, 50, 50);
+        const scriptLabel = project.projectType === 'email' ? 'Content' : project.projectType === 'video' ? 'Script' : 'Caption';
+        const scriptLines = doc.splitTextToSize(`${scriptLabel}: "${scene.audioScript}"`, contentWidth);
+        doc.text(scriptLines, margin, yPosition);
+        yPosition += scriptLines.length * 5 + 15;
+      }
+      
+      doc.setFontSize(8);
+      doc.setTextColor(150, 150, 150);
+      doc.text('Generated by Banana Ads AI Agent', pageWidth / 2, 290, { align: 'center' });
+      
+      doc.save(`${project.brief.brandName.replace(/\s+/g, '_')}_Campaign.pdf`);
+    } else {
+      const htmlContent = `<!DOCTYPE html>
         <html lang="en">
         <head>
             <meta charset="UTF-8">
@@ -479,15 +579,16 @@ const AppContent: React.FC<AppProps> = ({ onBackToLanding }) => {
             <footer style="text-align:center; color:#444; margin-top:100px; font-size:0.8em;">Generated by Banana Ads AI Agent</footer>
         </body>
         </html>`;
-    const blob = new Blob([htmlContent], { type: 'text/html' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `${project.brief.brandName.replace(/\s+/g, '_')}_Campaign_Dossier.html`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+      const blob = new Blob([htmlContent], { type: 'text/html' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${project.brief.brandName.replace(/\s+/g, '_')}_Campaign_Dossier.html`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
   };
 
   const handleReconfigureKey = async () => {
@@ -530,12 +631,27 @@ const AppContent: React.FC<AppProps> = ({ onBackToLanding }) => {
           </button>
           <a href="#" className="hover:text-banana transition">Projects</a>
           <button 
-            onClick={handleExport}
-            disabled={!project}
-            className="bg-white/10 hover:bg-white/20 text-white px-4 py-2 rounded-full transition disabled:opacity-30 disabled:cursor-not-allowed"
+            onClick={() => setShowHelp(true)} 
+            className="hover:text-banana transition flex items-center gap-2"
           >
-            Export Ad
+            <i className="fa-solid fa-question-circle"></i> <span className="hidden sm:inline">Help</span>
           </button>
+          <div className="flex space-x-2">
+            <button 
+              onClick={() => handleExport('html')}
+              disabled={!project}
+              className="bg-white/10 hover:bg-white/20 text-white px-4 py-2 rounded-full transition disabled:opacity-30 disabled:cursor-not-allowed flex items-center gap-2"
+            >
+              <i className="fa-solid fa-code"></i> HTML
+            </button>
+            <button 
+              onClick={() => handleExport('pdf')}
+              disabled={!project}
+              className="bg-white/10 hover:bg-white/20 text-white px-4 py-2 rounded-full transition disabled:opacity-30 disabled:cursor-not-allowed flex items-center gap-2"
+            >
+              <i className="fa-solid fa-file-pdf"></i> PDF
+            </button>
+          </div>
         </div>
       </nav>
 
@@ -585,6 +701,8 @@ const AppContent: React.FC<AppProps> = ({ onBackToLanding }) => {
             setSelectedFoodPostIdx={setSelectedFoodPostIdx}
             selectedSocialPostIdx={selectedSocialPostIdx}
             setSelectedSocialPostIdx={setSelectedSocialPostIdx}
+            selectedEmailSectionIdx={selectedEmailSectionIdx}
+            setSelectedEmailSectionIdx={setSelectedEmailSectionIdx}
             editInstruction={editInstruction}
             setEditInstruction={setEditInstruction}
             copiedId={copiedId}
@@ -609,6 +727,8 @@ const AppContent: React.FC<AppProps> = ({ onBackToLanding }) => {
         productionType={productionType}
         showToast={showToast}
       />
+
+      <HelpSystem isOpen={showHelp} onClose={() => setShowHelp(false)} />
     </div>
   );
 };

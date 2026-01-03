@@ -504,6 +504,120 @@ export class GeminiService {
       return JSON.parse(response.text || "[]");
   }
 
+  static async generateEmailCampaign(brief: AdBrief): Promise<AdConcept[]> {
+    const ai = this.getClient();
+    
+    const prompt = `You are a world-class Email Marketing Designer.
+    
+    Context: Create engaging marketing emails for "${brief.brandName}" featuring "${brief.productName}".
+    
+    Brand DNA:
+    - Tone: ${brief.tone.join(', ')}
+    - Visual Style: ${brief.visualStyle || 'Professional and engaging'}
+    - Keywords: ${brief.keyFeatures.join(', ')}
+    - Target Audience: ${brief.targetAudience}
+    ${brief.creativeDirection ? `- Creative Direction: "${brief.creativeDirection}"` : ''}
+    
+    Task: Generate 3 DISTINCT email campaign concepts focusing on:
+    1. Subject lines and preview text
+    2. Visual layout and composition
+    3. Call-to-action placement
+    4. Brand consistency
+    
+    For each concept, provide:
+    - id: A unique identifier
+    - title: Campaign name
+    - hook: A compelling subject line
+    - summary: Campaign strategy rationale
+    - visualPrompt: Detailed email template description (header, hero image, body layout, footer)
+    - subjectLines: 3 compelling subject line options
+    - ctaText: Primary call-to-action text
+    - layoutStyle: Email layout approach (newsletter, promotional, announcement, etc.)
+    `;
+  
+    const parts: any[] = [{ text: prompt }];
+
+    if (brief.productImage && brief.productImage.startsWith('data:')) {
+      const { mimeType, data } = await this.resolveImage(brief.productImage);
+      parts.push({ inlineData: { mimeType, data } });
+      parts.push({ text: "Use this product image as a key reference for the visual style." });
+    }
+
+    const response = await ai.models.generateContent({
+      model: 'gemini-2.5-flash',
+      contents: { parts },
+      config: {
+        responseMimeType: "application/json",
+        responseSchema: {
+          type: Type.ARRAY,
+          items: {
+            type: Type.OBJECT,
+            properties: {
+              id: { type: Type.STRING },
+              title: { type: Type.STRING },
+              hook: { type: Type.STRING },
+              summary: { type: Type.STRING },
+              visualPrompt: { type: Type.STRING },
+              copyAngle: { type: Type.STRING, description: "Email copy strategy" },
+              overlayCtas: { type: Type.ARRAY, items: { type: Type.STRING }, description: "Subject line options" },
+            },
+            required: ["id", "title", "hook", "summary", "visualPrompt", "copyAngle", "overlayCtas"]
+          }
+        }
+      }
+    });
+  
+    return JSON.parse(response.text || "[]");
+  }
+
+  static async generateEmailContent(brief: AdBrief, concept: AdConcept): Promise<Scene[]> {
+    const ai = this.getClient();
+    const prompt = `Create email content sections for this email campaign concept:
+    
+    Campaign: ${concept.title}
+    Subject Line: ${concept.hook}
+    Strategy: ${concept.summary}
+    Brand: ${brief.brandName} - ${brief.productName}
+    Target Audience: ${brief.targetAudience}
+    Tone: ${brief.tone.join(', ')}
+    ${brief.creativeDirection ? `Creative Direction: ${brief.creativeDirection}` : ''}
+    
+    Generate 4 email sections:
+    1. Header Section - Brand logo area and navigation
+    2. Hero Section - Main visual and headline
+    3. Body Section - Product details and benefits
+    4. Footer Section - CTA button and social links
+    
+    For each section provide:
+    - sceneNumber: Section number (1-4)
+    - visualPrompt: Detailed description for generating the section's visual
+    - audioScript: The actual email copy/text content for this section
+    
+    Output a JSON array of 4 sections.`;
+
+    const response = await ai.models.generateContent({
+      model: "gemini-3-pro-preview",
+      contents: prompt,
+      config: {
+        responseMimeType: "application/json",
+        responseSchema: {
+          type: Type.ARRAY,
+          items: {
+            type: Type.OBJECT,
+            properties: {
+              sceneNumber: { type: Type.NUMBER },
+              visualPrompt: { type: Type.STRING, description: "Visual description for the email section" },
+              audioScript: { type: Type.STRING, description: "Email copy/text content for this section" },
+            },
+            required: ["sceneNumber", "visualPrompt", "audioScript"],
+          },
+        },
+      },
+    });
+
+    return JSON.parse(response.text || "[]");
+  }
+
   static async generateScript(brief: AdBrief, concept: AdConcept): Promise<Scene[]> {
     const ai = this.getClient();
     const prompt = `Write a detailed cinematic script for this advertisement concept:
