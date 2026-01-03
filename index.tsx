@@ -1,7 +1,17 @@
-
-import React from 'react';
+import React, { useState } from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App';
+import LandingPage from './LandingPage';
+
+const Root: React.FC = () => {
+  const [showApp, setShowApp] = useState(false);
+
+  if (showApp) {
+    return <App onBackToLanding={() => setShowApp(false)} />;
+  }
+
+  return <LandingPage onGetStarted={() => setShowApp(true)} />;
+};
 
 const rootElement = document.getElementById('root');
 if (!rootElement) {
@@ -11,6 +21,6 @@ if (!rootElement) {
 const root = ReactDOM.createRoot(rootElement);
 root.render(
   <React.StrictMode>
-    <App />
+    <Root />
   </React.StrictMode>
 );
