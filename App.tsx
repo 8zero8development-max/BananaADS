@@ -481,7 +481,7 @@ const AppContent: React.FC<AppProps> = ({ onBackToLanding }) => {
       yPosition += 15;
       
       const sectionLabels = project.projectType === 'email' 
-        ? ['Header', 'Hero', 'Body', 'Footer']
+        ? ['Hero', 'Body', 'Infographic', 'Footer']
         : project.projectType === 'food-social' || project.projectType === 'social'
         ? ['Post']
         : ['Scene'];

@@ -138,6 +138,46 @@ const BriefingForm: React.FC<BriefingFormProps> = ({
             />
           </div>
 
+          {productionType === 'email' && (
+            <div className="space-y-4 p-4 bg-blue-500/10 border border-blue-500/30 rounded-xl">
+              <div className="flex items-center gap-2 mb-2">
+                <i className="fa-solid fa-address-card text-blue-400"></i>
+                <span className="text-xs uppercase tracking-widest text-blue-400 font-bold">Contact Info for Footer</span>
+                <span className="text-[10px] normal-case font-normal text-white/30 ml-2">(Used in footer graphic)</span>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <label className="text-xs uppercase tracking-widest text-white/40 font-bold">Phone</label>
+                  <input 
+                    value={brief.contactPhone || ''}
+                    onChange={(e) => setBrief({...brief, contactPhone: e.target.value})}
+                    className="w-full bg-white/5 border border-blue-500/30 rounded-xl px-4 py-3 focus:outline-none focus:border-blue-500 transition"
+                    placeholder="+1 (555) 123-4567"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-xs uppercase tracking-widest text-white/40 font-bold">Email</label>
+                  <input 
+                    type="email"
+                    value={brief.contactEmail || ''}
+                    onChange={(e) => setBrief({...brief, contactEmail: e.target.value})}
+                    className="w-full bg-white/5 border border-blue-500/30 rounded-xl px-4 py-3 focus:outline-none focus:border-blue-500 transition"
+                    placeholder="contact@yourbrand.com"
+                  />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <label className="text-xs uppercase tracking-widest text-white/40 font-bold">Address</label>
+                <input 
+                  value={brief.contactAddress || ''}
+                  onChange={(e) => setBrief({...brief, contactAddress: e.target.value})}
+                  className="w-full bg-white/5 border border-blue-500/30 rounded-xl px-4 py-3 focus:outline-none focus:border-blue-500 transition"
+                  placeholder="123 Main St, City, State 12345"
+                />
+              </div>
+            </div>
+          )}
+
           <div className="space-y-2">
             <label className="text-xs uppercase tracking-widest text-white/40 font-bold">Target Audience</label>
             <input 

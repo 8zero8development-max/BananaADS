@@ -14,6 +14,10 @@ export interface AdBrief {
   researchSources?: string[];
   visualStyle?: string; // For Food Socials Brand DNA
   emailTemplate?: string; // For email-specific template selection
+  // Contact info for email campaigns (used in footer graphics)
+  contactPhone?: string;
+  contactEmail?: string;
+  contactAddress?: string;
 }
 
 export type ProductionType = 'video' | 'social' | 'food-social' | 'email';

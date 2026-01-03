@@ -572,6 +572,14 @@ export class GeminiService {
 
   static async generateEmailContent(brief: AdBrief, concept: AdConcept): Promise<Scene[]> {
     const ai = this.getClient();
+    
+    const contactInfo = {
+      phone: brief.contactPhone || '',
+      email: brief.contactEmail || '',
+      address: brief.contactAddress || '',
+      website: brief.productUrl || ''
+    };
+    
     const prompt = `Create email content sections for this email campaign concept:
     
     Campaign: ${concept.title}
@@ -582,15 +590,21 @@ export class GeminiService {
     Tone: ${brief.tone.join(', ')}
     ${brief.creativeDirection ? `Creative Direction: ${brief.creativeDirection}` : ''}
     
+    IMPORTANT CONTACT INFORMATION (use ONLY these details, do NOT invent fake contact info):
+    ${contactInfo.phone ? `- Phone: ${contactInfo.phone}` : '- Phone: (not provided - omit from design)'}
+    ${contactInfo.email ? `- Email: ${contactInfo.email}` : '- Email: (not provided - omit from design)'}
+    ${contactInfo.address ? `- Address: ${contactInfo.address}` : '- Address: (not provided - omit from design)'}
+    ${contactInfo.website ? `- Website: ${contactInfo.website}` : '- Website: (not provided - omit from design)'}
+    
     Generate 4 email sections:
-    1. Header Section - Brand logo area and navigation
-    2. Hero Section - Main visual and headline
-    3. Body Section - Product details and benefits
-    4. Footer Section - CTA button and social links
+    1. Hero Section - Main visual with compelling headline and key message
+    2. Body Section - Product details, benefits, and features
+    3. Infographic Section - Visual data/stats/benefits infographic showcasing brand value proposition
+    4. Footer Section - Professional branded footer with ONLY the provided contact information above (do NOT fabricate any contact details)
     
     For each section provide:
     - sceneNumber: Section number (1-4)
-    - visualPrompt: Detailed description for generating the section's visual
+    - visualPrompt: Detailed description for generating the section's visual. For the Footer section, include ONLY the contact details provided above - never invent phone numbers, addresses, or emails.
     - audioScript: The actual email copy/text content for this section
     
     Output a JSON array of 4 sections.`;
@@ -621,12 +635,14 @@ export class GeminiService {
   static async generateEmailHTML(brief: AdBrief, concept: AdConcept, scenes: Scene[]): Promise<string> {
     const ai = this.getClient();
     
-    const sectionLabels = ['Header', 'Hero', 'Body', 'Footer'];
+    const sectionLabels = ['Hero', 'Body', 'Infographic', 'Footer'];
     const sectionsData = scenes.map((scene, idx) => ({
       section: sectionLabels[idx] || `Section ${idx + 1}`,
       content: scene.audioScript,
       hasImage: !!scene.imageUrl
     }));
+
+    const productUrl = brief.productUrl || '#';
 
     const prompt = `You are an expert HTML email developer. Create a complete, production-ready HTML email template.
 
@@ -636,6 +652,7 @@ export class GeminiService {
     - Target Audience: ${brief.targetAudience}
     - Tone: ${brief.tone.join(', ')}
     - Visual Style: ${brief.visualStyle || 'Professional and modern'}
+    - Product URL: ${productUrl}
     
     Campaign Details:
     - Campaign Title: ${concept.title}
@@ -650,12 +667,14 @@ export class GeminiService {
     2. Use a responsive design that works on mobile and desktop
     3. Include proper email DOCTYPE and meta tags
     4. Use table-based layout for maximum email client compatibility
-    5. Include placeholder image tags with src="{{IMAGE_HEADER}}", "{{IMAGE_HERO}}", "{{IMAGE_BODY}}", "{{IMAGE_FOOTER}}" where images should go
-    6. Include placeholder for logo: src="{{LOGO}}"
-    7. Style the email to match the brand tone (colors, fonts, spacing)
-    8. Include a prominent CTA button styled to match the brand
-    9. Add social media icon placeholders in the footer
-    10. Use web-safe fonts with fallbacks
+    5. HEADER: Use the logo placeholder src="{{LOGO}}" centered at the top, wrapped in a clickable link to {{PRODUCT_URL}}
+    6. HERO SECTION: Include placeholder image src="{{IMAGE_HERO}}" for the main hero visual
+    7. BODY SECTION: Include placeholder image src="{{IMAGE_BODY}}" for product details
+    8. INFOGRAPHIC SECTION: Include placeholder image src="{{IMAGE_INFOGRAPHIC}}" for the infographic visual
+    9. FOOTER: Include placeholder image src="{{IMAGE_FOOTER}}" as the footer graphic, wrapped in a clickable link to {{PRODUCT_URL}}
+    10. Style the email to match the brand tone (colors, fonts, spacing)
+    11. Include a prominent CTA button styled to match the brand
+    12. Use web-safe fonts with fallbacks
     
     Color Scheme Guidelines based on tone:
     - If tone includes "Premium/Luxury": Use dark backgrounds (#1a1a1a), gold accents (#d4af37)
@@ -678,14 +697,15 @@ export class GeminiService {
     html = html.replace(/```html\n?/g, '').replace(/```\n?/g, '').trim();
     
     // Replace image placeholders with actual images if available
+    // scenes[0] = Hero, scenes[1] = Body, scenes[2] = Infographic, scenes[3] = Footer
     if (scenes[0]?.imageUrl) {
-      html = html.replace(/\{\{IMAGE_HEADER\}\}/g, scenes[0].imageUrl);
+      html = html.replace(/\{\{IMAGE_HERO\}\}/g, scenes[0].imageUrl);
     }
     if (scenes[1]?.imageUrl) {
-      html = html.replace(/\{\{IMAGE_HERO\}\}/g, scenes[1].imageUrl);
+      html = html.replace(/\{\{IMAGE_BODY\}\}/g, scenes[1].imageUrl);
     }
     if (scenes[2]?.imageUrl) {
-      html = html.replace(/\{\{IMAGE_BODY\}\}/g, scenes[2].imageUrl);
+      html = html.replace(/\{\{IMAGE_INFOGRAPHIC\}\}/g, scenes[2].imageUrl);
     }
     if (scenes[3]?.imageUrl) {
       html = html.replace(/\{\{IMAGE_FOOTER\}\}/g, scenes[3].imageUrl);
@@ -693,6 +713,8 @@ export class GeminiService {
     if (brief.logoImage) {
       html = html.replace(/\{\{LOGO\}\}/g, brief.logoImage);
     }
+    // Replace product URL placeholder
+    html = html.replace(/\{\{PRODUCT_URL\}\}/g, productUrl);
     
     return html;
   }

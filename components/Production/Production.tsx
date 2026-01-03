@@ -805,7 +805,7 @@ const EmailLayout = memo<EmailLayoutProps>(({
   const scene = useMemo(() => project.scenes[selectedEmailSectionIdx], [project.scenes, selectedEmailSectionIdx]);
   const idx = selectedEmailSectionIdx;
 
-  const sectionLabels = ['Header', 'Hero', 'Body', 'Footer'];
+  const sectionLabels = ['Hero', 'Body', 'Infographic', 'Footer'];
   
   const allSectionsGenerated = project.scenes.every(s => s.imageUrl);
 
