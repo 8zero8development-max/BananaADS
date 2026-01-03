@@ -155,35 +155,44 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
       <section className="pt-32 pb-20 px-8">
         <div className="max-w-6xl mx-auto text-center">
           <div className="inline-flex items-center gap-2 bg-yellow-500/10 border border-yellow-500/30 rounded-full px-4 py-2 mb-8">
-            <span className="text-yellow-400 text-sm font-medium">Powered by Google Gemini & Veo</span>
+            <span className="text-yellow-400 text-sm font-medium">The #1 AI Ad Creation Tool for 2026</span>
           </div>
           
           <h1 className="text-5xl md:text-7xl font-serif mb-6 leading-tight">
             <span className="bg-gradient-to-r from-white to-gray-400 bg-clip-text text-transparent">
-              Create Broadcast-Quality
+              Launch Scroll-Stopping Ads
             </span>
             <br />
-            <span className="text-yellow-400">Ads in Minutes</span>
+            <span className="text-yellow-400">In Minutes, Not Weeks</span>
           </h1>
           
-          <p className="text-xl text-white/60 max-w-2xl mx-auto mb-10 leading-relaxed">
-            From brief to cinematic render. Our AI cinematography agent generates storyboards, 
-            scripts, voiceovers, and videos for your brand.
+          <p className="text-xl text-white/60 max-w-2xl mx-auto mb-6 leading-relaxed">
+            The AI-first ad workflow that turns a simple brief into concepts, storyboards, scripts, voiceovers, and cinematic video.
           </p>
+
+          <div className="flex flex-wrap justify-center gap-6 mb-10 text-sm">
+            <div className="flex items-center gap-2 text-white/70">
+              <span className="text-green-400">&#10003;</span>
+              <span>Your actual product in every scene</span>
+            </div>
+            <div className="flex items-center gap-2 text-white/70">
+              <span className="text-green-400">&#10003;</span>
+              <span>3 creative directions per brief</span>
+            </div>
+            <div className="flex items-center gap-2 text-white/70">
+              <span className="text-green-400">&#10003;</span>
+              <span>Export-ready in minutes</span>
+            </div>
+          </div>
           
-          <div className="flex flex-col sm:flex-row gap-4 justify-center mb-16">
+          <div className="flex flex-col items-center gap-3 mb-16">
             <button 
               onClick={onGetStarted}
-              className="bg-gradient-to-r from-yellow-400 to-orange-500 text-black px-8 py-4 rounded-full font-bold text-lg hover:scale-105 transition shadow-lg shadow-yellow-500/25"
+              className="bg-gradient-to-r from-yellow-400 to-orange-500 text-black px-10 py-4 rounded-full font-bold text-lg hover:scale-105 transition shadow-lg shadow-yellow-500/25"
             >
               Start Creating Free
             </button>
-            <a 
-              href="#features"
-              className="border border-white/20 text-white px-8 py-4 rounded-full font-bold text-lg hover:bg-white/5 transition"
-            >
-              See How It Works
-            </a>
+            <p className="text-white/40 text-sm">No credit card required. Your API key stays in your browser.</p>
           </div>
 
           <div className="relative max-w-5xl mx-auto">
@@ -218,14 +227,40 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
         </div>
       </section>
 
-      <section className="py-20 px-8 border-t border-white/5">
-        <div className="max-w-6xl mx-auto text-center">
-          <p className="text-white/40 text-sm uppercase tracking-widest mb-8">Trusted by innovative brands</p>
-          <div className="flex justify-center items-center gap-12 flex-wrap opacity-50">
-            <span className="text-2xl font-bold text-white/60">TechCorp</span>
-            <span className="text-2xl font-bold text-white/60">ModernBrand</span>
-            <span className="text-2xl font-bold text-white/60">StartupCo</span>
-            <span className="text-2xl font-bold text-white/60">CreativeStudio</span>
+      <section className="py-16 px-8 border-t border-white/5">
+        <div className="max-w-6xl mx-auto">
+          <p className="text-white/40 text-sm uppercase tracking-widest mb-8 text-center">Built for the AI-first creative workflow</p>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+            <div className="bg-white/[0.02] border border-white/10 rounded-xl p-4 text-center">
+              <div className="text-2xl mb-2">&#128247;</div>
+              <p className="text-white/70 text-sm font-medium">Meta & Instagram Ads</p>
+            </div>
+            <div className="bg-white/[0.02] border border-white/10 rounded-xl p-4 text-center">
+              <div className="text-2xl mb-2">&#127916;</div>
+              <p className="text-white/70 text-sm font-medium">TikTok & Reels</p>
+            </div>
+            <div className="bg-white/[0.02] border border-white/10 rounded-xl p-4 text-center">
+              <div className="text-2xl mb-2">&#9889;</div>
+              <p className="text-white/70 text-sm font-medium">YouTube Shorts</p>
+            </div>
+            <div className="bg-white/[0.02] border border-white/10 rounded-xl p-4 text-center">
+              <div className="text-2xl mb-2">&#128640;</div>
+              <p className="text-white/70 text-sm font-medium">Product Launches</p>
+            </div>
+          </div>
+          <div className="mt-8 flex flex-wrap justify-center gap-8 text-sm text-white/50">
+            <div className="flex items-center gap-2">
+              <span className="text-yellow-400">&#9733;</span>
+              <span>Powered by Google Gemini & Veo</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-green-400">&#128274;</span>
+              <span>API keys stored locally, never on servers</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-blue-400">&#128176;</span>
+              <span>Works on Gemini free tier</span>
+            </div>
           </div>
         </div>
       </section>
@@ -362,6 +397,16 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
               </div>
             ))}
           </div>
+
+          <div className="mt-16 text-center">
+            <button 
+              onClick={onGetStarted}
+              className="bg-gradient-to-r from-yellow-400 to-orange-500 text-black px-10 py-4 rounded-full font-bold text-lg hover:scale-105 transition shadow-lg shadow-yellow-500/25"
+            >
+              Start Creating Free
+            </button>
+            <p className="text-white/40 text-sm mt-3">No credit card required</p>
+          </div>
         </div>
       </section>
 
@@ -437,6 +482,9 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
       <section id="pricing" className="py-24 px-8">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-16">
+            <div className="inline-flex items-center gap-2 bg-orange-500/10 border border-orange-500/30 rounded-full px-4 py-2 mb-6">
+              <span className="text-orange-400 text-sm font-medium">Launch Pricing - Limited Time</span>
+            </div>
             <h2 className="text-4xl md:text-5xl font-serif mb-4">
               <span className="bg-gradient-to-r from-white to-gray-400 bg-clip-text text-transparent">
                 Simple, Transparent
@@ -445,7 +493,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
               <span className="text-yellow-400">Pricing</span>
             </h2>
             <p className="text-white/50 text-lg">
-              Start free, upgrade when you're ready.
+              Start free, upgrade when you're ready. Lock in launch pricing today.
             </p>
           </div>
 
@@ -503,23 +551,35 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
 
       <section className="py-24 px-8 border-t border-white/5">
         <div className="max-w-4xl mx-auto text-center">
-          <div className="text-6xl mb-6">🍌</div>
+          <div className="inline-flex items-center gap-2 bg-yellow-500/10 border border-yellow-500/30 rounded-full px-4 py-2 mb-8">
+            <span className="text-yellow-400 text-sm font-medium">The Must-Have SaaS Tool for 2026</span>
+          </div>
           <h2 className="text-4xl md:text-5xl font-serif mb-6">
-            <span className="text-yellow-400">Ready to Create</span>
+            <span className="text-yellow-400">Stop Waiting Weeks</span>
             <br />
             <span className="bg-gradient-to-r from-white to-gray-400 bg-clip-text text-transparent">
-              Your Next Great Ad?
+              For Your Next Ad Campaign
             </span>
           </h2>
-          <p className="text-white/50 text-lg mb-10">
-            Join thousands of brands using AI to create stunning advertisements.
+          <p className="text-white/50 text-lg mb-6 max-w-2xl mx-auto">
+            Join creators, agencies, and brands who are already using AI to launch scroll-stopping ads in minutes instead of weeks.
           </p>
-          <button 
-            onClick={onGetStarted}
-            className="bg-gradient-to-r from-yellow-400 to-orange-500 text-black px-10 py-4 rounded-full font-bold text-lg hover:scale-105 transition shadow-lg shadow-yellow-500/25"
-          >
-            Start Creating for Free
-          </button>
+          <div className="flex flex-wrap justify-center gap-6 mb-10 text-sm text-white/60">
+            <span>Gemini + Veo Inside</span>
+            <span>&#8226;</span>
+            <span>Multi-format Creative</span>
+            <span>&#8226;</span>
+            <span>Brief to Export</span>
+          </div>
+          <div className="flex flex-col items-center gap-3">
+            <button 
+              onClick={onGetStarted}
+              className="bg-gradient-to-r from-yellow-400 to-orange-500 text-black px-10 py-4 rounded-full font-bold text-lg hover:scale-105 transition shadow-lg shadow-yellow-500/25"
+            >
+              Start Creating Free
+            </button>
+            <p className="text-white/40 text-sm">No credit card required. Your API key stays in your browser.</p>
+          </div>
         </div>
       </section>
 
