@@ -29,9 +29,15 @@ Banana Ads is an AI-powered cinematography agent built with React and Google Gem
 - **Test:** `npm run test`
 
 ## Environment Variables
-- `GEMINI_API_KEY` - Required for AI features
 - `DATABASE_URL` - PostgreSQL connection string
 - `STRIPE_SECRET_KEY` - Stripe API key (managed by Replit integration)
+
+## API Key Management
+Users provide their own Gemini API key which is stored in browser localStorage:
+- No server-side API key required
+- Users get free keys from https://aistudio.google.com/app/apikey
+- Key stored securely in browser only (never sent to our servers)
+- Users can change/clear their key via the "API Key" button in the app header
 
 ## Deployment
 - Autoscale deployment configured

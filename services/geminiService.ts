@@ -2,11 +2,41 @@
 import { GoogleGenAI, Type, Modality } from "@google/genai";
 import { AdBrief, AdConcept, Scene } from "../types";
 
+const API_KEY_STORAGE_KEY = 'banana_ads_gemini_api_key';
+
 export class GeminiService {
+  private static getStoredApiKey(): string | null {
+    try {
+      return localStorage.getItem(API_KEY_STORAGE_KEY);
+    } catch {
+      return null;
+    }
+  }
+
+  static setApiKey(apiKey: string): void {
+    try {
+      localStorage.setItem(API_KEY_STORAGE_KEY, apiKey);
+    } catch (e) {
+      console.error('Failed to store API key');
+    }
+  }
+
+  static clearApiKey(): void {
+    try {
+      localStorage.removeItem(API_KEY_STORAGE_KEY);
+    } catch (e) {
+      console.error('Failed to clear API key');
+    }
+  }
+
+  static hasApiKey(): boolean {
+    return !!this.getStoredApiKey();
+  }
+
   private static getClient() {
-    const apiKey = process.env.API_KEY;
+    const apiKey = this.getStoredApiKey();
     if (!apiKey) {
-      throw new Error("API_KEY is missing. Please add it to your environment variables.");
+      throw new Error("API key not configured. Please add your Gemini API key in settings.");
     }
     return new GoogleGenAI({ apiKey });
   }

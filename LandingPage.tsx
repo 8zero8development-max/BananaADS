@@ -100,7 +100,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
   const pricingPlans = [
     {
       name: 'Starter',
-      price: '$29',
+      price: '£11.99',
       period: '/month',
       description: 'Perfect for small brands and creators',
       features: ['5 Ad Campaigns/month', 'AI Storyboards', 'Script Generation', 'Mood Boards', 'Email Support'],
@@ -109,7 +109,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
     },
     {
       name: 'Professional',
-      price: '$79',
+      price: '$24.99',
       period: '/month',
       description: 'For growing businesses and agencies',
       features: ['Unlimited Campaigns', 'AI Storyboards', 'Script Generation', 'Neural Voiceovers', 'Priority Support', 'Export to All Formats'],
@@ -117,10 +117,10 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
       popular: true
     },
     {
-      name: 'Enterprise',
-      price: '$199',
-      period: '/month',
-      description: 'For large teams and studios',
+      name: 'Life time',
+      price: '£59.99',
+      period: '/lifetime',
+      description: 'Limited time deal',
       features: ['Everything in Pro', 'Video Generation (Veo)', 'Custom Branding', 'API Access', 'Dedicated Account Manager', 'Custom Integrations'],
       cta: 'Contact Sales',
       popular: false
