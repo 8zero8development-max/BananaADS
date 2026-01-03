@@ -3,6 +3,7 @@ import { AdBrief, AdConcept, Scene, AppStep, AdProject } from './types';
 import { GeminiService } from './services/geminiService';
 import { decodeBase64, decodeAudioData } from './utils/audioUtils';
 import { validateBrief, validateResearchInput } from './utils/validation';
+import { compressImageFile } from './utils/imageOptimization';
 
 import ApiKeyConfig from './components/shared/ApiKeyConfig';
 import StepIndicator from './components/shared/StepIndicator';
@@ -146,25 +147,45 @@ const AppContent: React.FC<AppProps> = ({ onBackToLanding }) => {
     }
   };
 
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setBrief(prev => ({ ...prev, productImage: reader.result as string }));
-      };
-      reader.readAsDataURL(file);
+      try {
+        const compressedImage = await compressImageFile(file, {
+          maxWidth: 1920,
+          maxHeight: 1920,
+          quality: 0.85,
+        });
+        setBrief(prev => ({ ...prev, productImage: compressedImage }));
+      } catch (error) {
+        console.error('Failed to compress image:', error);
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          setBrief(prev => ({ ...prev, productImage: reader.result as string }));
+        };
+        reader.readAsDataURL(file);
+      }
     }
   };
 
-  const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setBrief(prev => ({ ...prev, logoImage: reader.result as string }));
-      };
-      reader.readAsDataURL(file);
+      try {
+        const compressedLogo = await compressImageFile(file, {
+          maxWidth: 512,
+          maxHeight: 512,
+          quality: 0.9,
+        });
+        setBrief(prev => ({ ...prev, logoImage: compressedLogo }));
+      } catch (error) {
+        console.error('Failed to compress logo:', error);
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          setBrief(prev => ({ ...prev, logoImage: reader.result as string }));
+        };
+        reader.readAsDataURL(file);
+      }
     }
   };
 
