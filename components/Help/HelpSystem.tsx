@@ -67,7 +67,7 @@ const HelpSystem: React.FC<HelpSystemProps> = ({ isOpen, onClose }) => {
                 <i className="fa-solid fa-envelope text-blue-400"></i>
                 <h5 className="font-semibold text-white">Email Campaign</h5>
               </div>
-              <p className="text-white/70 text-sm">Design engaging marketing emails with AI-generated content. Creates 4 sections (Header, Hero, Body, Footer) with compelling subject lines, visual layouts, and strategic call-to-action placement.</p>
+              <p className="text-white/70 text-sm">Design engaging marketing emails with AI-generated content. Creates 4 sections (Hero, Body, Infographic, Footer) with compelling subject lines, visual layouts, and strategic call-to-action placement. The header uses your logo and the footer is a generated branded graphic.</p>
             </div>
           </div>
         </div>
@@ -84,20 +84,24 @@ const HelpSystem: React.FC<HelpSystemProps> = ({ isOpen, onClose }) => {
             <h5 className="font-semibold text-white">Email Structure</h5>
             <div className="grid grid-cols-2 gap-3">
               <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-3">
-                <span className="text-blue-400 font-semibold text-sm">Header</span>
-                <p className="text-white/60 text-xs mt-1">Brand logo area and navigation links</p>
+                <span className="text-blue-400 font-semibold text-sm">Header (Logo)</span>
+                <p className="text-white/60 text-xs mt-1">Your brand logo centered, clickable to product URL</p>
               </div>
               <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-3">
                 <span className="text-blue-400 font-semibold text-sm">Hero</span>
-                <p className="text-white/60 text-xs mt-1">Main visual and headline</p>
+                <p className="text-white/60 text-xs mt-1">Main visual with compelling headline</p>
               </div>
               <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-3">
                 <span className="text-blue-400 font-semibold text-sm">Body</span>
                 <p className="text-white/60 text-xs mt-1">Product details and benefits</p>
               </div>
               <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-3">
+                <span className="text-blue-400 font-semibold text-sm">Infographic</span>
+                <p className="text-white/60 text-xs mt-1">Visual data/stats showcasing brand value</p>
+              </div>
+              <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-3">
                 <span className="text-blue-400 font-semibold text-sm">Footer</span>
-                <p className="text-white/60 text-xs mt-1">CTA button and social links</p>
+                <p className="text-white/60 text-xs mt-1">Branded footer graphic with contact info</p>
               </div>
             </div>
           </div>
