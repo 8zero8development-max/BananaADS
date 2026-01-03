@@ -220,6 +220,9 @@ const App: React.FC<AppProps> = ({ onBackToLanding }) => {
 
   // Edit instruction state
   const [editInstruction, setEditInstruction] = useState<string>("");
+  
+  // Selected food post index for gallery + inspector layout
+  const [selectedFoodPostIdx, setSelectedFoodPostIdx] = useState<number>(0);
 
   const [brief, setBrief] = useState<AdBrief>({
     brandName: '',
@@ -1146,7 +1149,212 @@ const App: React.FC<AppProps> = ({ onBackToLanding }) => {
               </div>
             </div>
 
-            {/* --- STANDARD SCENE LIST LAYOUT (Video, Social & Food Social) --- */}
+            {/* --- FOOD SOCIAL GALLERY + INSPECTOR LAYOUT --- */}
+            {project.projectType === 'food-social' && (
+                <div className="space-y-8">
+                    {/* Compact 3-Up Gallery */}
+                    <div className="grid grid-cols-3 gap-4">
+                        {project.scenes.map((scene, idx) => (
+                            <div 
+                                key={idx}
+                                onClick={() => setSelectedFoodPostIdx(idx)}
+                                className={`glass rounded-2xl overflow-hidden cursor-pointer transition-all hover:scale-[1.02] ${selectedFoodPostIdx === idx ? 'ring-2 ring-yellow-500 ring-offset-2 ring-offset-black' : 'opacity-70 hover:opacity-100'}`}
+                            >
+                                <div className="aspect-video bg-zinc-900 relative">
+                                    {scene.imageUrl ? (
+                                        <img src={scene.imageUrl} className="w-full h-full object-cover" alt={`Post ${idx + 1}`} />
+                                    ) : scene.isGeneratingImage ? (
+                                        <div className="w-full h-full flex items-center justify-center">
+                                            <BananaPro role="artist" size="sm" />
+                                        </div>
+                                    ) : (
+                                        <div className="w-full h-full flex items-center justify-center">
+                                            <i className="fa-solid fa-image text-white/20 text-2xl"></i>
+                                        </div>
+                                    )}
+                                    {selectedFoodPostIdx === idx && (
+                                        <div className="absolute top-2 right-2 w-6 h-6 rounded-full bg-yellow-500 flex items-center justify-center">
+                                            <i className="fa-solid fa-check text-black text-xs"></i>
+                                        </div>
+                                    )}
+                                </div>
+                                <div className="p-3 bg-zinc-900/50">
+                                    <div className="flex items-center justify-between">
+                                        <span className="text-xs font-bold text-yellow-400">Post #{idx + 1}</span>
+                                        {scene.selectedCta && (
+                                            <span className="text-[10px] bg-yellow-500/20 text-yellow-300 px-2 py-0.5 rounded-full truncate max-w-[120px]">{scene.selectedCta}</span>
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+
+                    {/* Detail Panel for Selected Post */}
+                    {project.scenes[selectedFoodPostIdx] && (() => {
+                        const scene = project.scenes[selectedFoodPostIdx];
+                        const idx = selectedFoodPostIdx;
+                        return (
+                            <div className="glass rounded-[40px] overflow-hidden">
+                                {/* Main Content Area */}
+                                <div className="flex flex-col lg:flex-row">
+                                    {/* Large Image Preview */}
+                                    <div className="lg:w-3/5 bg-black relative group">
+                                        <div className="aspect-video w-full">
+                                            {scene.imageUrl ? (
+                                                <img src={scene.imageUrl} className="w-full h-full object-cover" alt={`Post ${idx + 1}`} />
+                                            ) : scene.isGeneratingImage ? (
+                                                <div className="w-full h-full flex flex-col items-center justify-center bg-zinc-900">
+                                                    <BananaPro role="artist" size="md" />
+                                                    <p className="text-sm font-bold tracking-widest uppercase mt-4">Auto-Rendering...</p>
+                                                </div>
+                                            ) : (
+                                                <div className="w-full h-full flex flex-col items-center justify-center bg-zinc-900">
+                                                    <div className="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center mb-4">
+                                                        <i className="fa-solid fa-image text-white/20 text-2xl"></i>
+                                                    </div>
+                                                    <p className="text-white/40 font-medium">Image not generated</p>
+                                                </div>
+                                            )}
+                                        </div>
+                                        
+                                        {/* Action Buttons Overlay */}
+                                        <div className="absolute bottom-4 left-4 flex space-x-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                            <button 
+                                                onClick={() => generateSceneImage(idx)}
+                                                disabled={scene.isGeneratingImage}
+                                                className="bg-white text-black px-4 py-2 rounded-full text-xs font-bold hover:bg-yellow-50 transition flex items-center space-x-2"
+                                            >
+                                                {scene.isGeneratingImage ? <BananaPro role="artist" size="sm" /> : <i className="fa-solid fa-image"></i>}
+                                                <span>{scene.imageUrl ? "Regenerate" : "Generate"}</span>
+                                            </button>
+                                            {scene.imageUrl && (
+                                                <button
+                                                    onClick={() => handleDownload(scene.imageUrl!, `FoodSocial-Post-${idx + 1}.png`)}
+                                                    className="bg-white/20 backdrop-blur text-white px-3 py-2 rounded-full text-xs font-bold hover:bg-white/30 transition"
+                                                >
+                                                    <i className="fa-solid fa-download"></i>
+                                                </button>
+                                            )}
+                                        </div>
+                                    </div>
+
+                                    {/* Right Panel - Caption & Actions */}
+                                    <div className="lg:w-2/5 p-6 flex flex-col border-l border-white/5">
+                                        {/* Header */}
+                                        <div className="flex items-center justify-between mb-4">
+                                            <div className="flex items-center gap-3">
+                                                <span className="text-sm font-bold text-yellow-400">Post #{idx + 1}</span>
+                                                <span className="bg-pink-500/10 text-pink-400 text-[10px] font-bold px-2 py-1 rounded">Instagram / FB</span>
+                                            </div>
+                                        </div>
+
+                                        {/* CTA Badge */}
+                                        {scene.selectedCta && (
+                                            <div className="mb-4 p-3 bg-yellow-500/10 rounded-xl border border-yellow-500/20">
+                                                <span className="text-[10px] uppercase tracking-widest text-white/40 block mb-1">Call to Action</span>
+                                                <span className="text-yellow-400 font-bold">{scene.selectedCta}</span>
+                                            </div>
+                                        )}
+
+                                        {/* Caption */}
+                                        <div className="flex-1 mb-4">
+                                            <div className="flex items-center justify-between mb-2">
+                                                <label className="text-[10px] uppercase tracking-widest text-white/30 font-bold">Post Caption</label>
+                                                <button 
+                                                    onClick={() => handlePolishScript(idx)}
+                                                    disabled={scene.isPolishingScript}
+                                                    className="text-[10px] bg-yellow-500/10 hover:bg-yellow-500/30 text-yellow-300 px-2 py-1 rounded transition flex items-center gap-1"
+                                                >
+                                                    {scene.isPolishingScript ? <BananaPro role="writer" size="sm" /> : <i className="fa-solid fa-wand-magic-sparkles"></i>}
+                                                    <span>Polish</span>
+                                                </button>
+                                            </div>
+                                            <div className="bg-black/30 rounded-xl p-4 max-h-[200px] overflow-y-auto">
+                                                <p className="text-sm leading-relaxed whitespace-pre-wrap">{scene.audioScript}</p>
+                                            </div>
+                                        </div>
+
+                                        {/* Edit Image Input */}
+                                        <div className="mb-4">
+                                            <label className="text-[10px] uppercase tracking-widest text-white/30 font-bold block mb-2">Edit Image with AI</label>
+                                            <div className="flex gap-0">
+                                                <div className="relative flex-grow">
+                                                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-white/30"><i className="fa-solid fa-wand-magic-sparkles"></i></span>
+                                                    <input 
+                                                        type="text"
+                                                        value={editInstruction}
+                                                        onChange={(e) => setEditInstruction(e.target.value)}
+                                                        placeholder="Add smoke, change background..."
+                                                        className="w-full bg-white/5 border border-yellow-500/30 rounded-l-xl pl-9 pr-4 py-2.5 text-sm focus:border-yellow-500 outline-none transition"
+                                                    />
+                                                </div>
+                                                <button 
+                                                    onClick={() => handleEditImage(idx)}
+                                                    disabled={!editInstruction || !scene.imageUrl || scene.isGeneratingImage}
+                                                    className="bg-yellow-500/10 hover:bg-yellow-500/20 text-yellow-400 border-y border-r border-yellow-500/30 px-4 py-2.5 rounded-r-xl font-bold text-sm transition disabled:opacity-50 disabled:cursor-not-allowed"
+                                                >
+                                                    Edit
+                                                </button>
+                                            </div>
+                                        </div>
+
+                                        {/* Collapsible Advanced Prompts */}
+                                        <details className="group">
+                                            <summary className="text-[10px] uppercase tracking-widest text-white/30 font-bold cursor-pointer hover:text-white/50 transition flex items-center gap-2 mb-2">
+                                                <i className="fa-solid fa-chevron-right text-[8px] transition-transform group-open:rotate-90"></i>
+                                                Advanced Prompts
+                                            </summary>
+                                            <div className="space-y-3 pl-4 border-l border-white/10">
+                                                {/* Graphic Design Prompt */}
+                                                <div>
+                                                    <div className="flex justify-between items-center mb-1">
+                                                        <span className="text-[9px] text-white/40">Graphic Design Prompt</span>
+                                                        <button 
+                                                            onClick={() => handleCopyPrompt(scene.visualPrompt, `${idx}-vis`)}
+                                                            className="text-[9px] text-white/40 hover:text-white transition"
+                                                        >
+                                                            {copiedId === `${idx}-vis` ? <span className="text-green-400">Copied</span> : 'Copy'}
+                                                        </button>
+                                                    </div>
+                                                    <p className="text-white/60 text-[11px] leading-relaxed italic line-clamp-3">"{scene.visualPrompt}"</p>
+                                                </div>
+                                                {/* Nano Banana Prompt */}
+                                                <div>
+                                                    <div className="flex justify-between items-center mb-1">
+                                                        <span className="text-[9px] text-white/40">Nano Banana Prompt</span>
+                                                        <button 
+                                                            onClick={() => handleCopyPrompt(`generate_img("Generate a high-end cinematic advertising shot. Description: ${scene.visualPrompt}. 8k, professional lighting, photorealistic.")`, `${idx}-nano`)}
+                                                            className="text-[9px] text-white/40 hover:text-white transition"
+                                                        >
+                                                            {copiedId === `${idx}-nano` ? <span className="text-green-400">Copied</span> : 'Copy'}
+                                                        </button>
+                                                    </div>
+                                                    <div className="bg-black/40 rounded p-2 border border-yellow-500/20">
+                                                        <p className="text-white/50 text-[10px] font-mono line-clamp-2">generate_img("...")</p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </details>
+
+                                        {/* Footer */}
+                                        <div className="mt-auto pt-4 flex items-center space-x-3 border-t border-white/5">
+                                            <div className="flex -space-x-2">
+                                                <div className="w-6 h-6 rounded-full bg-white/10 border-2 border-black flex items-center justify-center text-[8px]"><i className="fa-solid fa-robot"></i></div>
+                                                <div className="w-6 h-6 rounded-full bg-yellow-500 border-2 border-black flex items-center justify-center text-[8px] text-black"><i className="fa-solid fa-wand-magic-sparkles"></i></div>
+                                            </div>
+                                            <span className="text-[9px] text-white/40 uppercase font-bold tracking-widest">AI Assisted</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        );
+                    })()}
+                </div>
+            )}
+
+            {/* --- STANDARD SCENE LIST LAYOUT (Video & Social only) --- */}
+            {project.projectType !== 'food-social' && (
                 <div className="space-y-12">
                 {project.scenes.map((scene, idx) => (
                     <div key={idx} className={`glass rounded-[40px] overflow-hidden flex flex-col md:flex-row min-h-[400px]`}>
@@ -1176,7 +1384,7 @@ const App: React.FC<AppProps> = ({ onBackToLanding }) => {
                                 ) : (
                                     <>
                                         <div className="w-20 h-20 rounded-full bg-white/5 flex items-center justify-center">
-                                        <i className={`fa-solid ${project.projectType === 'social' || project.projectType === 'food-social' ? 'fa-image' : 'fa-camera-movie'} text-white/20 text-3xl`}></i>
+                                        <i className={`fa-solid ${project.projectType === 'social' ? 'fa-image' : 'fa-camera-movie'} text-white/20 text-3xl`}></i>
                                         </div>
                                         <div>
                                         <p className="font-bold text-lg text-white/40">Visualization Required</p>
@@ -1227,40 +1435,12 @@ const App: React.FC<AppProps> = ({ onBackToLanding }) => {
                         </div>
                         )}
                     </div>
-
-                    {/* Edit Image Bar for Food Socials */}
-                    {project.projectType === 'food-social' && (
-                        <div className="w-full px-6 py-4 bg-zinc-900/50 border-t border-white/5">
-                            <div className="flex gap-0">
-                                <div className="relative flex-grow">
-                                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-white/30"><i className="fa-solid fa-wand-magic-sparkles"></i></span>
-                                    <input 
-                                        type="text"
-                                        value={editInstruction}
-                                        onChange={(e) => setEditInstruction(e.target.value)}
-                                        placeholder="Eg. Add more smoke, change background to blue..."
-                                        className="w-full bg-white/5 border border-yellow-500/30 rounded-l-xl pl-9 pr-4 py-3 text-sm focus:border-yellow-500 outline-none transition"
-                                    />
-                                </div>
-                                <button 
-                                    onClick={() => handleEditImage(idx)}
-                                    disabled={!editInstruction || !scene.imageUrl || scene.isGeneratingImage}
-                                    className="bg-yellow-500/10 hover:bg-yellow-500/20 text-yellow-400 border-y border-r border-yellow-500/30 px-6 py-3 rounded-r-xl font-bold text-sm transition disabled:opacity-50 disabled:cursor-not-allowed"
-                                >
-                                    Edit
-                                </button>
-                            </div>
-                            {scene.selectedCta && (
-                                <p className="text-xs text-white/40 mt-2">CTA: <span className="text-yellow-400 font-bold">{scene.selectedCta}</span></p>
-                            )}
-                        </div>
-                    )}
                     
                     {/* Content / Script Area */}
                     <div className={`${project.projectType === 'social' ? 'md:w-7/12' : 'md:w-2/5'} p-10 flex flex-col border-l border-white/5`}>
                         <div className="flex items-center justify-between mb-8">
                         <span className="text-xs font-bold uppercase tracking-[0.2em] text-yellow-400">
-                            {project.projectType === 'social' || project.projectType === 'food-social' ? `Post #${scene.sceneNumber}` : `Scene ${scene.sceneNumber}`}
+                            {project.projectType === 'social' ? `Post #${scene.sceneNumber}` : `Scene ${scene.sceneNumber}`}
                         </span>
                         
                         {/* Only show Veo tag / Voice button for Video projects */}
@@ -1283,7 +1463,7 @@ const App: React.FC<AppProps> = ({ onBackToLanding }) => {
                         <div className="mb-8">
                         <div className="flex justify-between items-end mb-2">
                             <label className="text-[10px] uppercase tracking-widest text-white/30 font-bold block">
-                                {project.projectType === 'social' || project.projectType === 'food-social' ? 'Graphic Design Prompt' : 'Cinematography Prompt'}
+                                {project.projectType === 'social' ? 'Graphic Design Prompt' : 'Cinematography Prompt'}
                             </label>
                             <button 
                                 onClick={() => handleCopyPrompt(scene.visualPrompt, `${idx}-vis`)}
@@ -1329,7 +1509,7 @@ const App: React.FC<AppProps> = ({ onBackToLanding }) => {
                         <div>
                         <div className="flex items-center justify-between mb-2">
                             <label className="text-[10px] uppercase tracking-widest text-white/30 font-bold block">
-                                {project.projectType === 'social' || project.projectType === 'food-social' ? 'Post Caption' : 'Audio Script'}
+                                {project.projectType === 'social' ? 'Post Caption' : 'Audio Script'}
                             </label>
                             <button 
                                 onClick={() => handlePolishScript(idx)}
@@ -1353,6 +1533,7 @@ const App: React.FC<AppProps> = ({ onBackToLanding }) => {
                     </div>
                 ))}
                 </div>
+            )}
           </div>
         )}
       </main>
