@@ -221,8 +221,9 @@ const App: React.FC<AppProps> = ({ onBackToLanding }) => {
   // Edit instruction state
   const [editInstruction, setEditInstruction] = useState<string>("");
   
-  // Selected food post index for gallery + inspector layout
+  // Selected post index for gallery + inspector layout
   const [selectedFoodPostIdx, setSelectedFoodPostIdx] = useState<number>(0);
+  const [selectedSocialPostIdx, setSelectedSocialPostIdx] = useState<number>(0);
 
   const [brief, setBrief] = useState<AdBrief>({
     brandName: '',
@@ -1353,15 +1354,206 @@ const App: React.FC<AppProps> = ({ onBackToLanding }) => {
                 </div>
             )}
 
-            {/* --- STANDARD SCENE LIST LAYOUT (Video & Social only) --- */}
-            {project.projectType !== 'food-social' && (
+            {/* --- SOCIAL POSTERS GALLERY + INSPECTOR LAYOUT --- */}
+            {project.projectType === 'social' && (
+                <div className="space-y-8">
+                    {/* Compact 3-Up Gallery with Portrait Thumbnails */}
+                    <div className="grid grid-cols-3 gap-4">
+                        {project.scenes.map((scene, idx) => (
+                            <div 
+                                key={idx}
+                                onClick={() => setSelectedSocialPostIdx(idx)}
+                                className={`glass rounded-2xl overflow-hidden cursor-pointer transition-all hover:scale-[1.02] ${selectedSocialPostIdx === idx ? 'ring-2 ring-yellow-500 ring-offset-2 ring-offset-black' : 'opacity-70 hover:opacity-100'}`}
+                            >
+                                <div className="aspect-[3/4] bg-zinc-900 relative">
+                                    {scene.imageUrl ? (
+                                        <img src={scene.imageUrl} className="w-full h-full object-cover" alt={`Post ${idx + 1}`} />
+                                    ) : scene.isGeneratingImage ? (
+                                        <div className="w-full h-full flex items-center justify-center">
+                                            <BananaPro role="artist" size="sm" />
+                                        </div>
+                                    ) : (
+                                        <div className="w-full h-full flex items-center justify-center">
+                                            <i className="fa-solid fa-image text-white/20 text-2xl"></i>
+                                        </div>
+                                    )}
+                                    {selectedSocialPostIdx === idx && (
+                                        <div className="absolute top-2 right-2 w-6 h-6 rounded-full bg-yellow-500 flex items-center justify-center">
+                                            <i className="fa-solid fa-check text-black text-xs"></i>
+                                        </div>
+                                    )}
+                                </div>
+                                <div className="p-3 bg-zinc-900/50">
+                                    <span className="text-xs font-bold text-yellow-400">Post #{idx + 1}</span>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+
+                    {/* Detail Panel for Selected Post */}
+                    {project.scenes[selectedSocialPostIdx] && (() => {
+                        const scene = project.scenes[selectedSocialPostIdx];
+                        const idx = selectedSocialPostIdx;
+                        return (
+                            <div className="glass rounded-[40px] overflow-hidden">
+                                {/* Main Content Area */}
+                                <div className="flex flex-col lg:flex-row">
+                                    {/* Portrait Image Preview */}
+                                    <div className="lg:w-5/12 bg-black relative group flex items-center justify-center">
+                                        <div className="aspect-[3/4] h-[500px]">
+                                            {scene.imageUrl ? (
+                                                <img src={scene.imageUrl} className="w-full h-full object-cover" alt={`Post ${idx + 1}`} />
+                                            ) : scene.isGeneratingImage ? (
+                                                <div className="w-full h-full flex flex-col items-center justify-center bg-zinc-900">
+                                                    <BananaPro role="artist" size="md" />
+                                                    <p className="text-sm font-bold tracking-widest uppercase mt-4">Auto-Rendering...</p>
+                                                </div>
+                                            ) : (
+                                                <div className="w-full h-full flex flex-col items-center justify-center bg-zinc-900">
+                                                    <div className="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center mb-4">
+                                                        <i className="fa-solid fa-image text-white/20 text-2xl"></i>
+                                                    </div>
+                                                    <p className="text-white/40 font-medium">Image not generated</p>
+                                                </div>
+                                            )}
+                                        </div>
+                                        
+                                        {/* Action Buttons Overlay */}
+                                        <div className="absolute bottom-4 left-4 flex space-x-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                            <button 
+                                                onClick={() => generateSceneImage(idx)}
+                                                disabled={scene.isGeneratingImage}
+                                                className="bg-white text-black px-4 py-2 rounded-full text-xs font-bold hover:bg-yellow-50 transition flex items-center space-x-2"
+                                            >
+                                                {scene.isGeneratingImage ? <BananaPro role="artist" size="sm" /> : <i className="fa-solid fa-image"></i>}
+                                                <span>{scene.imageUrl ? "Regenerate" : "Generate"}</span>
+                                            </button>
+                                            {scene.imageUrl && (
+                                                <button
+                                                    onClick={() => handleDownload(scene.imageUrl!, `SocialPoster-Post-${idx + 1}.png`)}
+                                                    className="bg-white/20 backdrop-blur text-white px-3 py-2 rounded-full text-xs font-bold hover:bg-white/30 transition"
+                                                >
+                                                    <i className="fa-solid fa-download"></i>
+                                                </button>
+                                            )}
+                                        </div>
+                                    </div>
+
+                                    {/* Right Panel - Caption & Actions */}
+                                    <div className="lg:w-7/12 p-6 flex flex-col border-l border-white/5">
+                                        {/* Header */}
+                                        <div className="flex items-center justify-between mb-4">
+                                            <div className="flex items-center gap-3">
+                                                <span className="text-sm font-bold text-yellow-400">Post #{idx + 1}</span>
+                                                <span className="bg-pink-500/10 text-pink-400 text-[10px] font-bold px-2 py-1 rounded">Instagram / FB</span>
+                                            </div>
+                                        </div>
+
+                                        {/* Caption */}
+                                        <div className="flex-1 mb-4">
+                                            <div className="flex items-center justify-between mb-2">
+                                                <label className="text-[10px] uppercase tracking-widest text-white/30 font-bold">Post Caption</label>
+                                                <button 
+                                                    onClick={() => handlePolishScript(idx)}
+                                                    disabled={scene.isPolishingScript}
+                                                    className="text-[10px] bg-yellow-500/10 hover:bg-yellow-500/30 text-yellow-300 px-2 py-1 rounded transition flex items-center gap-1"
+                                                >
+                                                    {scene.isPolishingScript ? <BananaPro role="writer" size="sm" /> : <i className="fa-solid fa-wand-magic-sparkles"></i>}
+                                                    <span>Polish</span>
+                                                </button>
+                                            </div>
+                                            <div className="bg-black/30 rounded-xl p-4 max-h-[200px] overflow-y-auto">
+                                                <p className="text-sm leading-relaxed whitespace-pre-wrap">{scene.audioScript}</p>
+                                            </div>
+                                        </div>
+
+                                        {/* Edit Image Input */}
+                                        <div className="mb-4">
+                                            <label className="text-[10px] uppercase tracking-widest text-white/30 font-bold block mb-2">Edit Image with AI</label>
+                                            <div className="flex gap-0">
+                                                <div className="relative flex-grow">
+                                                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-white/30"><i className="fa-solid fa-wand-magic-sparkles"></i></span>
+                                                    <input 
+                                                        type="text"
+                                                        value={editInstruction}
+                                                        onChange={(e) => setEditInstruction(e.target.value)}
+                                                        placeholder="Change colors, add effects..."
+                                                        className="w-full bg-white/5 border border-yellow-500/30 rounded-l-xl pl-9 pr-4 py-2.5 text-sm focus:border-yellow-500 outline-none transition"
+                                                    />
+                                                </div>
+                                                <button 
+                                                    onClick={() => handleEditImage(idx)}
+                                                    disabled={!editInstruction || !scene.imageUrl || scene.isGeneratingImage}
+                                                    className="bg-yellow-500/10 hover:bg-yellow-500/20 text-yellow-400 border-y border-r border-yellow-500/30 px-4 py-2.5 rounded-r-xl font-bold text-sm transition disabled:opacity-50 disabled:cursor-not-allowed"
+                                                >
+                                                    Edit
+                                                </button>
+                                            </div>
+                                        </div>
+
+                                        {/* Collapsible Advanced Prompts */}
+                                        <details className="group">
+                                            <summary className="text-[10px] uppercase tracking-widest text-white/30 font-bold cursor-pointer hover:text-white/50 transition flex items-center gap-2 mb-2">
+                                                <i className="fa-solid fa-chevron-right text-[8px] transition-transform group-open:rotate-90"></i>
+                                                Advanced Prompts
+                                            </summary>
+                                            <div className="space-y-3 pl-4 border-l border-white/10">
+                                                {/* Graphic Design Prompt */}
+                                                <div>
+                                                    <div className="flex justify-between items-center mb-1">
+                                                        <span className="text-[9px] text-white/40">Graphic Design Prompt</span>
+                                                        <button 
+                                                            onClick={() => handleCopyPrompt(scene.visualPrompt, `${idx}-vis`)}
+                                                            className="text-[9px] text-white/40 hover:text-white transition"
+                                                        >
+                                                            {copiedId === `${idx}-vis` ? <span className="text-green-400">Copied</span> : 'Copy'}
+                                                        </button>
+                                                    </div>
+                                                    <p className="text-white/60 text-[11px] leading-relaxed italic line-clamp-3">"{scene.visualPrompt}"</p>
+                                                </div>
+                                                {/* Nano Banana Prompt */}
+                                                <div>
+                                                    <div className="flex justify-between items-center mb-1">
+                                                        <span className="text-[9px] text-white/40">Nano Banana Prompt</span>
+                                                        <button 
+                                                            onClick={() => handleCopyPrompt(`generate_img("Generate a high-end cinematic advertising shot. Description: ${scene.visualPrompt}. 8k, professional lighting, photorealistic.")`, `${idx}-nano`)}
+                                                            className="text-[9px] text-white/40 hover:text-white transition"
+                                                        >
+                                                            {copiedId === `${idx}-nano` ? <span className="text-green-400">Copied</span> : 'Copy'}
+                                                        </button>
+                                                    </div>
+                                                    <div className="bg-black/40 rounded p-2 border border-yellow-500/20">
+                                                        <p className="text-white/50 text-[10px] font-mono line-clamp-2">generate_img("...")</p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </details>
+
+                                        {/* Footer */}
+                                        <div className="mt-auto pt-4 flex items-center space-x-3 border-t border-white/5">
+                                            <div className="flex -space-x-2">
+                                                <div className="w-6 h-6 rounded-full bg-white/10 border-2 border-black flex items-center justify-center text-[8px]"><i className="fa-solid fa-robot"></i></div>
+                                                <div className="w-6 h-6 rounded-full bg-yellow-500 border-2 border-black flex items-center justify-center text-[8px] text-black"><i className="fa-solid fa-wand-magic-sparkles"></i></div>
+                                            </div>
+                                            <span className="text-[9px] text-white/40 uppercase font-bold tracking-widest">AI Assisted</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        );
+                    })()}
+                </div>
+            )}
+
+            {/* --- STANDARD SCENE LIST LAYOUT (Video only) --- */}
+            {project.projectType === 'video' && (
                 <div className="space-y-12">
                 {project.scenes.map((scene, idx) => (
                     <div key={idx} className={`glass rounded-[40px] overflow-hidden flex flex-col md:flex-row min-h-[400px]`}>
                     
                     {/* Visual Preview Area */}
-                    <div className={`${project.projectType === 'social' ? 'md:w-5/12' : 'md:w-3/5'} bg-black relative group flex items-center justify-center bg-zinc-900/50`}>
-                        <div className={`relative ${project.projectType === 'social' ? 'aspect-[3/4] h-[500px]' : 'aspect-video w-full'}`}>
+                    <div className="md:w-3/5 bg-black relative group flex items-center justify-center bg-zinc-900/50">
+                        <div className="relative aspect-video w-full">
                             {scene.videoUrl ? (
                             <video 
                                 src={scene.videoUrl} 
@@ -1384,7 +1576,7 @@ const App: React.FC<AppProps> = ({ onBackToLanding }) => {
                                 ) : (
                                     <>
                                         <div className="w-20 h-20 rounded-full bg-white/5 flex items-center justify-center">
-                                        <i className={`fa-solid ${project.projectType === 'social' ? 'fa-image' : 'fa-camera-movie'} text-white/20 text-3xl`}></i>
+                                        <i className="fa-solid fa-camera-movie text-white/20 text-3xl"></i>
                                         </div>
                                         <div>
                                         <p className="font-bold text-lg text-white/40">Visualization Required</p>
@@ -1416,17 +1608,14 @@ const App: React.FC<AppProps> = ({ onBackToLanding }) => {
                             <span>{scene.imageUrl ? "Regenerate Image" : "Generate Image"}</span>
                         </button>
                         
-                        {/* Video Button only for Video Projects */}
-                        {project.projectType === 'video' && (
-                            <button 
-                                onClick={() => generateSceneVideo(idx)}
-                                disabled={scene.isGeneratingVideo || !scene.imageUrl}
-                                className="gradient-accent text-black px-4 py-2 rounded-full text-xs font-bold hover:scale-105 transition flex items-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
-                            >
-                                {scene.isGeneratingVideo ? <BananaPro role="cameraman" size="sm" /> : <i className="fa-solid fa-play"></i>}
-                                <span>Animate Cinematic Video</span>
-                            </button>
-                        )}
+                        <button 
+                            onClick={() => generateSceneVideo(idx)}
+                            disabled={scene.isGeneratingVideo || !scene.imageUrl}
+                            className="gradient-accent text-black px-4 py-2 rounded-full text-xs font-bold hover:scale-105 transition flex items-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                            {scene.isGeneratingVideo ? <BananaPro role="cameraman" size="sm" /> : <i className="fa-solid fa-play"></i>}
+                            <span>Animate Cinematic Video</span>
+                        </button>
                         </div>
                         {(scene.isGeneratingVideo) && (
                         <div className="absolute inset-0 bg-black/60 backdrop-blur-sm flex flex-col items-center justify-center z-10">
@@ -1437,33 +1626,25 @@ const App: React.FC<AppProps> = ({ onBackToLanding }) => {
                     </div>
                     
                     {/* Content / Script Area */}
-                    <div className={`${project.projectType === 'social' ? 'md:w-7/12' : 'md:w-2/5'} p-10 flex flex-col border-l border-white/5`}>
+                    <div className="md:w-2/5 p-10 flex flex-col border-l border-white/5">
                         <div className="flex items-center justify-between mb-8">
                         <span className="text-xs font-bold uppercase tracking-[0.2em] text-yellow-400">
-                            {project.projectType === 'social' ? `Post #${scene.sceneNumber}` : `Scene ${scene.sceneNumber}`}
+                            Scene {scene.sceneNumber}
                         </span>
-                        
-                        {/* Only show Veo tag / Voice button for Video projects */}
-                        {project.projectType === 'video' ? (
-                            <>
-                                <span className="bg-yellow-500/10 text-yellow-400 text-[10px] font-bold px-2 py-1 rounded">Veo Optimized (8s)</span>
-                                <button 
-                                    onClick={() => playVoiceover(idx)}
-                                    disabled={scene.isGeneratingVoice}
-                                    className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center hover:bg-yellow-500/20 hover:text-yellow-400 transition"
-                                >
-                                    {scene.isGeneratingVoice ? <BananaPro role="voice" size="sm" /> : <i className="fa-solid fa-volume-high"></i>}
-                                </button>
-                            </>
-                        ) : (
-                            <span className="bg-pink-500/10 text-pink-400 text-[10px] font-bold px-2 py-1 rounded">Instagram / FB Format</span>
-                        )}
+                        <span className="bg-yellow-500/10 text-yellow-400 text-[10px] font-bold px-2 py-1 rounded">Veo Optimized (8s)</span>
+                        <button 
+                            onClick={() => playVoiceover(idx)}
+                            disabled={scene.isGeneratingVoice}
+                            className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center hover:bg-yellow-500/20 hover:text-yellow-400 transition"
+                        >
+                            {scene.isGeneratingVoice ? <BananaPro role="voice" size="sm" /> : <i className="fa-solid fa-volume-high"></i>}
+                        </button>
                         </div>
                         
                         <div className="mb-8">
                         <div className="flex justify-between items-end mb-2">
                             <label className="text-[10px] uppercase tracking-widest text-white/30 font-bold block">
-                                {project.projectType === 'social' ? 'Graphic Design Prompt' : 'Cinematography Prompt'}
+                                Cinematography Prompt
                             </label>
                             <button 
                                 onClick={() => handleCopyPrompt(scene.visualPrompt, `${idx}-vis`)}
@@ -1509,7 +1690,7 @@ const App: React.FC<AppProps> = ({ onBackToLanding }) => {
                         <div>
                         <div className="flex items-center justify-between mb-2">
                             <label className="text-[10px] uppercase tracking-widest text-white/30 font-bold block">
-                                {project.projectType === 'social' ? 'Post Caption' : 'Audio Script'}
+                                Audio Script
                             </label>
                             <button 
                                 onClick={() => handlePolishScript(idx)}
