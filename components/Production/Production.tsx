@@ -1,5 +1,5 @@
-import React from 'react';
-import { AdProject, AppStep } from '../../types';
+import React, { memo, useMemo, useCallback } from 'react';
+import { AdProject, AppStep, Scene } from '../../types';
 import BananaPro from '../shared/BananaPro';
 
 interface ProductionProps {
@@ -40,6 +40,31 @@ const Production: React.FC<ProductionProps> = ({
   handleCopyPrompt,
   handleDownload
 }) => {
+  const scenesWithImages = useMemo(() => {
+    return project.scenes.filter(scene => scene.imageUrl);
+  }, [project.scenes]);
+
+  const scenesWithVideos = useMemo(() => {
+    return project.scenes.filter(scene => scene.videoUrl);
+  }, [project.scenes]);
+
+  const generationProgress = useMemo(() => {
+    const total = project.scenes.length;
+    const withImages = scenesWithImages.length;
+    const withVideos = scenesWithVideos.length;
+    return {
+      total,
+      imagesGenerated: withImages,
+      videosGenerated: withVideos,
+      imageProgress: total > 0 ? (withImages / total) * 100 : 0,
+      videoProgress: total > 0 ? (withVideos / total) * 100 : 0,
+    };
+  }, [project.scenes.length, scenesWithImages.length, scenesWithVideos.length]);
+
+  const handleStepChange = useCallback(() => {
+    setStep(AppStep.CONCEPTS);
+  }, [setStep]);
+
   return (
     <div className="animate-fade-in">
       <div className="flex justify-between items-end mb-8">
@@ -53,12 +78,12 @@ const Production: React.FC<ProductionProps> = ({
           )}
         </div>
         <div className="flex space-x-4">
-          <button 
-            onClick={() => setStep(AppStep.CONCEPTS)}
-            className="px-6 py-2 rounded-full border border-yellow-500/30 text-sm font-medium hover:bg-white/5 transition"
-          >
-            Change Concept
-          </button>
+                    <button 
+                      onClick={handleStepChange}
+                      className="px-6 py-2 rounded-full border border-yellow-500/30 text-sm font-medium hover:bg-white/5 transition"
+                    >
+                      Change Concept
+                    </button>
         </div>
       </div>
 
@@ -124,7 +149,7 @@ interface FoodSocialLayoutProps {
   handleDownload: (url: string, filename: string) => void;
 }
 
-const FoodSocialLayout: React.FC<FoodSocialLayoutProps> = ({
+const FoodSocialLayout = memo<FoodSocialLayoutProps>(({
   project,
   selectedFoodPostIdx,
   setSelectedFoodPostIdx,
@@ -137,7 +162,7 @@ const FoodSocialLayout: React.FC<FoodSocialLayoutProps> = ({
   handleCopyPrompt,
   handleDownload
 }) => {
-  const scene = project.scenes[selectedFoodPostIdx];
+  const scene = useMemo(() => project.scenes[selectedFoodPostIdx], [project.scenes, selectedFoodPostIdx]);
   const idx = selectedFoodPostIdx;
 
   return (
@@ -324,7 +349,9 @@ const FoodSocialLayout: React.FC<FoodSocialLayoutProps> = ({
       )}
     </div>
   );
-};
+});
+
+FoodSocialLayout.displayName = 'FoodSocialLayout';
 
 interface SocialLayoutProps {
   project: AdProject;
@@ -340,7 +367,7 @@ interface SocialLayoutProps {
   handleDownload: (url: string, filename: string) => void;
 }
 
-const SocialLayout: React.FC<SocialLayoutProps> = ({
+const SocialLayout = memo<SocialLayoutProps>(({
   project,
   selectedSocialPostIdx,
   setSelectedSocialPostIdx,
@@ -353,7 +380,7 @@ const SocialLayout: React.FC<SocialLayoutProps> = ({
   handleCopyPrompt,
   handleDownload
 }) => {
-  const scene = project.scenes[selectedSocialPostIdx];
+  const scene = useMemo(() => project.scenes[selectedSocialPostIdx], [project.scenes, selectedSocialPostIdx]);
   const idx = selectedSocialPostIdx;
 
   return (
@@ -528,7 +555,9 @@ const SocialLayout: React.FC<SocialLayoutProps> = ({
       )}
     </div>
   );
-};
+});
+
+SocialLayout.displayName = 'SocialLayout';
 
 interface VideoLayoutProps {
   project: AdProject;
@@ -541,7 +570,7 @@ interface VideoLayoutProps {
   handleDownload: (url: string, filename: string) => void;
 }
 
-const VideoLayout: React.FC<VideoLayoutProps> = ({
+const VideoLayout = memo<VideoLayoutProps>(({
   project,
   copiedId,
   generateSceneImage,
@@ -551,6 +580,8 @@ const VideoLayout: React.FC<VideoLayoutProps> = ({
   handleCopyPrompt,
   handleDownload
 }) => {
+  const scenes = useMemo(() => project.scenes, [project.scenes]);
+
   return (
     <div className="space-y-12">
       {project.scenes.map((scene, idx) => (
@@ -716,6 +747,8 @@ const VideoLayout: React.FC<VideoLayoutProps> = ({
       ))}
     </div>
   );
-};
+});
+
+VideoLayout.displayName = 'VideoLayout';
 
 export default Production;
