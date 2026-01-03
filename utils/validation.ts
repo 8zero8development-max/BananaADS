@@ -45,14 +45,14 @@ export interface ValidationResult {
 
 export function validateBrief(
   brief: AdBrief, 
-  productionType: 'video' | 'social' | 'food-social'
+  productionType: 'video' | 'social' | 'food-social' | 'email'
 ): ValidationResult {
   const errors: string[] = [];
 
   if (productionType === 'food-social') {
     const result = foodSocialBriefSchema.safeParse(brief);
     if (!result.success) {
-      result.error.errors.forEach(err => {
+      result.error.issues.forEach(err => {
         errors.push(err.message);
       });
     }
@@ -86,7 +86,7 @@ export function validateBrief(
 
 export function validateResearchInput(
   brief: AdBrief,
-  productionType: 'video' | 'social' | 'food-social'
+  productionType: 'video' | 'social' | 'food-social' | 'email'
 ): ValidationResult {
   const errors: string[] = [];
 

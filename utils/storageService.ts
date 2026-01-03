@@ -26,26 +26,26 @@ function isDataUrl(str: string | undefined): boolean {
   return typeof str === 'string' && str.startsWith('data:');
 }
 
-function stripLargeBinaryData<T extends Record<string, unknown>>(obj: T, keysToStrip: string[]): T {
-  const result = { ...obj };
+function stripLargeBinaryData<T extends Record<string, any>>(obj: T, keysToStrip: string[]): T {
+  const result = { ...obj } as any;
   for (const key of keysToStrip) {
     if (key in result && isDataUrl(result[key] as string | undefined)) {
       delete result[key];
     }
   }
-  return result;
+  return result as T;
 }
 
 function stripBriefBinaryData(brief: AdBrief): AdBrief {
-  return stripLargeBinaryData(brief, ['productImage', 'logoImage', 'moodBoard']) as AdBrief;
+  return stripLargeBinaryData(brief as any, ['productImage', 'logoImage', 'moodBoard']) as AdBrief;
 }
 
 function stripConceptBinaryData(concept: AdConcept): AdConcept {
-  return stripLargeBinaryData(concept, ['thumbnailUrl']) as AdConcept;
+  return stripLargeBinaryData(concept as any, ['thumbnailUrl']) as AdConcept;
 }
 
 function stripSceneBinaryData(scene: Scene): Scene {
-  return stripLargeBinaryData(scene, ['imageUrl', 'videoUrl', 'voiceoverUrl']) as Scene;
+  return stripLargeBinaryData(scene as any, ['imageUrl', 'videoUrl', 'voiceoverUrl']) as Scene;
 }
 
 function stripProjectBinaryData(project: AdProject | null): AdProject | null {

@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useCallback } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { AdBrief, AdConcept, AdProject, AppStep, ProductionType } from '../types';
 import { saveState, loadState, clearState, SavedState } from '../utils/storageService';
 
