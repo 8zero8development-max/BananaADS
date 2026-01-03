@@ -144,7 +144,10 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
           <a href="#features" className="text-white/60 hover:text-yellow-400 transition text-sm font-medium">Features</a>
           <a href="#pricing" className="text-white/60 hover:text-yellow-400 transition text-sm font-medium">Pricing</a>
           <button 
-            onClick={onGetStarted}
+            onClick={() => {
+              localStorage.removeItem('onboarding-completed');
+              onGetStarted();
+            }}
             className="bg-gradient-to-r from-yellow-400 to-orange-500 text-black px-6 py-2 rounded-full font-bold text-sm hover:scale-105 transition"
           >
             Get Started
@@ -187,7 +190,10 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
           
           <div className="flex flex-col items-center gap-3 mb-16">
             <button 
-              onClick={onGetStarted}
+              onClick={() => {
+                localStorage.removeItem('onboarding-completed');
+                onGetStarted();
+              }}
               className="bg-gradient-to-r from-yellow-400 to-orange-500 text-black px-10 py-4 rounded-full font-bold text-lg hover:scale-105 transition shadow-lg shadow-yellow-500/25"
             >
               Start Creating Free

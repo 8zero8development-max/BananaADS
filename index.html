@@ -87,6 +87,39 @@
         }
         .animate-banana-vibrate { animation: banana-vibrate 0.3s linear infinite; }
         
+        /* --- Onboarding Tour Styles --- */
+        
+        .onboarding-highlight {
+            position: relative;
+            z-index: 1000;
+            border-radius: 8px;
+            animation: onboarding-pulse 2s infinite;
+        }
+        
+        @keyframes onboarding-pulse {
+            0%, 100% { box-shadow: 0 0 0 4px rgba(251, 191, 36, 0.8), 0 0 20px rgba(251, 191, 36, 0.4); }
+            50% { box-shadow: 0 0 0 6px rgba(251, 191, 36, 0.6), 0 0 30px rgba(251, 191, 36, 0.3); }
+        }
+        
+        .onboarding-tooltip {
+            position: absolute;
+            background: linear-gradient(135deg, #fbbf24, #f59e0b);
+            color: #000;
+            padding: 16px;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(251, 191, 36, 0.3);
+            max-width: 300px;
+            z-index: 1001;
+        }
+        
+        .onboarding-tooltip::before {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 0;
+            border-style: solid;
+        }
+        
         ::-webkit-scrollbar {
             width: 8px;
         }

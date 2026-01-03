@@ -16,6 +16,7 @@ import Production from './components/Production/Production';
 import { useAdCampaign } from './hooks/useAdCampaign';
 import BananaAdsAssistant from './components/BananaAdsAssistant';
 import HelpSystem from './components/Help/HelpSystem';
+import OnboardingTour, { onboardingSteps } from './components/Onboarding/OnboardingTour';
 
 interface AppProps {
   onBackToLanding?: () => void;
@@ -33,6 +34,9 @@ const AppContent: React.FC<AppProps> = ({ onBackToLanding }) => {
   const [selectedSocialPostIdx, setSelectedSocialPostIdx] = useState<number>(0);
   const [selectedEmailSectionIdx, setSelectedEmailSectionIdx] = useState<number>(0);
   const [showHelp, setShowHelp] = useState<boolean>(false);
+  const [showOnboarding, setShowOnboarding] = useState(
+    !localStorage.getItem('onboarding-completed')
+  );
 
   const { showToast } = useToast();
 
@@ -729,6 +733,13 @@ const AppContent: React.FC<AppProps> = ({ onBackToLanding }) => {
       />
 
       <HelpSystem isOpen={showHelp} onClose={() => setShowHelp(false)} />
+
+      {showOnboarding && (
+        <OnboardingTour
+          steps={onboardingSteps}
+          onComplete={() => setShowOnboarding(false)}
+        />
+      )}
     </div>
   );
 };
