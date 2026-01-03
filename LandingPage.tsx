@@ -362,38 +362,78 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
         </div>
       </section>
 
-      <section className="py-24 px-8 bg-gradient-to-b from-transparent to-yellow-500/5">
-        <div className="max-w-6xl mx-auto">
-          <div className="grid lg:grid-cols-2 gap-16 items-center">
-            <div>
-              <h2 className="text-4xl md:text-5xl font-serif mb-6">
-                <span className="text-yellow-400">3 Steps</span>
-                <br />
-                <span className="bg-gradient-to-r from-white to-gray-400 bg-clip-text text-transparent">
-                  to Your Perfect Ad
-                </span>
-              </h2>
+      <section className="py-24 px-8 bg-gradient-to-b from-transparent via-yellow-500/5 to-transparent relative overflow-hidden">
+        <div className="absolute top-1/4 left-0 w-96 h-96 bg-yellow-500/10 blur-[120px] rounded-full"></div>
+        <div className="absolute bottom-1/4 right-0 w-96 h-96 bg-orange-500/10 blur-[120px] rounded-full"></div>
+        
+        <div className="max-w-6xl mx-auto relative">
+          <div className="text-center mb-16">
+            <p className="text-white/40 text-sm uppercase tracking-widest mb-4">How It Works</p>
+            <h2 className="text-4xl md:text-5xl font-serif mb-4">
+              <span className="text-yellow-400">3 Simple Steps</span>
+              <br />
+              <span className="bg-gradient-to-r from-white to-gray-400 bg-clip-text text-transparent">
+                to Your Perfect Ad
+              </span>
+            </h2>
+            <p className="text-white/50 text-lg max-w-2xl mx-auto">
+              From brand brief to broadcast-ready campaign in minutes, not weeks
+            </p>
+          </div>
+
+          <div className="grid lg:grid-cols-2 gap-16 items-start">
+            <div className="relative">
+              <div className="absolute left-[23px] top-[60px] bottom-[60px] w-[2px] bg-gradient-to-b from-yellow-400 via-yellow-500 to-orange-500 hidden md:block"></div>
               
-              <div className="space-y-8">
-                <div className="flex gap-4">
-                  <div className="flex-shrink-0 w-10 h-10 rounded-full bg-yellow-500/20 flex items-center justify-center text-yellow-400 font-bold">1</div>
-                  <div>
-                    <h3 className="text-xl font-bold mb-2">Brief Your Brand</h3>
-                    <p className="text-white/50">Enter your brand details and let AI research your target audience automatically.</p>
+              <div className="space-y-6">
+                <div className="group relative bg-gradient-to-r from-yellow-500/10 to-transparent border border-yellow-500/20 hover:border-yellow-500/40 rounded-2xl p-6 transition-all duration-300 hover:scale-[1.02] hover:shadow-lg hover:shadow-yellow-500/10">
+                  <div className="flex gap-5">
+                    <div className="flex-shrink-0 relative">
+                      <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-yellow-400 to-yellow-500 flex items-center justify-center text-black font-bold text-lg shadow-lg shadow-yellow-500/30">
+                        01
+                      </div>
+                    </div>
+                    <div className="flex-1">
+                      <div className="flex items-center gap-3 mb-2">
+                        <h3 className="text-xl font-bold text-white group-hover:text-yellow-400 transition">Brief Your Brand</h3>
+                        <span className="text-xs bg-yellow-500/20 text-yellow-400 px-2 py-1 rounded-full">~60 sec</span>
+                      </div>
+                      <p className="text-white/50 leading-relaxed">Enter your brand details and let AI research your target audience, tone, and key selling points automatically using Google Search.</p>
+                    </div>
                   </div>
                 </div>
-                <div className="flex gap-4">
-                  <div className="flex-shrink-0 w-10 h-10 rounded-full bg-yellow-500/20 flex items-center justify-center text-yellow-400 font-bold">2</div>
-                  <div>
-                    <h3 className="text-xl font-bold mb-2">Choose Your Concept</h3>
-                    <p className="text-white/50">Select from 3 AI-generated creative directions tailored to your goals.</p>
+
+                <div className="group relative bg-gradient-to-r from-yellow-500/10 to-transparent border border-yellow-500/20 hover:border-yellow-500/40 rounded-2xl p-6 transition-all duration-300 hover:scale-[1.02] hover:shadow-lg hover:shadow-yellow-500/10">
+                  <div className="flex gap-5">
+                    <div className="flex-shrink-0 relative">
+                      <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-yellow-500 to-orange-400 flex items-center justify-center text-black font-bold text-lg shadow-lg shadow-orange-500/30">
+                        02
+                      </div>
+                    </div>
+                    <div className="flex-1">
+                      <div className="flex items-center gap-3 mb-2">
+                        <h3 className="text-xl font-bold text-white group-hover:text-yellow-400 transition">Choose Your Concept</h3>
+                        <span className="text-xs bg-yellow-500/20 text-yellow-400 px-2 py-1 rounded-full">3 Options</span>
+                      </div>
+                      <p className="text-white/50 leading-relaxed">Select from 3 AI-generated creative directions - emotional, high-energy, or minimalist - each with a unique thumbnail preview.</p>
+                    </div>
                   </div>
                 </div>
-                <div className="flex gap-4">
-                  <div className="flex-shrink-0 w-10 h-10 rounded-full bg-yellow-500/20 flex items-center justify-center text-yellow-400 font-bold">3</div>
-                  <div>
-                    <h3 className="text-xl font-bold mb-2">Generate & Export</h3>
-                    <p className="text-white/50">Get storyboards, scripts, voiceovers, and video - all with your actual product.</p>
+
+                <div className="group relative bg-gradient-to-r from-orange-500/10 to-transparent border border-orange-500/20 hover:border-orange-500/40 rounded-2xl p-6 transition-all duration-300 hover:scale-[1.02] hover:shadow-lg hover:shadow-orange-500/10">
+                  <div className="flex gap-5">
+                    <div className="flex-shrink-0 relative">
+                      <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-orange-400 to-orange-500 flex items-center justify-center text-black font-bold text-lg shadow-lg shadow-orange-500/30">
+                        03
+                      </div>
+                    </div>
+                    <div className="flex-1">
+                      <div className="flex items-center gap-3 mb-2">
+                        <h3 className="text-xl font-bold text-white group-hover:text-orange-400 transition">Generate & Export</h3>
+                        <span className="text-xs bg-orange-500/20 text-orange-400 px-2 py-1 rounded-full">Export-Ready</span>
+                      </div>
+                      <p className="text-white/50 leading-relaxed">Get storyboards, scripts, voiceovers, and cinematic video - all featuring your actual product, ready to download.</p>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -401,27 +441,72 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
             
             <div className="relative">
               <div className="absolute inset-0 bg-gradient-to-r from-yellow-500/10 to-orange-500/10 blur-3xl rounded-full"></div>
-              <div className="relative bg-black/50 backdrop-blur border border-yellow-500/20 rounded-2xl p-8">
-                <div className="space-y-4">
-                  <div className="flex items-center gap-4 bg-white/5 rounded-xl p-4">
-                    <span className="text-3xl">🍌</span>
-                    <div>
-                      <div className="text-sm text-white/40">Brand Brief</div>
-                      <div className="font-bold text-yellow-400">Complete</div>
+              <div className="relative bg-black/60 backdrop-blur-xl border border-yellow-500/20 rounded-2xl overflow-hidden">
+                <div className="bg-gradient-to-r from-yellow-500/10 to-orange-500/10 px-6 py-4 border-b border-yellow-500/20">
+                  <div className="flex items-center gap-2">
+                    <div className="w-3 h-3 rounded-full bg-red-500"></div>
+                    <div className="w-3 h-3 rounded-full bg-yellow-500"></div>
+                    <div className="w-3 h-3 rounded-full bg-green-500"></div>
+                    <span className="ml-4 text-white/40 text-sm font-medium">Campaign Pipeline</span>
+                  </div>
+                </div>
+                
+                <div className="p-6 space-y-4">
+                  <div className="flex items-center gap-4 bg-green-500/10 border border-green-500/30 rounded-xl p-4">
+                    <div className="w-10 h-10 rounded-lg bg-green-500/20 flex items-center justify-center">
+                      <span className="text-green-400 text-lg">✓</span>
+                    </div>
+                    <div className="flex-1">
+                      <div className="text-sm text-white/40 mb-1">Brand Brief</div>
+                      <div className="font-bold text-green-400">AI Research Complete</div>
+                    </div>
+                    <div className="text-xs text-green-400/60">12 sources</div>
+                  </div>
+                  
+                  <div className="flex items-center gap-4 bg-yellow-500/10 border border-yellow-500/30 rounded-xl p-4">
+                    <div className="w-10 h-10 rounded-lg bg-yellow-500/20 flex items-center justify-center">
+                      <span className="text-yellow-400 text-lg">🎬</span>
+                    </div>
+                    <div className="flex-1">
+                      <div className="text-sm text-white/40 mb-1">Creative Concepts</div>
+                      <div className="font-bold text-yellow-400">3 Directions Ready</div>
+                    </div>
+                    <div className="flex gap-1">
+                      <div className="w-6 h-6 rounded bg-yellow-500/30"></div>
+                      <div className="w-6 h-6 rounded bg-orange-500/30"></div>
+                      <div className="w-6 h-6 rounded bg-red-500/30"></div>
                     </div>
                   </div>
-                  <div className="flex items-center gap-4 bg-white/5 rounded-xl p-4">
-                    <span className="text-3xl">🎬</span>
-                    <div>
-                      <div className="text-sm text-white/40">Creative Concepts</div>
-                      <div className="font-bold text-yellow-400">3 Options Ready</div>
+                  
+                  <div className="flex items-center gap-4 bg-orange-500/10 border border-orange-500/30 rounded-xl p-4">
+                    <div className="w-10 h-10 rounded-lg bg-orange-500/20 flex items-center justify-center animate-pulse">
+                      <span className="text-orange-400 text-lg">🎥</span>
                     </div>
+                    <div className="flex-1">
+                      <div className="text-sm text-white/40 mb-2">Production Assets</div>
+                      <div className="w-full bg-white/10 rounded-full h-2 overflow-hidden">
+                        <div className="bg-gradient-to-r from-yellow-400 to-orange-500 h-full rounded-full w-3/4 animate-pulse"></div>
+                      </div>
+                    </div>
+                    <div className="text-xs text-orange-400/60">75%</div>
                   </div>
-                  <div className="flex items-center gap-4 bg-white/5 rounded-xl p-4">
-                    <span className="text-3xl">🎥</span>
-                    <div>
-                      <div className="text-sm text-white/40">Production</div>
-                      <div className="font-bold text-green-400">Generating...</div>
+                  
+                  <div className="grid grid-cols-4 gap-2 pt-2">
+                    <div className="text-center p-2 bg-white/5 rounded-lg">
+                      <div className="text-lg mb-1">📸</div>
+                      <div className="text-[10px] text-white/40">Storyboards</div>
+                    </div>
+                    <div className="text-center p-2 bg-white/5 rounded-lg">
+                      <div className="text-lg mb-1">📝</div>
+                      <div className="text-[10px] text-white/40">Scripts</div>
+                    </div>
+                    <div className="text-center p-2 bg-white/5 rounded-lg">
+                      <div className="text-lg mb-1">🎙️</div>
+                      <div className="text-[10px] text-white/40">Voiceovers</div>
+                    </div>
+                    <div className="text-center p-2 bg-white/5 rounded-lg">
+                      <div className="text-lg mb-1">🎬</div>
+                      <div className="text-[10px] text-white/40">Video</div>
                     </div>
                   </div>
                 </div>
