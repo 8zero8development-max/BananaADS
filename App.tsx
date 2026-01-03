@@ -682,10 +682,8 @@ const App: React.FC = () => {
       {/* Header */}
       <nav className="fixed top-0 w-full z-50 glass border-b border-yellow-500/10 py-4 px-8 flex justify-between items-center">
         <div className="flex items-center space-x-2">
-          <div className="w-8 h-8 gradient-accent rounded-lg flex items-center justify-center text-black">
-            <i className="fa-solid fa-play text-sm"></i>
-          </div>
-          <span className="font-bold text-xl tracking-tight">BANANA<span className="text-white/50">ADS</span></span>
+          <span className="text-2xl">🍌</span>
+          <span className="font-bold text-xl tracking-tight"><span className="text-banana">BANANA</span><span className="text-white">ADS</span></span>
         </div>
         <div className="flex items-center space-x-6 text-sm font-medium text-white/60">
           <button onClick={handleReconfigureKey} className="hover:text-banana transition flex items-center gap-2">
