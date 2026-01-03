@@ -1206,22 +1206,98 @@ const App: React.FC<AppProps> = ({ onBackToLanding }) => {
                         </div>
                     </div>
 
-                    {/* RIGHT COLUMN: CAPTION & DETAILS */}
+                    {/* RIGHT COLUMN: FACEBOOK POST MOCK */}
                     <div className="space-y-6">
                         <div className="flex items-center gap-2 text-yellow-400 font-bold uppercase tracking-widest text-xs">
-                            <i className="fa-brands fa-facebook text-lg"></i> Facebook Post
+                            <i className="fa-brands fa-facebook text-lg"></i> Facebook Post Preview
                         </div>
 
-                        <div className="glass rounded-xl p-8 min-h-[400px] border border-white/10">
-                            {project.scenes[0].isPolishingScript ? (
-                                <div className="h-full flex items-center justify-center opacity-50"><BananaPro role="writer" text="Writing copy..." /></div>
-                            ) : (
-                                <div className="prose prose-invert prose-sm max-w-none">
-                                    <div className="whitespace-pre-wrap text-white/80 leading-relaxed font-sans text-base">
-                                        {project.scenes[0].audioScript || "Generating caption..."}
+                        {/* Facebook Post Mock */}
+                        <div className="rounded-2xl border border-white/10 bg-zinc-950/60 backdrop-blur-md shadow-[0_20px_60px_-30px_rgba(0,0,0,0.9)] overflow-hidden">
+                            {/* Post Header */}
+                            <div className="flex items-start justify-between px-4 pt-4">
+                                <div className="flex items-center gap-3 min-w-0">
+                                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-yellow-400 to-orange-500 text-black flex items-center justify-center font-bold text-sm">
+                                        {brief.brandName ? brief.brandName.charAt(0).toUpperCase() : 'B'}
+                                    </div>
+                                    <div className="min-w-0">
+                                        <div className="flex items-center gap-2 min-w-0">
+                                            <span className="truncate text-sm font-semibold text-white">{brief.brandName || 'Brand Name'}</span>
+                                            <span className="text-[10px] px-1.5 py-0.5 rounded bg-blue-500/15 text-blue-300 border border-blue-500/20 flex items-center gap-1">
+                                                <i className="fa-solid fa-circle-check text-[8px]"></i> Verified
+                                            </span>
+                                        </div>
+                                        <div className="flex items-center gap-1.5 text-xs text-white/50">
+                                            <span>Just now</span>
+                                            <span>·</span>
+                                            <span className="text-white/40">Sponsored</span>
+                                            <span>·</span>
+                                            <i className="fa-solid fa-earth-americas text-[11px]"></i>
+                                        </div>
                                     </div>
                                 </div>
+                                <button className="w-9 h-9 rounded-full hover:bg-white/5 text-white/40 hover:text-white transition flex items-center justify-center">
+                                    <i className="fa-solid fa-ellipsis"></i>
+                                </button>
+                            </div>
+
+                            {/* Post Body / Caption */}
+                            <div className="px-4 py-3">
+                                {project.scenes[0].isPolishingScript ? (
+                                    <div className="flex items-center justify-center py-8 opacity-60">
+                                        <BananaPro role="writer" text="Writing copy..." />
+                                    </div>
+                                ) : (
+                                    <div className="whitespace-pre-wrap text-[15px] leading-relaxed text-white/90 max-h-[200px] overflow-auto pr-1">
+                                        {project.scenes[0].audioScript || "Generating caption..."}
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* Post Media */}
+                            {project.scenes[0].imageUrl && (
+                                <div className="border-y border-white/10 bg-black">
+                                    <img src={project.scenes[0].imageUrl} className="w-full object-cover max-h-[300px]" alt="Post media" />
+                                </div>
                             )}
+
+                            {/* Reactions Summary */}
+                            <div className="px-4 py-2 text-xs text-white/50 flex items-center justify-between border-b border-white/5">
+                                <div className="flex items-center gap-2">
+                                    <div className="flex -space-x-1">
+                                        <span className="w-5 h-5 rounded-full bg-blue-500 text-white flex items-center justify-center text-[10px] border border-black/50">
+                                            <i className="fa-solid fa-thumbs-up"></i>
+                                        </span>
+                                        <span className="w-5 h-5 rounded-full bg-red-500 text-white flex items-center justify-center text-[10px] border border-black/50">
+                                            <i className="fa-solid fa-heart"></i>
+                                        </span>
+                                        <span className="w-5 h-5 rounded-full bg-yellow-500 text-black flex items-center justify-center text-[10px] border border-black/50">
+                                            <i className="fa-solid fa-face-laugh-squint"></i>
+                                        </span>
+                                    </div>
+                                    <span>1.2K</span>
+                                </div>
+                                <div className="flex items-center gap-3">
+                                    <span>84 comments</span>
+                                    <span>12 shares</span>
+                                </div>
+                            </div>
+
+                            {/* Action Buttons */}
+                            <div className="grid grid-cols-3">
+                                <button className="py-3 flex items-center justify-center gap-2 text-sm text-white/70 hover:bg-white/5 hover:text-white transition">
+                                    <i className="fa-regular fa-thumbs-up"></i>
+                                    <span>Like</span>
+                                </button>
+                                <button className="py-3 flex items-center justify-center gap-2 text-sm text-white/70 hover:bg-white/5 hover:text-white transition">
+                                    <i className="fa-regular fa-comment"></i>
+                                    <span>Comment</span>
+                                </button>
+                                <button className="py-3 flex items-center justify-center gap-2 text-sm text-white/70 hover:bg-white/5 hover:text-white transition">
+                                    <i className="fa-solid fa-share"></i>
+                                    <span>Share</span>
+                                </button>
+                            </div>
                         </div>
 
                          <div className="flex justify-end pt-4">
