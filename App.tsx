@@ -14,6 +14,7 @@ import BriefingForm from './components/BriefingForm/BriefingForm';
 import ConceptSelection from './components/ConceptSelection/ConceptSelection';
 import Production from './components/Production/Production';
 import { useAdCampaign } from './hooks/useAdCampaign';
+import BananaAdsAssistant from './components/BananaAdsAssistant';
 
 interface AppProps {
   onBackToLanding?: () => void;
@@ -601,6 +602,13 @@ const AppContent: React.FC<AppProps> = ({ onBackToLanding }) => {
       <footer className="mt-40 border-t border-white/5 py-12 text-center text-white/20 text-sm">
         <p>© 2025 Banana Ads AI Cinematography Agent. Built with Gemini 3.</p>
       </footer>
+
+      <BananaAdsAssistant
+        brief={brief}
+        setBrief={setBrief}
+        productionType={productionType}
+        showToast={showToast}
+      />
     </div>
   );
 };
