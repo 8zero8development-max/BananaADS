@@ -225,8 +225,8 @@ const OnboardingTour: React.FC<OnboardingTourProps> = ({ steps, onComplete }) =>
         onClick={skipOnboarding}
         style={{
           background: targetRect 
-            ? `radial-gradient(ellipse at ${targetRect.left + targetRect.width / 2}px ${targetRect.top + targetRect.height / 2}px, transparent ${Math.max(targetRect.width, targetRect.height) / 2 + 20}px, rgba(0, 0, 0, 0.75) ${Math.max(targetRect.width, targetRect.height) / 2 + 40}px)`
-            : 'rgba(0, 0, 0, 0.75)'
+            ? `radial-gradient(ellipse at ${targetRect.left + targetRect.width / 2}px ${targetRect.top + targetRect.height / 2}px, transparent ${Math.max(targetRect.width, targetRect.height) / 2 + 60}px, rgba(0, 0, 0, 0.5) ${Math.max(targetRect.width, targetRect.height) / 2 + 100}px)`
+            : 'rgba(0, 0, 0, 0.5)'
         }}
       />
 
