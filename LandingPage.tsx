@@ -66,33 +66,33 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
 
   const features = [
     {
-      icon: '🔍',
-      title: 'Brand DNA Analysis',
+      icon: '🧬',
+      title: 'Brand DNA Research',
       description: 'AI automatically researches your brand using Google Search to determine the perfect target audience and tone.'
     },
     {
-      icon: '🎨',
-      title: 'AI Mood Boards',
+      icon: '🖼️',
+      title: 'Mood Board Generator',
       description: 'Generate professional aesthetic mood boards based on your product image and brand vibe.'
     },
     {
-      icon: '💡',
-      title: 'Creative Concepts',
+      icon: '✨',
+      title: 'Creative Direction',
       description: 'Get 3 unique cinematic directions tailored to your campaign goals - emotional, high-energy, or minimalist.'
     },
     {
-      icon: '📸',
-      title: 'Smart Product Placement',
+      icon: '🎯',
+      title: 'Real Product Integration',
       description: 'Your actual product appears in every generated storyboard scene, ensuring brand consistency.'
     },
     {
-      icon: '🗣️',
-      title: 'Neural Voiceovers',
+      icon: '🎙️',
+      title: 'AI Voiceover Studio',
       description: 'Professional AI voiceovers using multiple voice options for your advertisement scripts.'
     },
     {
-      icon: '🎥',
-      title: 'Cinematic Video',
+      icon: '🎬',
+      title: 'Video Generation',
       description: 'Transform static storyboards into HD video clips using cutting-edge AI video generation.'
     }
   ];
