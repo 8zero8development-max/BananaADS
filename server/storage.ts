@@ -115,7 +115,7 @@ export class Storage {
     if (!user?.stripeSubscriptionId) return null;
     
     const subscription = await this.getSubscription(user.stripeSubscriptionId);
-    return subscription?.status || null;
+    return (subscription?.status as string) || null;
   }
 }
 
