@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import appScreenshot from '@assets/generated_images/ai_cinematography_dashboard_ui.png';
 
 interface LandingPageProps {
   onGetStarted: () => void;
@@ -177,20 +178,9 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
             <div className="absolute inset-0 bg-gradient-to-r from-yellow-500/20 to-orange-500/20 blur-3xl rounded-3xl"></div>
             <div className="relative bg-black/50 backdrop-blur border border-yellow-500/20 rounded-2xl p-2 shadow-2xl">
               <img 
-                src="/app-screenshot.png" 
+                src={appScreenshot} 
                 alt="Banana Ads Interface"
                 className="rounded-xl w-full"
-                onError={(e) => {
-                  (e.target as HTMLImageElement).style.display = 'none';
-                  (e.target as HTMLImageElement).parentElement!.innerHTML = `
-                    <div class="aspect-video bg-gradient-to-br from-zinc-900 to-black rounded-xl flex items-center justify-center">
-                      <div class="text-center">
-                        <div class="text-6xl mb-4">🍌</div>
-                        <p class="text-white/40 text-sm">App Preview</p>
-                      </div>
-                    </div>
-                  `;
-                }}
               />
             </div>
           </div>
