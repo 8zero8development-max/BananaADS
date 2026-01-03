@@ -80,15 +80,18 @@ const AppContent: React.FC<AppProps> = ({ onBackToLanding }) => {
       setConcepts(generatedConcepts);
       setStep(AppStep.CONCEPTS);
       
+      // Generate previews in parallel and wait for all to complete
       setGeneratingPreviews(true);
-      generatedConcepts.forEach(async (concept) => {
+      const previewPromises = generatedConcepts.map(async (concept) => {
         try {
           const url = await GeminiService.generateConceptPreview(concept, brief.productImage);
           setConcepts(prev => prev.map(c => c.id === concept.id ? { ...c, thumbnailUrl: url } : c));
         } catch (e) {
           console.error("Failed to generate preview for concept", concept.id);
+          showToast(`Failed to generate preview for "${concept.title}"`, 'error');
         }
       });
+      await Promise.allSettled(previewPromises);
       setGeneratingPreviews(false);
     } catch (error) {
       console.error("Error generating concepts:", error);
@@ -229,7 +232,7 @@ const AppContent: React.FC<AppProps> = ({ onBackToLanding }) => {
       }
 
       const newProject: AdProject = {
-        id: Math.random().toString(36).substr(2, 9),
+        id: Math.random().toString(36).substring(2, 11),
         brief,
         selectedConcept: concept,
         scenes: script,
@@ -364,9 +367,20 @@ const AppContent: React.FC<AppProps> = ({ onBackToLanding }) => {
         return { ...prev, scenes };
       });
     } catch (error) {
-      if ((error as any).message?.includes("Requested entity was not found")) {
-        await (window as any).aistudio.openSelectKey();
+      const errorMessage = (error as any).message || 'Unknown error';
+      
+      // Handle "entity not found" error - typically means API key doesn't have video access
+      if (errorMessage.includes("Requested entity was not found")) {
+        // Only call Replit-specific API if it exists
+        if (typeof (window as any).aistudio?.openSelectKey === 'function') {
+          await (window as any).aistudio.openSelectKey();
+        } else {
+          showToast("Video generation requires a paid Gemini API key with Veo access.", 'error');
+        }
+      } else {
+        showToast(`Video generation failed: ${errorMessage}`, 'error');
       }
+      
       console.error("Error generating video:", error);
       setProject(prev => {
         if(!prev) return null;
@@ -398,6 +412,7 @@ const AppContent: React.FC<AppProps> = ({ onBackToLanding }) => {
       source.start();
     } catch (error) {
       console.error("Error generating voiceover:", error);
+      showToast("Failed to generate voiceover. Please try again.", 'error');
     } finally {
       setProject(prev => {
         if(!prev) return null;

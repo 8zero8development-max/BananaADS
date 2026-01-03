@@ -1040,23 +1040,26 @@ export class GeminiService {
         parts.push({ text: "REFERENCE IMAGE 2 (Logo): Place this logo in the design or redraw it to match the style." });
       }
     
-      const response = await ai.models.generateContent({
-        model: 'gemini-2.5-flash-image',
-        contents: { parts },
-        config: {
-          imageConfig: {
-            aspectRatio: "16:9"
+      // Wrap in retry logic for rate limit handling
+      return this.retry(async () => {
+        const response = await ai.models.generateContent({
+          model: 'gemini-2.5-flash-image',
+          contents: { parts },
+          config: {
+            imageConfig: {
+              aspectRatio: "16:9"
+            }
+          }
+        });
+      
+        for (const part of response.candidates?.[0]?.content?.parts || []) {
+          if (part.inlineData) {
+            return `data:image/png;base64,${part.inlineData.data}`;
           }
         }
+      
+        throw new Error("No image generated.");
       });
-    
-      for (const part of response.candidates?.[0]?.content?.parts || []) {
-        if (part.inlineData) {
-          return `data:image/png;base64,${part.inlineData.data}`;
-        }
-      }
-    
-      throw new Error("No image generated.");
   }
 
   static async editHeroImage(currentImageBase64: string, editInstruction: string): Promise<string> {
@@ -1065,28 +1068,31 @@ export class GeminiService {
     
       const prompt = `Edit this image. Instruction: ${editInstruction}. Maintain the high-quality professional advertising aesthetic, the layout, and the aspect ratio.`;
     
-      const response = await ai.models.generateContent({
-        model: 'gemini-2.5-flash-image',
-        contents: {
-          parts: [
-            { inlineData: { mimeType, data } },
-            { text: prompt }
-          ]
-        },
-        config: {
-            imageConfig: {
-                aspectRatio: "16:9"
-            }
+      // Wrap in retry logic for rate limit handling
+      return this.retry(async () => {
+        const response = await ai.models.generateContent({
+          model: 'gemini-2.5-flash-image',
+          contents: {
+            parts: [
+              { inlineData: { mimeType, data } },
+              { text: prompt }
+            ]
+          },
+          config: {
+              imageConfig: {
+                  aspectRatio: "16:9"
+              }
+          }
+        });
+      
+        for (const part of response.candidates?.[0]?.content?.parts || []) {
+          if (part.inlineData) {
+            return `data:image/png;base64,${part.inlineData.data}`;
+          }
         }
+      
+        throw new Error("No image generated.");
       });
-    
-      for (const part of response.candidates?.[0]?.content?.parts || []) {
-        if (part.inlineData) {
-          return `data:image/png;base64,${part.inlineData.data}`;
-        }
-      }
-    
-      throw new Error("No image generated.");
   }
 
   static async generateVoiceover(text: string, voiceName: string = 'Kore'): Promise<string> {
@@ -1154,9 +1160,16 @@ export class GeminiService {
     const downloadLink = operation.response?.generatedVideos?.[0]?.video?.uri;
     if (!downloadLink) throw new Error("Video generation failed");
 
-    // Client-side download (Note: Server-side proxy is recommended for production to hide keys and handle CORS)
-    const apiKey = process.env.API_KEY;
-    const videoResponse = await fetch(`${downloadLink}&key=${apiKey}`);
+    // Client-side download using the stored API key from sessionStorage
+    // Note: Server-side proxy is recommended for production to hide keys and handle CORS
+    const apiKey = this.getStoredApiKey();
+    if (!apiKey) {
+      throw new Error("API key not configured. Please add your Gemini API key in settings.");
+    }
+    
+    // Append API key to download URL (the URI may already have query params)
+    const separator = downloadLink.includes('?') ? '&' : '?';
+    const videoResponse = await fetch(`${downloadLink}${separator}key=${apiKey}`);
     if (!videoResponse.ok) {
         throw new Error(`Failed to download video: ${videoResponse.statusText}`);
     }
