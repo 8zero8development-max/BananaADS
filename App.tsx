@@ -1,8 +1,17 @@
 
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { AdBrief, AdConcept, Scene, AppStep, AdProject } from './types';
 import { GeminiService } from './services/geminiService';
 import { decodeBase64, decodeAudioData } from './utils/audioUtils';
+import { saveState, loadState, clearState, SavedState } from './utils/storageService';
+
+function debounce<T extends (...args: any[]) => void>(fn: T, delay: number): T {
+  let timeoutId: ReturnType<typeof setTimeout>;
+  return ((...args: Parameters<T>) => {
+    clearTimeout(timeoutId);
+    timeoutId = setTimeout(() => fn(...args), delay);
+  }) as T;
+}
 
 // --- Custom Components ---
 
@@ -60,35 +69,104 @@ const BananaPro: React.FC<{
   );
 };
 
-const StepIndicator: React.FC<{ currentStep: AppStep }> = ({ currentStep }) => {
+interface StepIndicatorProps {
+  currentStep: AppStep;
+  onStepClick?: (step: AppStep) => void;
+  brief: AdBrief;
+  concepts: AdConcept[];
+}
+
+const StepIndicator: React.FC<StepIndicatorProps> = ({ 
+  currentStep, 
+  onStepClick, 
+  brief, 
+  concepts 
+}) => {
   const steps = ["Brand Brief", "Creative Concepts", "Production"];
+  
+  const canNavigateToStep = (targetStep: AppStep): boolean => {
+    switch (targetStep) {
+      case AppStep.BRIEFING:
+        return true;
+      case AppStep.CONCEPTS:
+        return !!(brief.brandName && brief.productName);
+      case AppStep.STORYBOARDING:
+        return concepts.length > 0;
+      default:
+        return false;
+    }
+  };
+  
+  const handleStepClick = (targetStep: AppStep) => {
+    if (!onStepClick) return;
+    
+    if (!canNavigateToStep(targetStep)) {
+      if (targetStep === AppStep.CONCEPTS) {
+        alert('Please complete the Brand Brief first (Brand Name and Product Name are required).');
+      } else if (targetStep === AppStep.STORYBOARDING) {
+        alert('Please generate and select a Creative Concept first.');
+      }
+      return;
+    }
+    
+    onStepClick(targetStep);
+  };
+  
   return (
     <div className="flex items-center space-x-6 mb-12">
-      {steps.map((label, idx) => (
-        <React.Fragment key={idx}>
-          <div className="flex items-center group">
+      {steps.map((label, idx) => {
+        const stepEnum = idx as AppStep;
+        const isAccessible = canNavigateToStep(stepEnum);
+        const isClickable = onStepClick && isAccessible;
+        const isCurrentOrPast = currentStep >= idx;
+        
+        return (
+          <React.Fragment key={idx}>
             <div 
-              className={`relative flex items-center justify-center transition-all duration-500 ${
-                currentStep >= idx ? 'scale-110 drop-shadow-[0_0_15px_rgba(250,204,21,0.5)]' : 'opacity-30 grayscale'
-              }`}
+              className={`flex items-center group ${isClickable ? 'cursor-pointer' : ''}`}
+              onClick={() => handleStepClick(stepEnum)}
+              role={isClickable ? 'button' : undefined}
+              tabIndex={isClickable ? 0 : undefined}
+              onKeyDown={(e) => {
+                if (isClickable && (e.key === 'Enter' || e.key === ' ')) {
+                  e.preventDefault();
+                  handleStepClick(stepEnum);
+                }
+              }}
             >
-              <div className="text-4xl select-none">🍌</div>
-              <div className={`absolute -bottom-1 -right-1 w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold border-2 border-black ${currentStep >= idx ? 'bg-white text-black' : 'bg-zinc-800 text-white'}`}>
-                {idx + 1}
+              <div 
+                className={`relative flex items-center justify-center transition-all duration-500 ${
+                  isCurrentOrPast 
+                    ? 'scale-110 drop-shadow-[0_0_15px_rgba(250,204,21,0.5)]' 
+                    : 'opacity-30 grayscale'
+                } ${isClickable ? 'hover:scale-125 hover:drop-shadow-[0_0_20px_rgba(250,204,21,0.7)]' : ''}`}
+              >
+                <div className={`text-4xl select-none ${isClickable ? 'transition-transform group-hover:rotate-12' : ''}`}>
+                  🍌
+                </div>
+                <div className={`absolute -bottom-1 -right-1 w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold border-2 border-black transition-colors ${
+                  isCurrentOrPast ? 'bg-white text-black' : 'bg-zinc-800 text-white'
+                } ${isClickable ? 'group-hover:bg-yellow-400' : ''}`}>
+                  {idx + 1}
+                </div>
               </div>
+              <span className={`ml-3 text-sm font-bold uppercase tracking-wider transition-colors ${
+                isCurrentOrPast ? 'text-banana' : 'text-white/40'
+              } ${isClickable ? 'group-hover:text-yellow-300' : ''}`}>
+                {label}
+              </span>
             </div>
-            <span className={`ml-3 text-sm font-bold uppercase tracking-wider ${currentStep >= idx ? 'text-banana' : 'text-white/40'}`}>{label}</span>
-          </div>
-          {idx < steps.length - 1 && (
-            <div className="flex-1 h-1 bg-white/10 rounded-full relative overflow-hidden mx-2">
-               <div 
-                 className={`absolute top-0 left-0 h-full gradient-accent transition-all duration-700 ease-out`} 
-                 style={{ width: currentStep > idx ? '100%' : '0%' }}
-               />
-            </div>
-          )}
-        </React.Fragment>
-      ))}
+            {idx < steps.length - 1 && (
+              <div className="flex-1 h-1 bg-white/10 rounded-full relative overflow-hidden mx-2">
+                <div 
+                  className="absolute top-0 left-0 h-full gradient-accent transition-all duration-700 ease-out" 
+                  style={{ width: currentStep > idx ? '100%' : '0%' }}
+                />
+              </div>
+            )}
+          </React.Fragment>
+        );
+      })}
     </div>
   );
 };
@@ -236,6 +314,38 @@ const App: React.FC<AppProps> = ({ onBackToLanding }) => {
   });
   const [concepts, setConcepts] = useState<AdConcept[]>([]);
   const [project, setProject] = useState<AdProject | null>(null);
+
+  const debouncedSaveRef = useRef(
+    debounce((state: SavedState) => {
+      saveState(state);
+    }, 1000)
+  );
+
+  useEffect(() => {
+    if (!isConfigured) return;
+    
+    const savedState = loadState();
+    if (savedState) {
+      setStep(savedState.step);
+      setBrief(savedState.brief);
+      setConcepts(savedState.concepts);
+      setProject(savedState.project);
+      setProductionType(savedState.productionType);
+      console.log('Restored saved state from localStorage');
+    }
+  }, [isConfigured]);
+
+  useEffect(() => {
+    if (!isConfigured) return;
+    
+    debouncedSaveRef.current({
+      step,
+      brief,
+      concepts,
+      project,
+      productionType,
+    });
+  }, [isConfigured, step, brief, concepts, project, productionType]);
 
   const generateConceptsLogic = async () => {
     setLoading(true);
@@ -704,6 +814,29 @@ const App: React.FC<AppProps> = ({ onBackToLanding }) => {
     setIsConfigured(false);
   };
 
+  const handleStepClick = useCallback((targetStep: AppStep) => {
+    setStep(targetStep);
+  }, []);
+
+  const handleClearData = () => {
+    if (window.confirm('Are you sure you want to clear all saved data? This cannot be undone.')) {
+      clearState();
+      setStep(AppStep.BRIEFING);
+      setBrief({
+        brandName: '',
+        productName: '',
+        targetAudience: '',
+        tone: ['Premium', 'Cinematic', 'Inspiring'],
+        keyFeatures: [],
+        creativeDirection: '',
+        voiceName: 'Kore'
+      });
+      setConcepts([]);
+      setProject(null);
+      setProductionType('video');
+    }
+  };
+
   if (!isConfigured) {
       return <ApiKeyConfig onConfigured={() => setIsConfigured(true)} />;
   }
@@ -727,6 +860,13 @@ const App: React.FC<AppProps> = ({ onBackToLanding }) => {
           <button onClick={handleReconfigureKey} className="hover:text-banana transition flex items-center gap-2">
             <i className="fa-solid fa-key"></i> <span className="hidden sm:inline">API Key</span>
           </button>
+          <button 
+            onClick={handleClearData}
+            className="hover:text-red-400 transition flex items-center gap-2"
+            title="Clear all saved data"
+          >
+            <i className="fa-solid fa-trash"></i> <span className="hidden sm:inline">Clear Data</span>
+          </button>
           <a href="#" className="hover:text-banana transition">Projects</a>
           <button 
             onClick={handleExport}
@@ -739,7 +879,12 @@ const App: React.FC<AppProps> = ({ onBackToLanding }) => {
       </nav>
 
       <main className="pt-32 px-8 max-w-7xl mx-auto">
-        <StepIndicator currentStep={step} />
+        <StepIndicator 
+          currentStep={step} 
+          onStepClick={handleStepClick}
+          brief={brief}
+          concepts={concepts}
+        />
 
         {/* Step 1: Briefing */}
         {step === AppStep.BRIEFING && (
