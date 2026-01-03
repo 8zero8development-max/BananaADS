@@ -1152,8 +1152,8 @@ const App: React.FC<AppProps> = ({ onBackToLanding }) => {
                     <div key={idx} className={`glass rounded-[40px] overflow-hidden flex flex-col md:flex-row min-h-[400px]`}>
                     
                     {/* Visual Preview Area */}
-                    <div className={`${project.projectType === 'social' || project.projectType === 'food-social' ? 'md:w-5/12' : 'md:w-3/5'} bg-black relative group flex items-center justify-center bg-zinc-900/50`}>
-                        <div className={`relative ${project.projectType === 'social' || project.projectType === 'food-social' ? 'aspect-[3/4] h-[500px]' : 'aspect-video w-full'}`}>
+                    <div className={`${project.projectType === 'social' ? 'md:w-5/12' : 'md:w-3/5'} bg-black relative group flex items-center justify-center bg-zinc-900/50`}>
+                        <div className={`relative ${project.projectType === 'social' ? 'aspect-[3/4] h-[500px]' : 'aspect-video w-full'}`}>
                             {scene.videoUrl ? (
                             <video 
                                 src={scene.videoUrl} 
@@ -1227,9 +1227,37 @@ const App: React.FC<AppProps> = ({ onBackToLanding }) => {
                         </div>
                         )}
                     </div>
+
+                    {/* Edit Image Bar for Food Socials */}
+                    {project.projectType === 'food-social' && (
+                        <div className="w-full px-6 py-4 bg-zinc-900/50 border-t border-white/5">
+                            <div className="flex gap-0">
+                                <div className="relative flex-grow">
+                                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-white/30"><i className="fa-solid fa-wand-magic-sparkles"></i></span>
+                                    <input 
+                                        type="text"
+                                        value={editInstruction}
+                                        onChange={(e) => setEditInstruction(e.target.value)}
+                                        placeholder="Eg. Add more smoke, change background to blue..."
+                                        className="w-full bg-white/5 border border-yellow-500/30 rounded-l-xl pl-9 pr-4 py-3 text-sm focus:border-yellow-500 outline-none transition"
+                                    />
+                                </div>
+                                <button 
+                                    onClick={() => handleEditImage(idx)}
+                                    disabled={!editInstruction || !scene.imageUrl || scene.isGeneratingImage}
+                                    className="bg-yellow-500/10 hover:bg-yellow-500/20 text-yellow-400 border-y border-r border-yellow-500/30 px-6 py-3 rounded-r-xl font-bold text-sm transition disabled:opacity-50 disabled:cursor-not-allowed"
+                                >
+                                    Edit
+                                </button>
+                            </div>
+                            {scene.selectedCta && (
+                                <p className="text-xs text-white/40 mt-2">CTA: <span className="text-yellow-400 font-bold">{scene.selectedCta}</span></p>
+                            )}
+                        </div>
+                    )}
                     
                     {/* Content / Script Area */}
-                    <div className={`${project.projectType === 'social' || project.projectType === 'food-social' ? 'md:w-7/12' : 'md:w-2/5'} p-10 flex flex-col border-l border-white/5`}>
+                    <div className={`${project.projectType === 'social' ? 'md:w-7/12' : 'md:w-2/5'} p-10 flex flex-col border-l border-white/5`}>
                         <div className="flex items-center justify-between mb-8">
                         <span className="text-xs font-bold uppercase tracking-[0.2em] text-yellow-400">
                             {project.projectType === 'social' || project.projectType === 'food-social' ? `Post #${scene.sceneNumber}` : `Scene ${scene.sceneNumber}`}
