@@ -5,24 +5,41 @@ Banana Ads is an AI-powered cinematography agent built with React and Google Gem
 
 ## Project Structure
 - `/` - Root contains main React components and configuration
+- `server/` - Express backend server with Stripe integration
 - `services/` - Contains Gemini AI service integrations
 - `utils/` - Utility functions (audio utilities)
 
 ## Tech Stack
 - **Frontend:** React 19, Tailwind CSS (via CDN)
 - **Build Tool:** Vite
+- **Backend:** Express.js on port 3001
+- **Database:** PostgreSQL with Drizzle ORM
 - **AI Integration:** Google Gemini (@google/genai)
+- **Payments:** Stripe with stripe-replit-sync
 - **Testing:** Vitest with React Testing Library
 
+## Architecture
+- **Frontend (port 5000):** React/Vite serves landing page and main app
+- **Backend (port 3001):** Express handles Stripe API calls
+- **Vite Proxy:** `/api/*` routes proxied to backend during development
+
 ## Development
-- **Dev Server:** `npm run dev` - runs on port 5000
+- **Dev Server:** `npm run dev` - runs frontend (5000) and backend (3001) concurrently
 - **Build:** `npm run build` - outputs to `dist/`
 - **Test:** `npm run test`
 
 ## Environment Variables
 - `GEMINI_API_KEY` - Required for AI features
+- `DATABASE_URL` - PostgreSQL connection string
+- `STRIPE_SECRET_KEY` - Stripe API key (managed by Replit integration)
 
 ## Deployment
-- Static deployment configured
+- Autoscale deployment configured
 - Build command: `npm run build`
-- Output directory: `dist`
+- Run command: `npm run start`
+
+## Stripe Products
+Three subscription tiers configured in Stripe:
+1. **Starter ($29/mo):** 5 ad campaigns/month
+2. **Professional ($79/mo):** Unlimited campaigns with voiceovers  
+3. **Enterprise ($199/mo):** Video generation, API access, unlimited everything

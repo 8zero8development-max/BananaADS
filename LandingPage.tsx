@@ -1,10 +1,59 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 
 interface LandingPageProps {
   onGetStarted: () => void;
 }
 
+interface Price {
+  id: string;
+  unit_amount: number;
+  currency: string;
+  recurring: { interval: string } | null;
+}
+
+interface Product {
+  id: string;
+  name: string;
+  description: string;
+  metadata: Record<string, string>;
+  prices: Price[];
+}
+
 const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
+  const [products, setProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    fetch('/api/products')
+      .then(res => res.json())
+      .then(data => {
+        if (data.data) {
+          setProducts(data.data);
+        }
+      })
+      .catch(err => console.log('Products not available yet'));
+  }, []);
+
+  const handleCheckout = async (priceId: string) => {
+    setLoading(true);
+    try {
+      const res = await fetch('/api/checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ priceId, email: 'guest@example.com' })
+      });
+      const data = await res.json();
+      if (data.url) {
+        window.location.href = data.url;
+      }
+    } catch (error) {
+      console.error('Checkout error:', error);
+      onGetStarted();
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const features = [
     {
       icon: '🔍',
