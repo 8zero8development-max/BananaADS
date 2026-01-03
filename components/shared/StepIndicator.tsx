@@ -58,6 +58,8 @@ const StepIndicator: React.FC<StepIndicatorProps> = ({
         const isClickable = onStepClick && isAccessible;
         const isCurrentOrPast = currentStep >= idx;
         
+        const stepDataAttribute = idx === 0 ? 'briefing' : idx === 1 ? 'concepts' : 'storyboarding';
+        
         return (
           <React.Fragment key={idx}>
             <div 
@@ -65,6 +67,7 @@ const StepIndicator: React.FC<StepIndicatorProps> = ({
               onClick={() => handleStepClick(stepEnum)}
               role={isClickable ? 'button' : undefined}
               tabIndex={isClickable ? 0 : undefined}
+              data-step={stepDataAttribute}
               onKeyDown={(e) => {
                 if (isClickable && (e.key === 'Enter' || e.key === ' ')) {
                   e.preventDefault();
