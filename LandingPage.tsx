@@ -2,6 +2,10 @@ import React, { useState, useEffect } from 'react';
 import screenshot1 from '@assets/Screenshot_2025-12-31_at_16.38.43_1767400681070.png';
 import screenshot2 from '@assets/Screenshot_2025-12-31_at_16.41.00_1767400725339.png';
 import screenshot3 from '@assets/Screenshot_2025-12-31_at_16.42.49_1767400752193.png';
+import adKFC from '@assets/poster-KFC_1767401674348.png';
+import adKebab from '@assets/poster-King_Kebab_1767401686129.png';
+import adPizza from '@assets/poster-Rocket_Pizza_&_Ice_Cream_1767401693311.png';
+import adBurger from '@assets/poster-Dopey_Dan\'s_Burger_Ranch_(4)_1767401798890.png';
 
 interface LandingPageProps {
   onGetStarted: () => void;
@@ -216,6 +220,62 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
             <span className="text-2xl font-bold text-white/60">ModernBrand</span>
             <span className="text-2xl font-bold text-white/60">StartupCo</span>
             <span className="text-2xl font-bold text-white/60">CreativeStudio</span>
+          </div>
+        </div>
+      </section>
+
+      <section className="py-24 px-8 border-t border-white/5">
+        <div className="max-w-6xl mx-auto">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl md:text-5xl font-serif mb-4">
+              <span className="text-yellow-400">Scroll-Stop</span>
+              <br />
+              <span className="bg-gradient-to-r from-white to-gray-400 bg-clip-text text-transparent">
+                Ads That Convert
+              </span>
+            </h2>
+            <p className="text-white/50 text-lg max-w-2xl mx-auto">
+              See what our AI cinematography agent can create for your brand
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="group relative overflow-hidden rounded-2xl border border-yellow-500/20 hover:border-yellow-500/50 transition-all duration-300">
+              <img src={adKFC} alt="KFC Zinger Ad" className="w-full h-auto transform group-hover:scale-105 transition-transform duration-500" />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-6">
+                <div>
+                  <p className="text-yellow-400 font-bold text-lg">KFC Zinger</p>
+                  <p className="text-white/70 text-sm">Spice. Crunch. Legend.</p>
+                </div>
+              </div>
+            </div>
+            <div className="group relative overflow-hidden rounded-2xl border border-yellow-500/20 hover:border-yellow-500/50 transition-all duration-300">
+              <img src={adKebab} alt="King Kebab Ad" className="w-full h-auto transform group-hover:scale-105 transition-transform duration-500" />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-6">
+                <div>
+                  <p className="text-yellow-400 font-bold text-lg">King Kebab</p>
+                  <p className="text-white/70 text-sm">Shawarma Power Up</p>
+                </div>
+              </div>
+            </div>
+            <div className="group relative overflow-hidden rounded-2xl border border-yellow-500/20 hover:border-yellow-500/50 transition-all duration-300">
+              <img src={adPizza} alt="Rocket Pizza Ad" className="w-full h-auto transform group-hover:scale-105 transition-transform duration-500" />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-6">
+                <div>
+                  <p className="text-yellow-400 font-bold text-lg">Rocket Pizza</p>
+                  <p className="text-white/70 text-sm">Unbeatable Pepperoni</p>
+                </div>
+              </div>
+            </div>
+            <div className="group relative overflow-hidden rounded-2xl border border-yellow-500/20 hover:border-yellow-500/50 transition-all duration-300">
+              <img src={adBurger} alt="Dopey Dan's Burger Ranch Ad" className="w-full h-auto transform group-hover:scale-105 transition-transform duration-500" />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-6">
+                <div>
+                  <p className="text-yellow-400 font-bold text-lg">Dopey Dan's</p>
+                  <p className="text-white/70 text-sm">Saddle Up!</p>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </section>
