@@ -402,12 +402,12 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
                 <p className="text-white/50 text-lg">AI analyzes your brand to create the perfect campaign foundation</p>
               </div>
             </div>
-            {/* Carousel */}
+            {/* Swipe Cards Carousel */}
             <div className="relative">
-              <div className="overflow-hidden">
+              <div className="overflow-hidden px-4">
                 <div 
-                  className="flex transition-transform duration-500 ease-out"
-                  style={{ transform: `translateX(-${brandDnaIndex * 100}%)` }}
+                  className="flex transition-transform duration-500 ease-out gap-4"
+                  style={{ transform: `translateX(-${brandDnaIndex * 280}px)` }}
                 >
                   {[
                     { img: screenshotApiKey, label: 'Secure API Setup' },
@@ -416,10 +416,14 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
                     { img: screenshotBrandDNA2, label: 'Extended Profile' },
                     { img: screenshotMoodBoard, label: 'AI Mood Board' }
                   ].map((item, idx) => (
-                    <div key={idx} className="w-full flex-shrink-0 px-2">
-                      <div className="bg-black/50 backdrop-blur border border-yellow-500/30 rounded-2xl p-4 shadow-2xl max-w-4xl mx-auto">
-                        <img src={item.img} alt={item.label} className="rounded-xl w-full" />
-                        <p className="text-center text-lg text-white/70 mt-4 font-medium">{item.label}</p>
+                    <div 
+                      key={idx} 
+                      className={`flex-shrink-0 w-64 transition-all duration-300 cursor-pointer ${brandDnaIndex === idx ? 'scale-105 z-10' : 'scale-95 opacity-70 hover:opacity-90'}`}
+                      onClick={() => setBrandDnaIndex(idx)}
+                    >
+                      <div className="bg-black/60 backdrop-blur border-2 border-yellow-500/40 rounded-xl p-3 shadow-xl hover:border-yellow-500 transition-all">
+                        <img src={item.img} alt={item.label} className="rounded-lg w-full h-40 object-cover" />
+                        <p className="text-center text-sm text-white/80 mt-2 font-medium">{item.label}</p>
                       </div>
                     </div>
                   ))}
@@ -428,29 +432,29 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
               {/* Navigation Arrows */}
               <button 
                 onClick={() => setBrandDnaIndex(prev => Math.max(0, prev - 1))}
-                className={`absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 w-12 h-12 rounded-full bg-black/80 border border-yellow-500/30 flex items-center justify-center text-yellow-400 hover:bg-yellow-500/20 transition-all ${brandDnaIndex === 0 ? 'opacity-30 cursor-not-allowed' : 'hover:scale-110'}`}
+                className={`absolute left-0 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-black/80 border border-yellow-500/30 flex items-center justify-center text-yellow-400 hover:bg-yellow-500/20 transition-all z-20 ${brandDnaIndex === 0 ? 'opacity-30 cursor-not-allowed' : 'hover:scale-110'}`}
                 disabled={brandDnaIndex === 0}
               >
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-6 h-6">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
                 </svg>
               </button>
               <button 
                 onClick={() => setBrandDnaIndex(prev => Math.min(4, prev + 1))}
-                className={`absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 w-12 h-12 rounded-full bg-black/80 border border-yellow-500/30 flex items-center justify-center text-yellow-400 hover:bg-yellow-500/20 transition-all ${brandDnaIndex === 4 ? 'opacity-30 cursor-not-allowed' : 'hover:scale-110'}`}
+                className={`absolute right-0 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-black/80 border border-yellow-500/30 flex items-center justify-center text-yellow-400 hover:bg-yellow-500/20 transition-all z-20 ${brandDnaIndex === 4 ? 'opacity-30 cursor-not-allowed' : 'hover:scale-110'}`}
                 disabled={brandDnaIndex === 4}
               >
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-6 h-6">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
                 </svg>
               </button>
               {/* Dots Indicator */}
-              <div className="flex justify-center gap-2 mt-6">
+              <div className="flex justify-center gap-2 mt-4">
                 {[0, 1, 2, 3, 4].map(idx => (
                   <button
                     key={idx}
                     onClick={() => setBrandDnaIndex(idx)}
-                    className={`w-3 h-3 rounded-full transition-all ${brandDnaIndex === idx ? 'bg-yellow-400 w-8' : 'bg-white/20 hover:bg-white/40'}`}
+                    className={`w-2 h-2 rounded-full transition-all ${brandDnaIndex === idx ? 'bg-yellow-400 w-6' : 'bg-white/20 hover:bg-white/40'}`}
                   />
                 ))}
               </div>
@@ -468,12 +472,12 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
                 <p className="text-white/50 text-lg">Create broadcast-quality video storyboards with AI</p>
               </div>
             </div>
-            {/* Carousel */}
+            {/* Swipe Cards Carousel */}
             <div className="relative">
-              <div className="overflow-hidden">
+              <div className="overflow-hidden px-4">
                 <div 
-                  className="flex transition-transform duration-500 ease-out"
-                  style={{ transform: `translateX(-${cinematicIndex * 100}%)` }}
+                  className="flex transition-transform duration-500 ease-out gap-4"
+                  style={{ transform: `translateX(-${cinematicIndex * 280}px)` }}
                 >
                   {[
                     { img: screenshotCinematicConcepts, label: '3 Creative Concepts' },
@@ -483,10 +487,14 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
                     { img: screenshotCinematic2, label: 'Scene 2' },
                     { img: screenshotCinematic3, label: 'Scene 3' }
                   ].map((item, idx) => (
-                    <div key={idx} className="w-full flex-shrink-0 px-2">
-                      <div className="bg-black/50 backdrop-blur border border-orange-500/30 rounded-2xl p-4 shadow-2xl max-w-4xl mx-auto">
-                        <img src={item.img} alt={item.label} className="rounded-xl w-full" />
-                        <p className="text-center text-lg text-white/70 mt-4 font-medium">{item.label}</p>
+                    <div 
+                      key={idx} 
+                      className={`flex-shrink-0 w-64 transition-all duration-300 cursor-pointer ${cinematicIndex === idx ? 'scale-105 z-10' : 'scale-95 opacity-70 hover:opacity-90'}`}
+                      onClick={() => setCinematicIndex(idx)}
+                    >
+                      <div className="bg-black/60 backdrop-blur border-2 border-orange-500/40 rounded-xl p-3 shadow-xl hover:border-orange-500 transition-all">
+                        <img src={item.img} alt={item.label} className="rounded-lg w-full h-40 object-cover" />
+                        <p className="text-center text-sm text-white/80 mt-2 font-medium">{item.label}</p>
                       </div>
                     </div>
                   ))}
@@ -495,29 +503,29 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
               {/* Navigation Arrows */}
               <button 
                 onClick={() => setCinematicIndex(prev => Math.max(0, prev - 1))}
-                className={`absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 w-12 h-12 rounded-full bg-black/80 border border-orange-500/30 flex items-center justify-center text-orange-400 hover:bg-orange-500/20 transition-all ${cinematicIndex === 0 ? 'opacity-30 cursor-not-allowed' : 'hover:scale-110'}`}
+                className={`absolute left-0 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-black/80 border border-orange-500/30 flex items-center justify-center text-orange-400 hover:bg-orange-500/20 transition-all z-20 ${cinematicIndex === 0 ? 'opacity-30 cursor-not-allowed' : 'hover:scale-110'}`}
                 disabled={cinematicIndex === 0}
               >
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-6 h-6">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
                 </svg>
               </button>
               <button 
                 onClick={() => setCinematicIndex(prev => Math.min(5, prev + 1))}
-                className={`absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 w-12 h-12 rounded-full bg-black/80 border border-orange-500/30 flex items-center justify-center text-orange-400 hover:bg-orange-500/20 transition-all ${cinematicIndex === 5 ? 'opacity-30 cursor-not-allowed' : 'hover:scale-110'}`}
+                className={`absolute right-0 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-black/80 border border-orange-500/30 flex items-center justify-center text-orange-400 hover:bg-orange-500/20 transition-all z-20 ${cinematicIndex === 5 ? 'opacity-30 cursor-not-allowed' : 'hover:scale-110'}`}
                 disabled={cinematicIndex === 5}
               >
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-6 h-6">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
                 </svg>
               </button>
               {/* Dots Indicator */}
-              <div className="flex justify-center gap-2 mt-6">
+              <div className="flex justify-center gap-2 mt-4">
                 {[0, 1, 2, 3, 4, 5].map(idx => (
                   <button
                     key={idx}
                     onClick={() => setCinematicIndex(idx)}
-                    className={`w-3 h-3 rounded-full transition-all ${cinematicIndex === idx ? 'bg-orange-400 w-8' : 'bg-white/20 hover:bg-white/40'}`}
+                    className={`w-2 h-2 rounded-full transition-all ${cinematicIndex === idx ? 'bg-orange-400 w-6' : 'bg-white/20 hover:bg-white/40'}`}
                   />
                 ))}
               </div>
@@ -535,22 +543,26 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
                 <p className="text-white/50 text-lg">Mouth-watering food photography for social media</p>
               </div>
             </div>
-            {/* Carousel */}
+            {/* Swipe Cards Carousel */}
             <div className="relative">
-              <div className="overflow-hidden">
+              <div className="overflow-hidden px-4">
                 <div 
-                  className="flex transition-transform duration-500 ease-out"
-                  style={{ transform: `translateX(-${foodSocialIndex * 100}%)` }}
+                  className="flex transition-transform duration-500 ease-out gap-4 justify-center"
+                  style={{ transform: `translateX(-${foodSocialIndex * 280}px)` }}
                 >
                   {[
                     { img: screenshotFoodSocialGen, label: 'AI Food Photographer' },
                     { img: screenshotFoodSocial1, label: 'Social Post Ready' },
                     { img: screenshotFoodSocial2, label: 'Multiple Variations' }
                   ].map((item, idx) => (
-                    <div key={idx} className="w-full flex-shrink-0 px-2">
-                      <div className="bg-black/50 backdrop-blur border border-red-500/30 rounded-2xl p-4 shadow-2xl max-w-4xl mx-auto">
-                        <img src={item.img} alt={item.label} className="rounded-xl w-full" />
-                        <p className="text-center text-lg text-white/70 mt-4 font-medium">{item.label}</p>
+                    <div 
+                      key={idx} 
+                      className={`flex-shrink-0 w-64 transition-all duration-300 cursor-pointer ${foodSocialIndex === idx ? 'scale-105 z-10' : 'scale-95 opacity-70 hover:opacity-90'}`}
+                      onClick={() => setFoodSocialIndex(idx)}
+                    >
+                      <div className="bg-black/60 backdrop-blur border-2 border-red-500/40 rounded-xl p-3 shadow-xl hover:border-red-500 transition-all">
+                        <img src={item.img} alt={item.label} className="rounded-lg w-full h-40 object-cover" />
+                        <p className="text-center text-sm text-white/80 mt-2 font-medium">{item.label}</p>
                       </div>
                     </div>
                   ))}
@@ -559,29 +571,29 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
               {/* Navigation Arrows */}
               <button 
                 onClick={() => setFoodSocialIndex(prev => Math.max(0, prev - 1))}
-                className={`absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 w-12 h-12 rounded-full bg-black/80 border border-red-500/30 flex items-center justify-center text-red-400 hover:bg-red-500/20 transition-all ${foodSocialIndex === 0 ? 'opacity-30 cursor-not-allowed' : 'hover:scale-110'}`}
+                className={`absolute left-0 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-black/80 border border-red-500/30 flex items-center justify-center text-red-400 hover:bg-red-500/20 transition-all z-20 ${foodSocialIndex === 0 ? 'opacity-30 cursor-not-allowed' : 'hover:scale-110'}`}
                 disabled={foodSocialIndex === 0}
               >
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-6 h-6">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
                 </svg>
               </button>
               <button 
                 onClick={() => setFoodSocialIndex(prev => Math.min(2, prev + 1))}
-                className={`absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 w-12 h-12 rounded-full bg-black/80 border border-red-500/30 flex items-center justify-center text-red-400 hover:bg-red-500/20 transition-all ${foodSocialIndex === 2 ? 'opacity-30 cursor-not-allowed' : 'hover:scale-110'}`}
+                className={`absolute right-0 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-black/80 border border-red-500/30 flex items-center justify-center text-red-400 hover:bg-red-500/20 transition-all z-20 ${foodSocialIndex === 2 ? 'opacity-30 cursor-not-allowed' : 'hover:scale-110'}`}
                 disabled={foodSocialIndex === 2}
               >
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-6 h-6">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
                 </svg>
               </button>
               {/* Dots Indicator */}
-              <div className="flex justify-center gap-2 mt-6">
+              <div className="flex justify-center gap-2 mt-4">
                 {[0, 1, 2].map(idx => (
                   <button
                     key={idx}
                     onClick={() => setFoodSocialIndex(idx)}
-                    className={`w-3 h-3 rounded-full transition-all ${foodSocialIndex === idx ? 'bg-red-400 w-8' : 'bg-white/20 hover:bg-white/40'}`}
+                    className={`w-2 h-2 rounded-full transition-all ${foodSocialIndex === idx ? 'bg-red-400 w-6' : 'bg-white/20 hover:bg-white/40'}`}
                   />
                 ))}
               </div>
@@ -599,12 +611,12 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
                 <p className="text-white/50 text-lg">Eye-catching Facebook posts designed to engage your audience</p>
               </div>
             </div>
-            {/* Carousel */}
+            {/* Swipe Cards Carousel */}
             <div className="relative">
-              <div className="overflow-hidden">
+              <div className="overflow-hidden px-4">
                 <div 
-                  className="flex transition-transform duration-500 ease-out"
-                  style={{ transform: `translateX(-${socialPostersIndex * 100}%)` }}
+                  className="flex transition-transform duration-500 ease-out gap-4"
+                  style={{ transform: `translateX(-${socialPostersIndex * 280}px)` }}
                 >
                   {[
                     { img: screenshotFacebookConcepts, label: 'Facebook Concepts' },
@@ -612,10 +624,14 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
                     { img: screenshotFacebookToo, label: 'Post Design 2' },
                     { img: screenshotFacebook3, label: 'Post Design 3' }
                   ].map((item, idx) => (
-                    <div key={idx} className="w-full flex-shrink-0 px-2">
-                      <div className="bg-black/50 backdrop-blur border border-blue-500/30 rounded-2xl p-4 shadow-2xl max-w-4xl mx-auto">
-                        <img src={item.img} alt={item.label} className="rounded-xl w-full" />
-                        <p className="text-center text-lg text-white/70 mt-4 font-medium">{item.label}</p>
+                    <div 
+                      key={idx} 
+                      className={`flex-shrink-0 w-64 transition-all duration-300 cursor-pointer ${socialPostersIndex === idx ? 'scale-105 z-10' : 'scale-95 opacity-70 hover:opacity-90'}`}
+                      onClick={() => setSocialPostersIndex(idx)}
+                    >
+                      <div className="bg-black/60 backdrop-blur border-2 border-blue-500/40 rounded-xl p-3 shadow-xl hover:border-blue-500 transition-all">
+                        <img src={item.img} alt={item.label} className="rounded-lg w-full h-40 object-cover" />
+                        <p className="text-center text-sm text-white/80 mt-2 font-medium">{item.label}</p>
                       </div>
                     </div>
                   ))}
@@ -624,16 +640,16 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
               {/* Navigation Arrows */}
               <button 
                 onClick={() => setSocialPostersIndex(prev => Math.max(0, prev - 1))}
-                className={`absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 w-12 h-12 rounded-full bg-black/80 border border-blue-500/30 flex items-center justify-center text-blue-400 hover:bg-blue-500/20 transition-all ${socialPostersIndex === 0 ? 'opacity-30 cursor-not-allowed' : 'hover:scale-110'}`}
+                className={`absolute left-0 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-black/80 border border-blue-500/30 flex items-center justify-center text-blue-400 hover:bg-blue-500/20 transition-all z-20 ${socialPostersIndex === 0 ? 'opacity-30 cursor-not-allowed' : 'hover:scale-110'}`}
                 disabled={socialPostersIndex === 0}
               >
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-6 h-6">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
                 </svg>
               </button>
               <button 
                 onClick={() => setSocialPostersIndex(prev => Math.min(3, prev + 1))}
-                className={`absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 w-12 h-12 rounded-full bg-black/80 border border-blue-500/30 flex items-center justify-center text-blue-400 hover:bg-blue-500/20 transition-all ${socialPostersIndex === 3 ? 'opacity-30 cursor-not-allowed' : 'hover:scale-110'}`}
+                className={`absolute right-0 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-black/80 border border-blue-500/30 flex items-center justify-center text-blue-400 hover:bg-blue-500/20 transition-all z-20 ${socialPostersIndex === 3 ? 'opacity-30 cursor-not-allowed' : 'hover:scale-110'}`}
                 disabled={socialPostersIndex === 3}
               >
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-6 h-6">
@@ -641,12 +657,12 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
                 </svg>
               </button>
               {/* Dots Indicator */}
-              <div className="flex justify-center gap-2 mt-6">
+              <div className="flex justify-center gap-2 mt-4">
                 {[0, 1, 2, 3].map(idx => (
                   <button
                     key={idx}
                     onClick={() => setSocialPostersIndex(idx)}
-                    className={`w-3 h-3 rounded-full transition-all ${socialPostersIndex === idx ? 'bg-blue-400 w-8' : 'bg-white/20 hover:bg-white/40'}`}
+                    className={`w-2 h-2 rounded-full transition-all ${socialPostersIndex === idx ? 'bg-blue-400 w-6' : 'bg-white/20 hover:bg-white/40'}`}
                   />
                 ))}
               </div>
@@ -664,12 +680,12 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
                 <p className="text-white/50 text-lg">Complete email templates with AI-generated visuals and copy</p>
               </div>
             </div>
-            {/* Carousel */}
+            {/* Swipe Cards Carousel */}
             <div className="relative">
-              <div className="overflow-hidden">
+              <div className="overflow-hidden px-4">
                 <div 
-                  className="flex transition-transform duration-500 ease-out"
-                  style={{ transform: `translateX(-${emailIndex * 100}%)` }}
+                  className="flex transition-transform duration-500 ease-out gap-4"
+                  style={{ transform: `translateX(-${emailIndex * 280}px)` }}
                 >
                   {[
                     { img: screenshotEmailGen, label: 'Campaign Setup' },
@@ -684,10 +700,14 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
                     { img: screenshotEmailTemplateGen, label: 'AI Generating' },
                     { img: screenshotEmailCode, label: 'Export HTML Code' }
                   ].map((item, idx) => (
-                    <div key={idx} className="w-full flex-shrink-0 px-2">
-                      <div className="bg-black/50 backdrop-blur border border-purple-500/30 rounded-2xl p-4 shadow-2xl max-w-4xl mx-auto">
-                        <img src={item.img} alt={item.label} className="rounded-xl w-full" />
-                        <p className="text-center text-lg text-white/70 mt-4 font-medium">{item.label}</p>
+                    <div 
+                      key={idx} 
+                      className={`flex-shrink-0 w-64 transition-all duration-300 cursor-pointer ${emailIndex === idx ? 'scale-105 z-10' : 'scale-95 opacity-70 hover:opacity-90'}`}
+                      onClick={() => setEmailIndex(idx)}
+                    >
+                      <div className="bg-black/60 backdrop-blur border-2 border-purple-500/40 rounded-xl p-3 shadow-xl hover:border-purple-500 transition-all">
+                        <img src={item.img} alt={item.label} className="rounded-lg w-full h-40 object-cover" />
+                        <p className="text-center text-sm text-white/80 mt-2 font-medium">{item.label}</p>
                       </div>
                     </div>
                   ))}
@@ -696,24 +716,24 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
               {/* Navigation Arrows */}
               <button 
                 onClick={() => setEmailIndex(prev => Math.max(0, prev - 1))}
-                className={`absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 w-12 h-12 rounded-full bg-black/80 border border-purple-500/30 flex items-center justify-center text-purple-400 hover:bg-purple-500/20 transition-all ${emailIndex === 0 ? 'opacity-30 cursor-not-allowed' : 'hover:scale-110'}`}
+                className={`absolute left-0 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-black/80 border border-purple-500/30 flex items-center justify-center text-purple-400 hover:bg-purple-500/20 transition-all z-20 ${emailIndex === 0 ? 'opacity-30 cursor-not-allowed' : 'hover:scale-110'}`}
                 disabled={emailIndex === 0}
               >
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-6 h-6">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
                 </svg>
               </button>
               <button 
                 onClick={() => setEmailIndex(prev => Math.min(10, prev + 1))}
-                className={`absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 w-12 h-12 rounded-full bg-black/80 border border-purple-500/30 flex items-center justify-center text-purple-400 hover:bg-purple-500/20 transition-all ${emailIndex === 10 ? 'opacity-30 cursor-not-allowed' : 'hover:scale-110'}`}
+                className={`absolute right-0 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-black/80 border border-purple-500/30 flex items-center justify-center text-purple-400 hover:bg-purple-500/20 transition-all z-20 ${emailIndex === 10 ? 'opacity-30 cursor-not-allowed' : 'hover:scale-110'}`}
                 disabled={emailIndex === 10}
               >
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-6 h-6">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
                 </svg>
               </button>
               {/* Dots Indicator */}
-              <div className="flex justify-center gap-2 mt-6">
+              <div className="flex justify-center gap-2 mt-4">
                 {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(idx => (
                   <button
                     key={idx}
