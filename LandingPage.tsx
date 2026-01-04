@@ -225,16 +225,10 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
             <span className="text-silver" style={{ color: '#C0C0C0' }}>In Minutes, Not Weeks</span>
           </h1>
           
-          <div className="text-4xl md:text-6xl font-bold mb-6 tracking-wider">
-            <span style={{ 
-              background: 'linear-gradient(90deg, #FFFFFF 0%, #FFD700 50%, #FFC300 100%)',
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent',
-              backgroundClip: 'text'
-            }}>
-              RIPENYOURREVENUE
-            </span>
-            <span style={{ color: '#FFD700' }} className="ml-2"> X10</span>
+          <div className="text-4xl md:text-6xl font-bold mb-6 tracking-wider flex items-center justify-center">
+            <span className="text-white">RIPENYOUR</span>
+            <span style={{ color: '#FFD700' }}>REVENUE</span>
+            <span className="ml-2 text-4xl md:text-6xl">🍌</span>
           </div>
 
           <p className="text-xl text-white/60 max-w-2xl mx-auto mb-6 leading-relaxed">
