@@ -116,30 +116,52 @@ const AppContent: React.FC<AppProps> = ({ onBackToLanding }) => {
     setResearching(true);
     try {
       let researchData;
+      let updatedBrief = { ...brief };
+      
       if (productionType === 'food-social') {
         const desc = brief.keyFeatures.join(', ');
         researchData = await GeminiService.autoFillFoodBrief(desc, brief.productUrl || '');
-        setBrief(prev => ({
-          ...prev,
-          brandName: researchData.brandName || prev.brandName,
-          productName: researchData.productName || prev.productName,
-          targetAudience: researchData.targetAudience || prev.targetAudience,
-          tone: researchData.tone || prev.tone,
-          keyFeatures: researchData.keyFeatures || prev.keyFeatures,
-          logoImage: researchData.logoImage || prev.logoImage,
-        }));
+        updatedBrief = {
+          ...updatedBrief,
+          brandName: researchData.brandName || updatedBrief.brandName,
+          productName: researchData.productName || updatedBrief.productName,
+          targetAudience: researchData.targetAudience || updatedBrief.targetAudience,
+          tone: researchData.tone || updatedBrief.tone,
+          keyFeatures: researchData.keyFeatures || updatedBrief.keyFeatures,
+          logoImage: researchData.logoImage || updatedBrief.logoImage,
+        };
       } else {
         researchData = await GeminiService.researchBrand(brief.brandName, brief.productName);
-        setBrief(prev => ({
-          ...prev,
-          targetAudience: researchData.targetAudience || prev.targetAudience,
-          tone: researchData.tone || prev.tone,
-          keyFeatures: researchData.keyFeatures || prev.keyFeatures,
-          logoImage: researchData.logoImage || prev.logoImage,
+        updatedBrief = {
+          ...updatedBrief,
+          targetAudience: researchData.targetAudience || updatedBrief.targetAudience,
+          tone: researchData.tone || updatedBrief.tone,
+          keyFeatures: researchData.keyFeatures || updatedBrief.keyFeatures,
+          logoImage: researchData.logoImage || updatedBrief.logoImage,
           researchSources: researchData.researchSources
-        }));
+        };
       }
-      showToast('Brand research completed successfully!', 'success');
+      
+      setBrief(updatedBrief);
+      showToast('Brand research completed! Generating mood board...', 'success');
+      
+      // Automatically generate mood board after research completes
+      setGeneratingMoodBoard(true);
+      try {
+        const moodBoardImage = await GeminiService.generateMoodBoard(
+          updatedBrief, 
+          updatedBrief.productImage, 
+          updatedBrief.logoImage
+        );
+        setBrief(prev => ({ ...prev, moodBoard: moodBoardImage }));
+        showToast('Brand analysis complete! Mood board generated.', 'success');
+      } catch (moodBoardError) {
+        console.error("Mood board generation failed", moodBoardError);
+        showToast('Research complete, but mood board generation failed. You can retry manually.', 'warning');
+      } finally {
+        setGeneratingMoodBoard(false);
+      }
+      
     } catch (error: any) {
       console.error("Research failed", error);
       showToast(`Research failed: ${error.message || "Unknown error"}`, 'error');
