@@ -425,23 +425,23 @@ const BananaAdsAssistant: React.FC<BananaAdsAssistantProps> = ({
       
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className={`w-16 h-16 rounded-full flex items-center justify-center shadow-lg transition-all duration-300 ${
+        className={`w-20 h-20 rounded-full flex items-center justify-center shadow-lg transition-all duration-300 ${
           isOpen 
             ? 'bg-black/60 border-2 border-white/30 hover:bg-black/80' 
             : 'bg-black/60 border-2 border-yellow-400 hover:scale-110 hover:border-yellow-300'
         }`}
         aria-label={isOpen ? 'Close assistant' : 'Open assistant'}
         style={{
-          boxShadow: isOpen ? 'none' : '0 0 25px rgba(250, 204, 21, 0.4)',
+          boxShadow: isOpen ? 'none' : '0 0 30px rgba(250, 204, 21, 0.5)',
         }}
       >
         {isOpen ? (
-          <i className="fa-solid fa-xmark text-white text-xl"></i>
+          <i className="fa-solid fa-xmark text-white text-2xl"></i>
         ) : (
           <img 
             src={bananaAssistantImg} 
             alt="BananaAds Assistant" 
-            className="w-12 h-12 object-contain"
+            className="w-16 h-16 object-contain"
           />
         )}
       </button>
