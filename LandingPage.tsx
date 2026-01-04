@@ -212,13 +212,13 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
         </div>
       </nav>
 
-      <section className="pt-32 pb-20 px-8">
+      <section className="pt-28 pb-12 px-8">
         <div className="max-w-6xl mx-auto text-center">
-          <div className="inline-flex items-center gap-2 bg-yellow-500/10 border border-yellow-500/30 rounded-full px-4 py-2 mb-8">
-            <span className="text-yellow-400 text-sm font-medium">The #1 AI Ad Creation Tool for 2026</span>
+          <div className="inline-flex items-center gap-2 bg-yellow-500/10 border border-yellow-500/30 rounded-full px-4 py-1.5 mb-6">
+            <span className="text-yellow-400 text-xs font-semibold tracking-wide uppercase">The #1 AI Ad Creation Tool for 2026</span>
           </div>
 
-          <h1 className="text-5xl md:text-7xl font-serif mb-4 leading-tight">
+          <h1 className="text-5xl md:text-7xl font-serif mb-3 leading-[1.1]">
             <span style={{ color: '#FFD700' }}>
               Launch Scroll-Stopping Ads
             </span>
@@ -226,19 +226,19 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
             <span style={{ color: '#C0C0C0' }}>In Minutes, Not Weeks</span>
           </h1>
           
-          <div className="w-64 h-px bg-gradient-to-r from-transparent via-yellow-500/50 to-transparent mx-auto mb-6"></div>
+          <div className="w-48 h-px bg-gradient-to-r from-transparent via-yellow-500/50 to-transparent mx-auto mb-4"></div>
           
-          <div className="text-4xl md:text-6xl font-bold mb-6 tracking-wider flex items-center justify-center">
+          <div className="text-3xl md:text-5xl font-bold mb-5 tracking-wide flex items-center justify-center gap-1">
             <span className="text-white">RIPENYOUR</span>
             <span style={{ color: '#FFD700' }}>REVENUE</span>
-            <span className="ml-2 text-4xl md:text-6xl">🍌</span>
+            <span className="ml-1 text-3xl md:text-5xl">🍌</span>
           </div>
 
-          <p className="text-xl text-white/60 max-w-2xl mx-auto mb-6 leading-relaxed">
+          <p className="text-lg text-white/60 max-w-xl mx-auto mb-5 leading-relaxed">
             The AI-first ad workflow that turns a simple brief into concepts, storyboards, scripts, voiceovers, and cinematic video.
           </p>
 
-          <div className="flex flex-wrap justify-center gap-6 mb-10 text-sm">
+          <div className="flex flex-wrap justify-center gap-5 mb-8 text-sm">
             <div className="flex items-center gap-2 text-white">
               <span className="text-green-500 text-lg font-bold">✓</span>
               <span>Your actual product in every scene</span>
@@ -253,17 +253,17 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
             </div>
           </div>
 
-          <div className="flex flex-col items-center gap-3 mb-16">
+          <div className="flex flex-col items-center gap-2 mb-10">
             <button
               onClick={() => {
                 localStorage.removeItem('onboarding-completed');
                 onGetStarted();
               }}
-              className="bg-gradient-to-r from-yellow-400 to-orange-500 text-black px-10 py-4 rounded-full font-bold text-lg hover:scale-105 transition shadow-lg shadow-yellow-500/25"
+              className="bg-gradient-to-r from-yellow-400 to-orange-500 text-black px-8 py-3 rounded-full font-bold text-base hover:scale-105 transition shadow-lg shadow-yellow-500/25"
             >
               Start Creating Free
             </button>
-            <p className="text-white/40 text-sm">No credit card required. Your API key stays in your browser.</p>
+            <p className="text-white/40 text-xs">No credit card required. Your API key stays in your browser.</p>
           </div>
 
           <div className="relative max-w-5xl mx-auto">
@@ -326,15 +326,15 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
         </div>
       </section>
 
-      <section className="py-12 px-8 border-t border-white/5">
-        <div className="max-w-6xl mx-auto">
-          <div className="flex items-center justify-center gap-6 mb-8">
+      <section className="py-10 px-8 border-t border-white/5">
+        <div className="max-w-5xl mx-auto">
+          <div className="flex items-center justify-center gap-4 mb-6">
             <img 
               src={bananaDumbbells} 
               alt="Banana with dumbbells" 
-              className="h-24 md:h-32 w-auto object-contain"
+              className="h-20 md:h-24 w-auto object-contain"
             />
-            <h2 className="text-4xl md:text-5xl font-serif">
+            <h2 className="text-3xl md:text-4xl font-serif leading-tight">
               <span className="text-yellow-400">Four Powerful</span>
               <br />
               <span className="bg-gradient-to-r from-white to-gray-400 bg-clip-text text-transparent">
@@ -353,53 +353,53 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
               />
             </svg>
           </div>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 relative">
-            <div className="bg-white/[0.02] border-2 border-yellow-500 rounded-xl p-4 text-center md:-translate-y-4">
-              <img src={iconCinematic} alt="Cinematic Video" className="w-20 h-20 mx-auto mb-2 rounded-lg object-cover" />
-              <p className="text-white/70 text-sm font-medium">Cinematic Video</p>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 relative">
+            <div className="bg-white/[0.02] border-2 border-yellow-500 rounded-xl p-3 text-center md:-translate-y-4">
+              <img src={iconCinematic} alt="Cinematic Video" className="w-16 h-16 mx-auto mb-1.5 rounded-lg object-cover" />
+              <p className="text-white/70 text-xs font-medium">Cinematic Video</p>
             </div>
-            <div className="bg-white/[0.02] border-2 border-yellow-500 rounded-xl p-4 text-center md:translate-y-4">
-              <img src={iconSocialPosters} alt="Social Posters" className="w-20 h-20 mx-auto mb-2 rounded-lg object-cover" />
-              <p className="text-white/70 text-sm font-medium">Social Posters</p>
+            <div className="bg-white/[0.02] border-2 border-yellow-500 rounded-xl p-3 text-center md:translate-y-4">
+              <img src={iconSocialPosters} alt="Social Posters" className="w-16 h-16 mx-auto mb-1.5 rounded-lg object-cover" />
+              <p className="text-white/70 text-xs font-medium">Social Posters</p>
             </div>
-            <div className="bg-white/[0.02] border-2 border-yellow-500 rounded-xl p-4 text-center md:-translate-y-4">
-              <img src={iconFoodSocial} alt="Food Socials" className="w-20 h-20 mx-auto mb-2 rounded-lg object-cover" />
-              <p className="text-white/70 text-sm font-medium">Food Socials</p>
+            <div className="bg-white/[0.02] border-2 border-yellow-500 rounded-xl p-3 text-center md:-translate-y-4">
+              <img src={iconFoodSocial} alt="Food Socials" className="w-16 h-16 mx-auto mb-1.5 rounded-lg object-cover" />
+              <p className="text-white/70 text-xs font-medium">Food Socials</p>
             </div>
-            <div className="bg-white/[0.02] border-2 border-yellow-500 rounded-xl p-4 text-center md:translate-y-4">
-              <img src={iconEmail} alt="Email Campaign" className="w-20 h-20 mx-auto mb-2 rounded-lg object-cover" />
-              <p className="text-white/70 text-sm font-medium">Email Campaign</p>
+            <div className="bg-white/[0.02] border-2 border-yellow-500 rounded-xl p-3 text-center md:translate-y-4">
+              <img src={iconEmail} alt="Email Campaign" className="w-16 h-16 mx-auto mb-1.5 rounded-lg object-cover" />
+              <p className="text-white/70 text-xs font-medium">Email Campaign</p>
             </div>
           </div>
         </div>
       </section>
 
       {/* Workflow Showcase Section */}
-      <section className="py-24 px-8 border-t border-white/5 bg-gradient-to-b from-transparent via-yellow-500/5 to-transparent">
+      <section className="py-16 px-8 border-t border-white/5 bg-gradient-to-b from-transparent via-yellow-500/5 to-transparent">
         <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-16">
-            <p className="text-white/40 text-sm uppercase tracking-widest mb-4">See The Complete Workflow</p>
-            <h2 className="text-4xl md:text-5xl font-serif mb-4">
+          <div className="text-center mb-10">
+            <p className="text-white/40 text-xs uppercase tracking-widest mb-3">See The Complete Workflow</p>
+            <h2 className="text-3xl md:text-4xl font-serif mb-3 leading-tight">
               <span className="text-yellow-400">Built for the</span>
               <br />
               <span className="bg-gradient-to-r from-white to-gray-400 bg-clip-text text-transparent">
                 AI-First Creative Workflow
               </span>
             </h2>
-            <p className="text-white/50 text-lg max-w-2xl mx-auto">
+            <p className="text-white/50 text-base max-w-xl mx-auto">
               From brand research to final export, see how BananaADS transforms your ideas into stunning campaigns
             </p>
           </div>
 
           {/* Brand DNA Research Workflow */}
-          <div className="mb-20">
-            <div className="flex flex-col items-center text-center gap-3 mb-10">
-              <div className="w-20 h-20 flex items-center justify-center text-5xl drop-shadow-lg">
+          <div className="mb-12">
+            <div className="flex flex-col items-center text-center gap-2 mb-6">
+              <div className="w-14 h-14 flex items-center justify-center text-4xl drop-shadow-lg">
                 🍌
               </div>
               <div>
-                <h3 className="text-3xl font-bold text-white mb-2">Brand DNA Research</h3>
-                <p className="text-white/50 text-lg">AI analyzes your brand to create the perfect campaign foundation</p>
+                <h3 className="text-2xl font-bold text-white mb-1">Brand DNA Research</h3>
+                <p className="text-white/50 text-sm">AI analyzes your brand to create the perfect campaign foundation</p>
               </div>
             </div>
             {/* Swipe Cards Carousel */}
@@ -462,14 +462,14 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
           </div>
 
           {/* Cinematic Video Workflow */}
-          <div className="mb-20">
-            <div className="flex flex-col items-center text-center gap-3 mb-10">
-              <div className="w-20 h-20 rounded-2xl overflow-hidden shadow-lg shadow-orange-500/30">
+          <div className="mb-12">
+            <div className="flex flex-col items-center text-center gap-2 mb-6">
+              <div className="w-14 h-14 rounded-xl overflow-hidden shadow-lg shadow-orange-500/30">
                 <img src={iconCinematic} alt="Cinematic Video" className="w-full h-full object-cover" />
               </div>
               <div>
-                <h3 className="text-3xl font-bold text-white mb-2">Cinematic Video Ads</h3>
-                <p className="text-white/50 text-lg">Create broadcast-quality video storyboards with AI</p>
+                <h3 className="text-2xl font-bold text-white mb-1">Cinematic Video Ads</h3>
+                <p className="text-white/50 text-sm">Create broadcast-quality video storyboards with AI</p>
               </div>
             </div>
             {/* Swipe Cards Carousel */}
@@ -533,14 +533,14 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
           </div>
 
           {/* Food Social Workflow */}
-          <div className="mb-20">
-            <div className="flex flex-col items-center text-center gap-3 mb-10">
-              <div className="w-20 h-20 rounded-2xl overflow-hidden shadow-lg shadow-red-500/30">
+          <div className="mb-12">
+            <div className="flex flex-col items-center text-center gap-2 mb-6">
+              <div className="w-14 h-14 rounded-xl overflow-hidden shadow-lg shadow-red-500/30">
                 <img src={iconFoodSocial} alt="Food Social" className="w-full h-full object-cover" />
               </div>
               <div>
-                <h3 className="text-3xl font-bold text-white mb-2">Food Social Posts</h3>
-                <p className="text-white/50 text-lg">Mouth-watering food photography for social media</p>
+                <h3 className="text-2xl font-bold text-white mb-1">Food Social Posts</h3>
+                <p className="text-white/50 text-sm">Mouth-watering food photography for social media</p>
               </div>
             </div>
             {/* Swipe Cards Carousel */}
@@ -601,14 +601,14 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
           </div>
 
           {/* Social Posters (Facebook) Workflow */}
-          <div className="mb-20">
-            <div className="flex flex-col items-center text-center gap-3 mb-10">
-              <div className="w-20 h-20 rounded-2xl overflow-hidden shadow-lg shadow-blue-500/30">
+          <div className="mb-12">
+            <div className="flex flex-col items-center text-center gap-2 mb-6">
+              <div className="w-14 h-14 rounded-xl overflow-hidden shadow-lg shadow-blue-500/30">
                 <img src={iconSocialPosters} alt="Social Posters" className="w-full h-full object-cover" />
               </div>
               <div>
-                <h3 className="text-3xl font-bold text-white mb-2">Social Posters</h3>
-                <p className="text-white/50 text-lg">Eye-catching Facebook posts designed to engage your audience</p>
+                <h3 className="text-2xl font-bold text-white mb-1">Social Posters</h3>
+                <p className="text-white/50 text-sm">Eye-catching Facebook posts designed to engage your audience</p>
               </div>
             </div>
             {/* Swipe Cards Carousel */}
@@ -671,13 +671,13 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
 
           {/* Email Campaign Workflow */}
           <div>
-            <div className="flex flex-col items-center text-center gap-3 mb-10">
-              <div className="w-20 h-20 rounded-2xl overflow-hidden shadow-lg shadow-purple-500/30">
+            <div className="flex flex-col items-center text-center gap-2 mb-6">
+              <div className="w-14 h-14 rounded-xl overflow-hidden shadow-lg shadow-purple-500/30">
                 <img src={iconEmail} alt="Email Campaigns" className="w-full h-full object-cover" />
               </div>
               <div>
-                <h3 className="text-3xl font-bold text-white mb-2">Email Campaigns</h3>
-                <p className="text-white/50 text-lg">Complete email templates with AI-generated visuals and copy</p>
+                <h3 className="text-2xl font-bold text-white mb-1">Email Campaigns</h3>
+                <p className="text-white/50 text-sm">Complete email templates with AI-generated visuals and copy</p>
               </div>
             </div>
             {/* Swipe Cards Carousel */}
@@ -747,22 +747,22 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
         </div>
       </section>
 
-      <section className="py-24 px-8 border-t border-white/5">
-        <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl md:text-5xl font-serif mb-4">
+      <section className="py-16 px-8 border-t border-white/5">
+        <div className="max-w-5xl mx-auto">
+          <div className="text-center mb-10">
+            <h2 className="text-3xl md:text-4xl font-serif mb-3 leading-tight">
               <span className="text-yellow-400">Scroll-Stop</span>
               <br />
               <span className="bg-gradient-to-r from-white to-gray-400 bg-clip-text text-transparent">
                 Ads That Convert
               </span>
             </h2>
-            <p className="text-white/50 text-lg max-w-2xl mx-auto">
+            <p className="text-white/50 text-base max-w-lg mx-auto">
               See what our AI cinematography agent can create for your brand
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="group relative overflow-hidden rounded-2xl border border-yellow-500/20 hover:border-yellow-500/50 transition-all duration-300">
               <img src={adKFC} alt="KFC Zinger Ad" className="w-full h-auto transform group-hover:scale-105 transition-transform duration-500" />
               <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-6">
@@ -803,20 +803,20 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
         </div>
       </section>
 
-      <section className="py-24 px-8 border-t border-white/5">
-        <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl md:text-5xl font-serif mb-4">
+      <section className="py-16 px-8 border-t border-white/5">
+        <div className="max-w-5xl mx-auto">
+          <div className="text-center mb-10">
+            <h2 className="text-3xl md:text-4xl font-serif mb-3 leading-tight">
               <span className="text-white">Impress Your Clients with</span>
               <br />
               <span className="text-yellow-400">Professional Mood Boards</span>
             </h2>
-            <p className="text-white/50 text-lg max-w-2xl mx-auto">
+            <p className="text-white/50 text-base max-w-lg mx-auto">
               AI-generated mood boards that capture your brand essence and wow stakeholders
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="group relative overflow-hidden rounded-2xl border border-yellow-500/20 hover:border-yellow-500/50 transition-all duration-300 shadow-lg shadow-black/20">
               <img src={moodKFC} alt="KFC Zinger Tower Mood Board" className="w-full h-auto transform group-hover:scale-105 transition-transform duration-500" />
               <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-6">
@@ -848,121 +848,121 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
         </div>
       </section>
 
-      <section id="features" className="py-24 px-8">
-        <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl md:text-5xl font-serif mb-4">
+      <section id="features" className="py-16 px-8">
+        <div className="max-w-5xl mx-auto">
+          <div className="text-center mb-10">
+            <h2 className="text-3xl md:text-4xl font-serif mb-3 leading-tight">
               <span className="bg-gradient-to-r from-white to-gray-400 bg-clip-text text-transparent">
                 Everything You Need to Create
               </span>
               <br />
               <span className="text-yellow-400">Award-Winning Ads</span>
             </h2>
-            <p className="text-white/50 text-lg max-w-2xl mx-auto">
+            <p className="text-white/50 text-base max-w-lg mx-auto">
               Our AI agents handle every step of the creative process, from research to final render.
             </p>
           </div>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
             {features.map((feature, idx) => (
               <div
                 key={idx}
-                className="group bg-white/[0.02] hover:bg-white/[0.05] border border-yellow-500/10 hover:border-yellow-500/30 rounded-2xl p-8 transition-all duration-300"
+                className="group bg-white/[0.02] hover:bg-white/[0.05] border border-yellow-500/10 hover:border-yellow-500/30 rounded-xl p-6 transition-all duration-300"
               >
-                <div className="text-4xl mb-4">{feature.icon}</div>
-                <h3 className="text-xl font-bold mb-3 text-white group-hover:text-yellow-400 transition">
+                <div className="text-3xl mb-3">{feature.icon}</div>
+                <h3 className="text-lg font-bold mb-2 text-white group-hover:text-yellow-400 transition">
                   {feature.title}
                 </h3>
-                <p className="text-white/50 leading-relaxed">
+                <p className="text-white/50 text-sm leading-relaxed">
                   {feature.description}
                 </p>
               </div>
             ))}
           </div>
 
-          <div className="mt-16 text-center">
+          <div className="mt-10 text-center">
             <button
               onClick={onGetStarted}
-              className="bg-gradient-to-r from-yellow-400 to-orange-500 text-black px-10 py-4 rounded-full font-bold text-lg hover:scale-105 transition shadow-lg shadow-yellow-500/25"
+              className="bg-gradient-to-r from-yellow-400 to-orange-500 text-black px-8 py-3 rounded-full font-bold text-base hover:scale-105 transition shadow-lg shadow-yellow-500/25"
             >
               Start Creating Free
             </button>
-            <p className="text-white/40 text-sm mt-3">No credit card required</p>
+            <p className="text-white/40 text-xs mt-2">No credit card required</p>
           </div>
         </div>
       </section>
 
-      <section className="py-24 px-8 bg-gradient-to-b from-transparent via-yellow-500/5 to-transparent relative overflow-hidden">
-        <div className="absolute top-1/4 left-0 w-96 h-96 bg-yellow-500/10 blur-[120px] rounded-full"></div>
-        <div className="absolute bottom-1/4 right-0 w-96 h-96 bg-orange-500/10 blur-[120px] rounded-full"></div>
+      <section className="py-16 px-8 bg-gradient-to-b from-transparent via-yellow-500/5 to-transparent relative overflow-hidden">
+        <div className="absolute top-1/4 left-0 w-72 h-72 bg-yellow-500/10 blur-[100px] rounded-full"></div>
+        <div className="absolute bottom-1/4 right-0 w-72 h-72 bg-orange-500/10 blur-[100px] rounded-full"></div>
 
-        <div className="max-w-6xl mx-auto relative">
-          <div className="text-center mb-16">
-            <p className="text-white/40 text-sm uppercase tracking-widest mb-4">How It Works</p>
-            <h2 className="text-4xl md:text-5xl font-serif mb-4">
+        <div className="max-w-5xl mx-auto relative">
+          <div className="text-center mb-10">
+            <p className="text-white/40 text-xs uppercase tracking-widest mb-3">How It Works</p>
+            <h2 className="text-3xl md:text-4xl font-serif mb-3 leading-tight">
               <span className="text-yellow-400">3 Simple Steps</span>
               <br />
               <span className="bg-gradient-to-r from-white to-gray-400 bg-clip-text text-transparent">
                 to Your Perfect Ad
               </span>
             </h2>
-            <p className="text-white/50 text-lg max-w-2xl mx-auto">
+            <p className="text-white/50 text-base max-w-lg mx-auto">
               From brand brief to broadcast-ready campaign in minutes, not weeks
             </p>
           </div>
 
-          <div className="grid lg:grid-cols-2 gap-16 items-start">
+          <div className="grid lg:grid-cols-2 gap-10 items-start">
             <div className="relative">
-              <div className="absolute left-[23px] top-[60px] bottom-[60px] w-[2px] bg-gradient-to-b from-yellow-400 via-yellow-500 to-orange-500 hidden md:block"></div>
+              <div className="absolute left-[19px] top-[50px] bottom-[50px] w-[2px] bg-gradient-to-b from-yellow-400 via-yellow-500 to-orange-500 hidden md:block"></div>
 
-              <div className="space-y-6">
-                <div className="group relative bg-gradient-to-r from-yellow-500/10 to-transparent border border-yellow-500/20 hover:border-yellow-500/40 rounded-2xl p-6 transition-all duration-300 hover:scale-[1.02] hover:shadow-lg hover:shadow-yellow-500/10">
-                  <div className="flex gap-5">
+              <div className="space-y-4">
+                <div className="group relative bg-gradient-to-r from-yellow-500/10 to-transparent border border-yellow-500/20 hover:border-yellow-500/40 rounded-xl p-4 transition-all duration-300 hover:scale-[1.02] hover:shadow-lg hover:shadow-yellow-500/10">
+                  <div className="flex gap-4">
                     <div className="flex-shrink-0 relative">
-                      <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-yellow-400 to-yellow-500 flex items-center justify-center text-black font-bold text-lg shadow-lg shadow-yellow-500/30">
+                      <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-yellow-400 to-yellow-500 flex items-center justify-center text-black font-bold text-sm shadow-lg shadow-yellow-500/30">
                         01
                       </div>
                     </div>
                     <div className="flex-1">
-                      <div className="flex items-center gap-3 mb-2">
-                        <h3 className="text-xl font-bold text-white group-hover:text-yellow-400 transition">Brief Your Brand</h3>
-                        <span className="text-xs bg-yellow-500/20 text-yellow-400 px-2 py-1 rounded-full">~60 sec</span>
+                      <div className="flex items-center gap-2 mb-1">
+                        <h3 className="text-base font-bold text-white group-hover:text-yellow-400 transition">Brief Your Brand</h3>
+                        <span className="text-[10px] bg-yellow-500/20 text-yellow-400 px-2 py-0.5 rounded-full">~60 sec</span>
                       </div>
-                      <p className="text-white/50 leading-relaxed">Enter your brand details and let AI research your target audience, tone, and key selling points automatically using Google Search.</p>
+                      <p className="text-white/50 text-sm leading-relaxed">Enter your brand details and let AI research your target audience, tone, and key selling points automatically.</p>
                     </div>
                   </div>
                 </div>
 
-                <div className="group relative bg-gradient-to-r from-yellow-500/10 to-transparent border border-yellow-500/20 hover:border-yellow-500/40 rounded-2xl p-6 transition-all duration-300 hover:scale-[1.02] hover:shadow-lg hover:shadow-yellow-500/10">
-                  <div className="flex gap-5">
+                <div className="group relative bg-gradient-to-r from-yellow-500/10 to-transparent border border-yellow-500/20 hover:border-yellow-500/40 rounded-xl p-4 transition-all duration-300 hover:scale-[1.02] hover:shadow-lg hover:shadow-yellow-500/10">
+                  <div className="flex gap-4">
                     <div className="flex-shrink-0 relative">
-                      <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-yellow-500 to-orange-400 flex items-center justify-center text-black font-bold text-lg shadow-lg shadow-orange-500/30">
+                      <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-yellow-500 to-orange-400 flex items-center justify-center text-black font-bold text-sm shadow-lg shadow-orange-500/30">
                         02
                       </div>
                     </div>
                     <div className="flex-1">
-                      <div className="flex items-center gap-3 mb-2">
-                        <h3 className="text-xl font-bold text-white group-hover:text-yellow-400 transition">Choose Your Concept</h3>
-                        <span className="text-xs bg-yellow-500/20 text-yellow-400 px-2 py-1 rounded-full">3 Options</span>
+                      <div className="flex items-center gap-2 mb-1">
+                        <h3 className="text-base font-bold text-white group-hover:text-yellow-400 transition">Choose Your Concept</h3>
+                        <span className="text-[10px] bg-yellow-500/20 text-yellow-400 px-2 py-0.5 rounded-full">3 Options</span>
                       </div>
-                      <p className="text-white/50 leading-relaxed">Select from 3 AI-generated creative directions - emotional, high-energy, or minimalist - each with a unique thumbnail preview.</p>
+                      <p className="text-white/50 text-sm leading-relaxed">Select from 3 AI-generated creative directions - emotional, high-energy, or minimalist.</p>
                     </div>
                   </div>
                 </div>
 
-                <div className="group relative bg-gradient-to-r from-orange-500/10 to-transparent border border-orange-500/20 hover:border-orange-500/40 rounded-2xl p-6 transition-all duration-300 hover:scale-[1.02] hover:shadow-lg hover:shadow-orange-500/10">
-                  <div className="flex gap-5">
+                <div className="group relative bg-gradient-to-r from-orange-500/10 to-transparent border border-orange-500/20 hover:border-orange-500/40 rounded-xl p-4 transition-all duration-300 hover:scale-[1.02] hover:shadow-lg hover:shadow-orange-500/10">
+                  <div className="flex gap-4">
                     <div className="flex-shrink-0 relative">
-                      <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-orange-400 to-orange-500 flex items-center justify-center text-black font-bold text-lg shadow-lg shadow-orange-500/30">
+                      <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-orange-400 to-orange-500 flex items-center justify-center text-black font-bold text-sm shadow-lg shadow-orange-500/30">
                         03
                       </div>
                     </div>
                     <div className="flex-1">
-                      <div className="flex items-center gap-3 mb-2">
-                        <h3 className="text-xl font-bold text-white group-hover:text-orange-400 transition">Generate & Export</h3>
-                        <span className="text-xs bg-orange-500/20 text-orange-400 px-2 py-1 rounded-full">Export-Ready</span>
+                      <div className="flex items-center gap-2 mb-1">
+                        <h3 className="text-base font-bold text-white group-hover:text-orange-400 transition">Generate & Export</h3>
+                        <span className="text-[10px] bg-orange-500/20 text-orange-400 px-2 py-0.5 rounded-full">Export-Ready</span>
                       </div>
-                      <p className="text-white/50 leading-relaxed">Get storyboards, scripts, voiceovers, and cinematic video - all featuring your actual product, ready to download.</p>
+                      <p className="text-white/50 text-sm leading-relaxed">Get storyboards, scripts, voiceovers, and cinematic video - all featuring your actual product.</p>
                     </div>
                   </div>
                 </div>
@@ -1046,54 +1046,54 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
         </div>
       </section>
 
-      <section id="pricing" className="py-24 px-8">
-        <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-16">
-            <div className="inline-flex items-center gap-2 bg-orange-500/10 border border-orange-500/30 rounded-full px-4 py-2 mb-6">
-              <span className="text-orange-400 text-sm font-medium">Launch Pricing - Limited Time</span>
+      <section id="pricing" className="py-16 px-8">
+        <div className="max-w-5xl mx-auto">
+          <div className="text-center mb-10">
+            <div className="inline-flex items-center gap-2 bg-orange-500/10 border border-orange-500/30 rounded-full px-3 py-1 mb-4">
+              <span className="text-orange-400 text-xs font-semibold uppercase tracking-wide">Launch Pricing - Limited Time</span>
             </div>
-            <h2 className="text-4xl md:text-5xl font-serif mb-4">
+            <h2 className="text-3xl md:text-4xl font-serif mb-3 leading-tight">
               <span className="bg-gradient-to-r from-white to-gray-400 bg-clip-text text-transparent">
                 Simple, Transparent
               </span>
               <br />
               <span className="text-yellow-400">Pricing</span>
             </h2>
-            <p className="text-white/50 text-lg">
+            <p className="text-white/50 text-base">
               Start free, upgrade when you're ready. Lock in launch pricing today.
             </p>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-6">
+          <div className="grid md:grid-cols-3 gap-4">
             {pricingPlans.map((plan, idx) => (
               <div
                 key={idx}
-                className={`relative rounded-2xl p-8 transition-all ${
+                className={`relative rounded-xl p-5 transition-all ${
                   plan.popular
                     ? 'bg-gradient-to-b from-yellow-500/10 to-orange-500/10 border-2 border-yellow-500/50 scale-105'
                     : 'bg-white/[0.02] border border-white/10 hover:border-yellow-500/30'
                 }`}
               >
                 {plan.popular && (
-                  <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-gradient-to-r from-yellow-400 to-orange-500 text-black text-xs font-bold px-4 py-1 rounded-full">
-                    MOST POPULAR
+                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-gradient-to-r from-yellow-400 to-orange-500 text-black text-[10px] font-bold px-3 py-0.5 rounded-full uppercase tracking-wide">
+                    Most Popular
                   </div>
                 )}
 
-                <h3 className="text-xl font-bold mb-2">{plan.name}</h3>
-                <p className="text-white/40 text-sm mb-6">{plan.description}</p>
+                <h3 className="text-lg font-bold mb-1">{plan.name}</h3>
+                <p className="text-white/40 text-xs mb-4">{plan.description}</p>
 
-                <div className="mb-6">
+                <div className="mb-4">
                   {plan.originalPrice && (
-                    <div className="text-sm text-white/40 line-through mb-1">Reduced from {plan.originalPrice}</div>
+                    <div className="text-xs text-white/40 line-through mb-0.5">Reduced from {plan.originalPrice}</div>
                   )}
-                  <span className="text-4xl font-bold text-white">{plan.price}</span>
-                  <span className="text-white/40">{plan.period}</span>
+                  <span className="text-3xl font-bold text-white">{plan.price}</span>
+                  <span className="text-white/40 text-sm">{plan.period}</span>
                 </div>
 
-                <ul className="space-y-3 mb-8">
+                <ul className="space-y-2 mb-5">
                   {plan.features.map((feature, fidx) => (
-                    <li key={fidx} className="flex items-center gap-2 text-sm text-white/70">
+                    <li key={fidx} className="flex items-center gap-2 text-xs text-white/70">
                       <span className="text-yellow-400">✓</span>
                       {feature}
                     </li>
@@ -1102,7 +1102,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
 
                 <button
                   onClick={onGetStarted}
-                  className={`w-full py-3 rounded-full font-bold transition ${
+                  className={`w-full py-2.5 rounded-full font-bold text-sm transition ${
                     plan.popular
                       ? 'bg-gradient-to-r from-yellow-400 to-orange-500 text-black hover:scale-105'
                       : 'bg-white/10 text-white hover:bg-white/20'
@@ -1116,53 +1116,53 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
         </div>
       </section>
 
-      <section className="py-24 px-8 border-t border-white/5">
-        <div className="max-w-4xl mx-auto text-center">
-          <div className="inline-flex items-center gap-2 bg-yellow-500/10 border border-yellow-500/30 rounded-full px-4 py-2 mb-8">
-            <span className="text-yellow-400 text-sm font-medium">The Must-Have SaaS Tool for 2026</span>
+      <section className="py-14 px-8 border-t border-white/5">
+        <div className="max-w-3xl mx-auto text-center">
+          <div className="inline-flex items-center gap-2 bg-yellow-500/10 border border-yellow-500/30 rounded-full px-3 py-1 mb-5">
+            <span className="text-yellow-400 text-xs font-semibold uppercase tracking-wide">The Must-Have SaaS Tool for 2026</span>
           </div>
-          <h2 className="text-4xl md:text-5xl font-serif mb-6">
+          <h2 className="text-3xl md:text-4xl font-serif mb-4 leading-tight">
             <span className="text-yellow-400">Stop Waiting Weeks</span>
             <br />
             <span className="bg-gradient-to-r from-white to-gray-400 bg-clip-text text-transparent">
               For Your Next Ad Campaign
             </span>
           </h2>
-          <p className="text-white/50 text-lg mb-6 max-w-2xl mx-auto">
+          <p className="text-white/50 text-base mb-4 max-w-lg mx-auto">
             Join creators, agencies, and brands who are already using AI to launch scroll-stopping ads in minutes instead of weeks.
           </p>
-          <div className="flex flex-wrap justify-center gap-6 mb-10 text-sm text-white/60">
+          <div className="flex flex-wrap justify-center gap-4 mb-6 text-xs text-white/60">
             <span>Gemini + Veo Inside</span>
             <span>&#8226;</span>
             <span>Multi-format Creative</span>
             <span>&#8226;</span>
             <span>Brief to Export</span>
           </div>
-          <div className="flex flex-col items-center gap-3">
+          <div className="flex flex-col items-center gap-2">
             <button
               onClick={onGetStarted}
-              className="bg-gradient-to-r from-yellow-400 to-orange-500 text-black px-10 py-4 rounded-full font-bold text-lg hover:scale-105 transition shadow-lg shadow-yellow-500/25"
+              className="bg-gradient-to-r from-yellow-400 to-orange-500 text-black px-8 py-3 rounded-full font-bold text-base hover:scale-105 transition shadow-lg shadow-yellow-500/25"
             >
               Start Creating Free
             </button>
-            <p className="text-white/40 text-sm">No credit card required. Your API key stays in your browser.</p>
+            <p className="text-white/40 text-xs">No credit card required. Your API key stays in your browser.</p>
           </div>
         </div>
       </section>
 
-      <footer className="py-12 px-8 border-t border-white/5">
-        <div className="max-w-6xl mx-auto flex flex-col md:flex-row justify-between items-center gap-6">
-          <div className="flex items-center space-x-2">
-            <span className="text-xl">🍌</span>
-            <span className="font-bold tracking-tight">
+      <footer className="py-6 px-8 border-t border-white/5">
+        <div className="max-w-5xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
+          <div className="flex items-center space-x-1.5">
+            <span className="text-lg">🍌</span>
+            <span className="font-bold text-sm tracking-tight">
               <span className="text-yellow-400">BANANA</span>
               <span className="text-white">ADS</span>
             </span>
           </div>
-          <p className="text-white/30 text-sm">
+          <p className="text-white/30 text-xs">
             © 2025 BananaAds. Powered by Google Gemini & Veo.
           </p>
-          <div className="flex gap-6 text-sm text-white/40">
+          <div className="flex gap-4 text-xs text-white/40">
             <a href="#" className="hover:text-white transition">Privacy</a>
             <a href="#" className="hover:text-white transition">Terms</a>
             <a href="#" className="hover:text-white transition">Contact</a>
