@@ -169,7 +169,8 @@ const FacebookPostMockup = memo<{
   logoImage?: string;
   postText: string;
   imageUrl?: string;
-}>(({ brandName, logoImage, postText, imageUrl }) => {
+  videoUrl?: string;
+}>(({ brandName, logoImage, postText, imageUrl, videoUrl }) => {
   return (
     <div className="bg-white rounded-lg shadow-lg overflow-hidden max-w-md mx-auto">
       {/* Facebook Header */}
@@ -203,10 +204,14 @@ const FacebookPostMockup = memo<{
         </p>
       </div>
 
-      {/* Post Image */}
-      {imageUrl && (
+      {/* Post Image or Video */}
+      {(videoUrl || imageUrl) && (
         <div className="bg-gray-100">
-          <img src={imageUrl} alt="Post" className="w-full object-cover" />
+          {videoUrl ? (
+            <video src={videoUrl} controls className="w-full object-cover" />
+          ) : (
+            <img src={imageUrl} alt="Post" className="w-full object-cover" />
+          )}
         </div>
       )}
 
@@ -303,6 +308,7 @@ const FoodSocialLayout = memo<FoodSocialLayoutProps>(({
                 logoImage={project.brief.logoImage}
                 postText={scene.audioScript}
                 imageUrl={scene.imageUrl}
+                videoUrl={scene.videoUrl}
               />
             </div>
 
@@ -408,10 +414,11 @@ const FoodSocialLayout = memo<FoodSocialLayoutProps>(({
                   {scene.isGeneratingVideo ? <BananaPro role="cameraman" size="sm" /> : <i className="fa-solid fa-play"></i>}
                   <span>Animate Social Video</span>
                 </button>
-                {scene.imageUrl && (
+                {(scene.imageUrl || scene.videoUrl) && (
                   <button
-                    onClick={() => handleDownload(scene.imageUrl!, `FoodSocial-Post-${idx + 1}.png`)}
+                    onClick={() => handleDownload(scene.videoUrl || scene.imageUrl!, `FoodSocial-Post-${idx + 1}${scene.videoUrl ? '.mp4' : '.png'}`)}
                     className="bg-white/20 backdrop-blur text-white px-3 py-2 rounded-full text-xs font-bold hover:bg-white/30 transition"
+                    title={scene.videoUrl ? "Download Video" : "Download Image"}
                   >
                     <i className="fa-solid fa-download"></i>
                   </button>
@@ -593,6 +600,7 @@ const SocialLayout = memo<SocialLayoutProps>(({
                 logoImage={project.brief.logoImage}
                 postText={scene.audioScript}
                 imageUrl={scene.imageUrl}
+                videoUrl={scene.videoUrl}
               />
             </div>
 
@@ -691,10 +699,11 @@ const SocialLayout = memo<SocialLayoutProps>(({
                   {scene.isGeneratingVideo ? <BananaPro role="cameraman" size="sm" /> : <i className="fa-solid fa-play"></i>}
                   <span>Animate Social Video</span>
                 </button>
-                {scene.imageUrl && (
+                {(scene.imageUrl || scene.videoUrl) && (
                   <button
-                    onClick={() => handleDownload(scene.imageUrl!, `SocialPoster-Post-${idx + 1}.png`)}
+                    onClick={() => handleDownload(scene.videoUrl || scene.imageUrl!, `SocialPoster-Post-${idx + 1}${scene.videoUrl ? '.mp4' : '.png'}`)}
                     className="bg-white/20 backdrop-blur text-white px-3 py-2 rounded-full text-xs font-bold hover:bg-white/30 transition"
+                    title={scene.videoUrl ? "Download Video" : "Download Image"}
                   >
                     <i className="fa-solid fa-download"></i>
                   </button>
