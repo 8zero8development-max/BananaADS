@@ -492,10 +492,15 @@ ${brief.productImage ? "- Product/food photo is attached for visual analysis." :
       if (!text) throw new Error("No response from Gemini");
       const data = JSON.parse(text);
       
+      // Use website analysis typography as fallback if Gemini returns empty
+      const typographyValue = (data.typography?.trim() || '') || 
+        (websiteAnalysis?.typography?.trim() || '') || 
+        (websiteAnalysis?.typographyStyle || '');
+
       return {
         visualStyle: data.visualStyle || '',
         colorPalette: data.colorPalette || [],
-        typography: data.typography || '',
+        typography: typographyValue,
         composition: data.composition || '',
         mood: data.mood || '',
         targetPsychographics: data.targetPsychographics || [],
