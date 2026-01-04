@@ -327,7 +327,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
 
       <section className="py-16 px-8 border-t border-white/5">
         <div className="max-w-6xl mx-auto">
-          <p className="text-white/40 text-sm uppercase tracking-widest mb-8 text-center">Built for the AI-first creative workflow</p>
+          <p className="text-white/40 text-sm uppercase tracking-widest mb-8 text-center">Four Powerful Creative Workflows</p>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
             <div className="bg-white/[0.02] border border-white/10 rounded-xl p-4 text-center">
               <img src={iconCinematic} alt="Cinematic Video" className="w-20 h-20 mx-auto mb-2 rounded-lg object-cover" />
@@ -369,10 +369,10 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
           <div className="text-center mb-16">
             <p className="text-white/40 text-sm uppercase tracking-widest mb-4">See The Complete Workflow</p>
             <h2 className="text-4xl md:text-5xl font-serif mb-4">
-              <span className="text-yellow-400">Four Powerful</span>
+              <span className="text-yellow-400">Built for the</span>
               <br />
               <span className="bg-gradient-to-r from-white to-gray-400 bg-clip-text text-transparent">
-                Creative Workflows
+                AI-First Creative Workflow
               </span>
             </h2>
             <p className="text-white/50 text-lg max-w-2xl mx-auto">
