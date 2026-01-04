@@ -284,6 +284,155 @@ app.get('/api/health', (req, res) => {
   res.json({ status: 'ok' });
 });
 
+// Website analysis endpoint for extracting colors and typography (handles CORS)
+app.post('/api/analyze-website', async (req, res) => {
+  try {
+    const { url } = req.body;
+
+    if (!url) {
+      return res.status(400).json({ error: 'URL is required' });
+    }
+
+    // Validate URL format
+    let parsedUrl: URL;
+    try {
+      parsedUrl = new URL(url);
+      if (!['http:', 'https:'].includes(parsedUrl.protocol)) {
+        return res.status(400).json({ error: 'Invalid URL protocol. Only HTTP and HTTPS are supported.' });
+      }
+    } catch {
+      return res.status(400).json({ error: 'Invalid URL format' });
+    }
+
+    // Fetch the website content with timeout
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 second timeout
+
+    let html: string;
+    try {
+      const response = await fetch(url, {
+        signal: controller.signal,
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (compatible; BananaADS/1.0; +https://bananaads.com)',
+          'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+        },
+      });
+      clearTimeout(timeoutId);
+
+      if (!response.ok) {
+        return res.status(502).json({ error: `Failed to fetch website: ${response.status} ${response.statusText}` });
+      }
+
+      html = await response.text();
+    } catch (fetchError: any) {
+      clearTimeout(timeoutId);
+      if (fetchError.name === 'AbortError') {
+        return res.status(504).json({ error: 'Website request timed out' });
+      }
+      return res.status(502).json({ error: `Failed to fetch website: ${fetchError.message}` });
+    }
+
+    // Extract colors from inline styles and style tags
+    const colors: string[] = [];
+    
+    // Extract hex colors
+    const hexColorRegex = /#([0-9A-Fa-f]{3}){1,2}\b/g;
+    const hexMatches = html.match(hexColorRegex) || [];
+    colors.push(...hexMatches);
+
+    // Extract rgb/rgba colors
+    const rgbColorRegex = /rgba?\s*\(\s*\d+\s*,\s*\d+\s*,\s*\d+\s*(?:,\s*[\d.]+\s*)?\)/gi;
+    const rgbMatches = html.match(rgbColorRegex) || [];
+    colors.push(...rgbMatches);
+
+    // Extract hsl/hsla colors
+    const hslColorRegex = /hsla?\s*\(\s*\d+\s*,\s*[\d.]+%\s*,\s*[\d.]+%\s*(?:,\s*[\d.]+\s*)?\)/gi;
+    const hslMatches = html.match(hslColorRegex) || [];
+    colors.push(...hslMatches);
+
+    // Extract font families from CSS
+    const fonts: string[] = [];
+    const fontFamilyRegex = /font-family\s*:\s*([^;}"']+)/gi;
+    let fontMatch;
+    while ((fontMatch = fontFamilyRegex.exec(html)) !== null) {
+      const fontValue = fontMatch[1].trim();
+      // Split by comma and clean up each font name
+      const fontNames = fontValue.split(',').map(f => f.trim().replace(/["']/g, ''));
+      fonts.push(...fontNames);
+    }
+
+    // Also extract from @font-face declarations
+    const fontFaceRegex = /@font-face\s*\{[^}]*font-family\s*:\s*["']?([^"';}\s]+)["']?/gi;
+    while ((fontMatch = fontFaceRegex.exec(html)) !== null) {
+      fonts.push(fontMatch[1].trim());
+    }
+
+    // Extract Google Fonts from link tags
+    const googleFontsRegex = /fonts\.googleapis\.com\/css[^"']*family=([^"'&]+)/gi;
+    while ((fontMatch = googleFontsRegex.exec(html)) !== null) {
+      const fontParam = decodeURIComponent(fontMatch[1]);
+      // Parse font names from the parameter (format: Font+Name:weights or Font+Name|Other+Font)
+      const fontParts = fontParam.split('|');
+      for (const part of fontParts) {
+        const fontName = part.split(':')[0].replace(/\+/g, ' ');
+        fonts.push(fontName);
+      }
+    }
+
+    // Deduplicate and filter colors
+    const uniqueColors = [...new Set(colors)]
+      .filter(c => {
+        // Filter out common non-brand colors (pure black, white, transparent)
+        const lower = c.toLowerCase();
+        return lower !== '#fff' && lower !== '#ffffff' && 
+               lower !== '#000' && lower !== '#000000' &&
+               !lower.includes('rgba(0,0,0,0)') &&
+               !lower.includes('rgba(255,255,255,0)');
+      })
+      .slice(0, 20); // Limit to top 20 colors
+
+    // Deduplicate and filter fonts
+    const uniqueFonts = [...new Set(fonts)]
+      .filter(f => {
+        // Filter out generic font families and CSS keywords
+        const lower = f.toLowerCase();
+        return !['inherit', 'initial', 'unset', 'serif', 'sans-serif', 'monospace', 'cursive', 'fantasy', 'system-ui', '-apple-system', 'blinkmacsystemfont'].includes(lower);
+      })
+      .slice(0, 10); // Limit to top 10 fonts
+
+    // Determine primary typography style
+    let typographyStyle = 'sans-serif'; // default
+    const allFontsLower = fonts.map(f => f.toLowerCase()).join(' ');
+    if (allFontsLower.includes('serif') && !allFontsLower.includes('sans')) {
+      typographyStyle = 'serif';
+    } else if (allFontsLower.includes('mono') || allFontsLower.includes('courier') || allFontsLower.includes('consolas')) {
+      typographyStyle = 'monospace';
+    }
+
+    // Build typography description
+    let typographyDescription = '';
+    if (uniqueFonts.length > 0) {
+      const primaryFont = uniqueFonts[0];
+      typographyDescription = `${primaryFont} (${typographyStyle})`;
+      if (uniqueFonts.length > 1) {
+        typographyDescription += ` with ${uniqueFonts.slice(1, 3).join(', ')} as secondary`;
+      }
+    } else {
+      typographyDescription = `${typographyStyle} style`;
+    }
+
+    res.json({
+      colors: uniqueColors,
+      fonts: uniqueFonts,
+      typography: typographyDescription,
+      typographyStyle,
+    });
+  } catch (error: any) {
+    console.error('Website analysis error:', error);
+    res.status(500).json({ error: 'Failed to analyze website' });
+  }
+});
+
 if (isProd) {
   const distPath = resolveDistPath();
   app.use(express.static(distPath));
