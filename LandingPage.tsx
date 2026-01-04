@@ -124,33 +124,33 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
   const features = [
     {
       icon: '🧬',
-      title: 'Brand DNA Research',
-      description: 'AI automatically researches your brand using Google Search to determine the perfect target audience and tone.'
+      title: 'Brand DNA Research (automatic)',
+      description: 'AI researches your brand, tone, audience, and positioning before generating anything.'
     },
     {
       icon: '🖼️',
-      title: 'Mood Board Generator',
-      description: 'Generate professional aesthetic mood boards based on your product image and brand vibe.'
+      title: 'Professional Mood Boards',
+      description: 'Lock aesthetic direction and kill endless feedback loops with AI-generated mood boards.'
     },
     {
       icon: '✨',
-      title: 'Creative Direction',
-      description: 'Get 3 unique cinematic directions tailored to your campaign goals - emotional, high-energy, or minimalist.'
+      title: '3 Creative Directions Per Campaign',
+      description: 'Emotional, high-energy, or minimalist — pick your route, no revisions needed.'
     },
     {
       icon: '🎯',
-      title: 'Real Product Integration',
-      description: 'Your actual product appears in every generated storyboard scene, ensuring brand consistency.'
+      title: 'Your Real Product In Every Asset',
+      description: 'Your actual product appears in every scene. Not stock photos. Not placeholders.'
     },
     {
       icon: '🎙️',
-      title: 'AI Voiceover Studio',
-      description: 'Professional AI voiceovers using multiple voice options for your advertisement scripts.'
+      title: 'Voiceovers Without Hiring Talent',
+      description: 'Professional AI voiceovers with multiple voice options. No casting. No studio time.'
     },
     {
       icon: '🎬',
-      title: 'Video Generation',
-      description: 'Transform static storyboards into HD video clips using cutting-edge AI video generation.'
+      title: 'Video-Ready Storyboards',
+      description: 'Export-ready assets built for Veo video generation. Multi-format exports included.'
     }
   ];
 
@@ -159,8 +159,8 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
       name: 'Starter',
       price: '£11.99',
       period: '/month',
-      description: 'Perfect for small brands and creators',
-      features: ['5 Ad Campaigns/month', 'AI Storyboards', 'Script Generation', 'Mood Boards', 'Email Support'],
+      description: 'For creators and small brands',
+      features: ['5 campaigns per month', 'Storyboards + scripts', 'Mood boards', 'Cheaper than one Canva Pro mistake'],
       cta: 'Sign Up Now',
       popular: false,
       originalPrice: null
@@ -168,9 +168,9 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
     {
       name: 'Lifetime',
       price: '£59.99',
-      period: '/lifetime',
-      description: 'Limited time deal',
-      features: ['Everything in Pro', 'Video Generation (Veo)', 'Custom Branding', 'API Access', 'Dedicated Account Manager', 'Custom Integrations'],
+      period: ' one-time',
+      description: 'For people who understand leverage',
+      features: ['Everything included', 'Video generation (Veo)', 'API access', 'Custom integrations', 'Because early movers win'],
       cta: 'Sign Up Now',
       popular: true,
       originalPrice: '£299'
@@ -179,8 +179,8 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
       name: 'Professional',
       price: '£24.99',
       period: '/month',
-      description: 'For growing businesses and agencies',
-      features: ['Unlimited Campaigns', 'AI Storyboards', 'Script Generation', 'Neural Voiceovers', 'Priority Support', 'Export to All Formats'],
+      description: 'For businesses that run ads properly',
+      features: ['Unlimited campaigns', 'Priority support', 'Export everything', 'This replaces freelancers'],
       cta: 'Sign Up Now',
       popular: false,
       originalPrice: null
@@ -215,41 +215,41 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
       <section className="pt-28 pb-12 px-8">
         <div className="max-w-6xl mx-auto text-center">
           <div className="inline-flex items-center gap-2 bg-yellow-500/10 border border-yellow-500/30 rounded-full px-4 py-1.5 mb-6">
-            <span className="text-yellow-400 text-xs font-semibold tracking-wide uppercase">The #1 AI Ad Creation Tool for 2026</span>
+            <span className="text-yellow-400 text-xs font-semibold tracking-wide uppercase">This isn't "AI help." This is an ad production line.</span>
           </div>
 
           <h1 className="text-5xl md:text-7xl font-serif mb-3 leading-[1.1]">
             <span style={{ color: '#FFD700' }}>
-              Launch Scroll-Stopping Ads
+              Stop Paying Agencies
             </span>
             <br />
-            <span style={{ color: '#C0C0C0' }}>In Minutes, Not Weeks</span>
+            <span style={{ color: '#C0C0C0' }}>To Do What AI Can Do</span>
+            <br />
+            <span style={{ color: '#FFD700' }}>In Minutes</span>
           </h1>
           
           <div className="w-48 h-px bg-gradient-to-r from-transparent via-yellow-500/50 to-transparent mx-auto mb-4"></div>
-          
-          <div className="text-3xl md:text-5xl font-bold mb-5 tracking-wide flex items-center justify-center gap-1">
-            <span className="text-white">RIPENYOUR</span>
-            <span style={{ color: '#FFD700' }}>REVENUE</span>
-            <span className="ml-1 text-3xl md:text-5xl">🍌</span>
-          </div>
 
-          <p className="text-lg text-white/60 max-w-xl mx-auto mb-5 leading-relaxed">
-            The AI-first ad workflow that turns a simple brief into concepts, storyboards, scripts, voiceovers, and cinematic video.
+          <p className="text-lg text-white/60 max-w-2xl mx-auto mb-5 leading-relaxed">
+            BananaADS turns a rough idea into scroll-stopping ads, storyboards, scripts, visuals, and video — without meetings, retainers, or waiting weeks.
           </p>
 
           <div className="flex flex-wrap justify-center gap-5 mb-8 text-sm">
             <div className="flex items-center gap-2 text-white">
               <span className="text-green-500 text-lg font-bold">✓</span>
-              <span>Your actual product in every scene</span>
+              <span>Your real product in every scene</span>
             </div>
             <div className="flex items-center gap-2 text-white">
               <span className="text-green-500 text-lg font-bold">✓</span>
-              <span>3 creative directions per brief</span>
+              <span>3 creative directions per campaign</span>
             </div>
             <div className="flex items-center gap-2 text-white">
               <span className="text-green-500 text-lg font-bold">✓</span>
-              <span>Export-ready in minutes</span>
+              <span>Export-ready ads in minutes</span>
+            </div>
+            <div className="flex items-center gap-2 text-white">
+              <span className="text-green-500 text-lg font-bold">✓</span>
+              <span>No designers. No editors. No bullshit.</span>
             </div>
           </div>
 
@@ -263,7 +263,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
             >
               Start Creating Free
             </button>
-            <p className="text-white/40 text-xs">No credit card required. Your API key stays in your browser.</p>
+            <p className="text-white/40 text-xs">No credit card. Your API key stays in your browser.</p>
           </div>
 
           <div className="relative max-w-5xl mx-auto">
@@ -326,6 +326,46 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
         </div>
       </section>
 
+      {/* Brand Positioning Section */}
+      <section className="py-16 px-8 border-t border-white/5 bg-gradient-to-b from-transparent via-red-500/5 to-transparent">
+        <div className="max-w-4xl mx-auto text-center">
+          <h2 className="text-3xl md:text-4xl font-serif mb-6 leading-tight">
+            <span className="text-white">Most ads fail for one reason:</span>
+            <br />
+            <span className="text-yellow-400">They don't understand the brand.</span>
+          </h2>
+          <div className="space-y-4 text-lg text-white/60 mb-8">
+            <p>Agencies guess.</p>
+            <p>Freelancers copy competitors.</p>
+            <p>Templates look like templates.</p>
+          </div>
+          <div className="bg-gradient-to-r from-yellow-500/10 to-orange-500/10 border border-yellow-500/30 rounded-2xl p-8 mb-8">
+            <p className="text-xl text-white font-semibold mb-4">BananaADS starts where everyone else skips: <span className="text-yellow-400">Brand DNA</span>.</p>
+            <p className="text-white/60 mb-6">Before a single visual is generated, the system:</p>
+            <div className="grid md:grid-cols-2 gap-4 text-left max-w-2xl mx-auto">
+              <div className="flex items-center gap-3">
+                <span className="text-yellow-400 text-lg">✓</span>
+                <span className="text-white/80">Researches your brand</span>
+              </div>
+              <div className="flex items-center gap-3">
+                <span className="text-yellow-400 text-lg">✓</span>
+                <span className="text-white/80">Analyses tone, audience, competitors</span>
+              </div>
+              <div className="flex items-center gap-3">
+                <span className="text-yellow-400 text-lg">✓</span>
+                <span className="text-white/80">Understands positioning</span>
+              </div>
+              <div className="flex items-center gap-3">
+                <span className="text-yellow-400 text-lg">✓</span>
+                <span className="text-white/80">Builds a creative foundation</span>
+              </div>
+            </div>
+          </div>
+          <p className="text-xl text-white/80">That's why the output doesn't look "AI-ish".</p>
+          <p className="text-2xl text-yellow-400 font-bold mt-2">It looks intentional.</p>
+        </div>
+      </section>
+
       <section className="py-10 px-8 border-t border-white/5">
         <div className="max-w-5xl mx-auto">
           <div className="flex items-center justify-center gap-4 mb-6">
@@ -335,10 +375,10 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
               className="h-20 md:h-24 w-auto object-contain"
             />
             <h2 className="text-3xl md:text-4xl font-serif leading-tight">
-              <span className="text-yellow-400">Four Powerful</span>
+              <span className="text-yellow-400">Four Production Pipelines.</span>
               <br />
               <span className="bg-gradient-to-r from-white to-gray-400 bg-clip-text text-transparent">
-                Creative Workflows
+                One Input.
               </span>
             </h2>
           </div>
@@ -395,11 +435,11 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
           <div className="mb-12">
             <div className="flex flex-col items-center text-center gap-2 mb-6">
               <div className="w-14 h-14 flex items-center justify-center text-4xl drop-shadow-lg">
-                🍌
+                🧬
               </div>
               <div>
-                <h3 className="text-2xl font-bold text-white mb-1">Brand DNA Research</h3>
-                <p className="text-white/50 text-sm">AI analyzes your brand to create the perfect campaign foundation</p>
+                <h3 className="text-2xl font-bold text-white mb-1">Your Brand Has DNA — We Decode It</h3>
+                <p className="text-white/50 text-sm max-w-lg">BananaADS searches the web, reads how your brand speaks, understands who you're selling to, and locks tone, vibe, and positioning. So every ad feels like you, not a stock prompt.</p>
               </div>
             </div>
             {/* Swipe Cards Carousel */}
@@ -469,7 +509,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
               </div>
               <div>
                 <h3 className="text-2xl font-bold text-white mb-1">Cinematic Video Ads</h3>
-                <p className="text-white/50 text-sm">Create broadcast-quality video storyboards with AI</p>
+                <p className="text-white/50 text-sm max-w-lg">Broadcast-quality concepts without a production crew. 3 cinematic directions per brief, shot lists, storyboards, scripts, AI-generated visuals. Built for Veo video generation. This is what agencies charge £3–10k for. You generate it before lunch.</p>
               </div>
             </div>
             {/* Swipe Cards Carousel */}
@@ -539,8 +579,8 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
                 <img src={iconFoodSocial} alt="Food Social" className="w-full h-full object-cover" />
               </div>
               <div>
-                <h3 className="text-2xl font-bold text-white mb-1">Food Social Posts</h3>
-                <p className="text-white/50 text-sm">Mouth-watering food photography for social media</p>
+                <h3 className="text-2xl font-bold text-white mb-1">Food Social Content</h3>
+                <p className="text-white/50 text-sm max-w-lg">Make people hungry. Then make them click. AI food photography, multiple variations per product, consistent brand styling, ready for socials immediately. Restaurants use this daily. Agencies hate it.</p>
               </div>
             </div>
             {/* Swipe Cards Carousel */}
@@ -607,8 +647,8 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
                 <img src={iconSocialPosters} alt="Social Posters" className="w-full h-full object-cover" />
               </div>
               <div>
-                <h3 className="text-2xl font-bold text-white mb-1">Social Posters</h3>
-                <p className="text-white/50 text-sm">Eye-catching Facebook posts designed to engage your audience</p>
+                <h3 className="text-2xl font-bold text-white mb-1">Social Posters (Facebook / Meta)</h3>
+                <p className="text-white/50 text-sm max-w-lg">Ads designed to stop thumbs, not win design awards. Scroll-first layouts, clear hierarchy, message over decoration, optimised for feed behaviour. No Canva templates. No "designer ego".</p>
               </div>
             </div>
             {/* Swipe Cards Carousel */}
@@ -677,7 +717,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
               </div>
               <div>
                 <h3 className="text-2xl font-bold text-white mb-1">Email Campaigns</h3>
-                <p className="text-white/50 text-sm">Complete email templates with AI-generated visuals and copy</p>
+                <p className="text-white/50 text-sm max-w-lg">Emails people actually read. Full email concepts, section-by-section generation, visuals + copy aligned, export clean HTML. No Frankensteining templates. No copy-paste hell.</p>
               </div>
             </div>
             {/* Swipe Cards Carousel */}
@@ -751,14 +791,14 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
         <div className="max-w-5xl mx-auto">
           <div className="text-center mb-10">
             <h2 className="text-3xl md:text-4xl font-serif mb-3 leading-tight">
-              <span className="text-yellow-400">Scroll-Stop</span>
+              <span className="text-yellow-400">This Is What It Produces</span>
               <br />
               <span className="bg-gradient-to-r from-white to-gray-400 bg-clip-text text-transparent">
-                Ads That Convert
+                Not "Concept Art"
               </span>
             </h2>
             <p className="text-white/50 text-base max-w-lg mx-auto">
-              See what our AI cinematography agent can create for your brand
+              These aren't mockups. They're deployable ads. Used by restaurants, brands, and agencies who don't want to hire juniors. If it didn't convert, it wouldn't exist.
             </p>
           </div>
 
@@ -807,12 +847,12 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
         <div className="max-w-5xl mx-auto">
           <div className="text-center mb-10">
             <h2 className="text-3xl md:text-4xl font-serif mb-3 leading-tight">
-              <span className="text-white">Impress Your Clients with</span>
+              <span className="text-white">Make Clients Say</span>
               <br />
-              <span className="text-yellow-400">Professional Mood Boards</span>
+              <span className="text-yellow-400">"Yeah... That's It."</span>
             </h2>
             <p className="text-white/50 text-base max-w-lg mx-auto">
-              AI-generated mood boards that capture your brand essence and wow stakeholders
+              Mood boards that lock aesthetic direction, kill endless feedback loops, and make decisions faster. You don't need taste. The system brings it.
             </p>
           </div>
 
@@ -853,13 +893,11 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
           <div className="text-center mb-10">
             <h2 className="text-3xl md:text-4xl font-serif mb-3 leading-tight">
               <span className="bg-gradient-to-r from-white to-gray-400 bg-clip-text text-transparent">
-                Everything You Need to Create
+                What You Actually Get
               </span>
-              <br />
-              <span className="text-yellow-400">Award-Winning Ads</span>
             </h2>
             <p className="text-white/50 text-base max-w-lg mx-auto">
-              Our AI agents handle every step of the creative process, from research to final render.
+              What you don't get: Meetings. Retainers. Waiting.
             </p>
           </div>
 
@@ -898,16 +936,16 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
 
         <div className="max-w-5xl mx-auto relative">
           <div className="text-center mb-10">
-            <p className="text-white/40 text-xs uppercase tracking-widest mb-3">How It Works</p>
+            <p className="text-white/40 text-xs uppercase tracking-widest mb-3">Straight, No Diagram Bullshit</p>
             <h2 className="text-3xl md:text-4xl font-serif mb-3 leading-tight">
-              <span className="text-yellow-400">3 Simple Steps</span>
+              <span className="text-yellow-400">How It Works</span>
               <br />
               <span className="bg-gradient-to-r from-white to-gray-400 bg-clip-text text-transparent">
-                to Your Perfect Ad
+                3 Steps. Done.
               </span>
             </h2>
             <p className="text-white/50 text-base max-w-lg mx-auto">
-              From brand brief to broadcast-ready campaign in minutes, not weeks
+              No revisions. No meetings. Just results.
             </p>
           </div>
 
@@ -928,7 +966,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
                         <h3 className="text-base font-bold text-white group-hover:text-yellow-400 transition">Brief Your Brand</h3>
                         <span className="text-[10px] bg-yellow-500/20 text-yellow-400 px-2 py-0.5 rounded-full">~60 sec</span>
                       </div>
-                      <p className="text-white/50 text-sm leading-relaxed">Enter your brand details and let AI research your target audience, tone, and key selling points automatically.</p>
+                      <p className="text-white/50 text-sm leading-relaxed">You answer a few questions. BananaADS does the research.</p>
                     </div>
                   </div>
                 </div>
@@ -942,10 +980,10 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
                     </div>
                     <div className="flex-1">
                       <div className="flex items-center gap-2 mb-1">
-                        <h3 className="text-base font-bold text-white group-hover:text-yellow-400 transition">Choose Your Concept</h3>
+                        <h3 className="text-base font-bold text-white group-hover:text-yellow-400 transition">Choose Your Direction</h3>
                         <span className="text-[10px] bg-yellow-500/20 text-yellow-400 px-2 py-0.5 rounded-full">3 Options</span>
                       </div>
-                      <p className="text-white/50 text-sm leading-relaxed">Select from 3 AI-generated creative directions - emotional, high-energy, or minimalist.</p>
+                      <p className="text-white/50 text-sm leading-relaxed">Pick from 3 creative routes: Emotional, High-energy, or Minimalist.</p>
                     </div>
                   </div>
                 </div>
@@ -962,7 +1000,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
                         <h3 className="text-base font-bold text-white group-hover:text-orange-400 transition">Generate & Export</h3>
                         <span className="text-[10px] bg-orange-500/20 text-orange-400 px-2 py-0.5 rounded-full">Export-Ready</span>
                       </div>
-                      <p className="text-white/50 text-sm leading-relaxed">Get storyboards, scripts, voiceovers, and cinematic video - all featuring your actual product.</p>
+                      <p className="text-white/50 text-sm leading-relaxed">You get: Storyboards, Scripts, Visuals, Video-ready assets. Featuring your real product.</p>
                     </div>
                   </div>
                 </div>
@@ -1054,13 +1092,13 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
             </div>
             <h2 className="text-3xl md:text-4xl font-serif mb-3 leading-tight">
               <span className="bg-gradient-to-r from-white to-gray-400 bg-clip-text text-transparent">
-                Simple, Transparent
+                Pay Agencies Thousands
               </span>
               <br />
-              <span className="text-yellow-400">Pricing</span>
+              <span className="text-yellow-400">Or Pay Less Than a Takeaway</span>
             </h2>
             <p className="text-white/50 text-base">
-              Start free, upgrade when you're ready. Lock in launch pricing today.
+              You can pay agencies thousands. Or pay BananaADS less than a takeaway.
             </p>
           </div>
 
@@ -1119,24 +1157,24 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
       <section className="py-14 px-8 border-t border-white/5">
         <div className="max-w-3xl mx-auto text-center">
           <div className="inline-flex items-center gap-2 bg-yellow-500/10 border border-yellow-500/30 rounded-full px-3 py-1 mb-5">
-            <span className="text-yellow-400 text-xs font-semibold uppercase tracking-wide">The Must-Have SaaS Tool for 2026</span>
+            <span className="text-yellow-400 text-xs font-semibold uppercase tracking-wide">The Ad Industry Won't Like This</span>
           </div>
           <h2 className="text-3xl md:text-4xl font-serif mb-4 leading-tight">
-            <span className="text-yellow-400">Stop Waiting Weeks</span>
+            <span className="text-yellow-400">Agencies Sell Time.</span>
             <br />
             <span className="bg-gradient-to-r from-white to-gray-400 bg-clip-text text-transparent">
-              For Your Next Ad Campaign
+              BananaADS Sells Output.
             </span>
           </h2>
           <p className="text-white/50 text-base mb-4 max-w-lg mx-auto">
-            Join creators, agencies, and brands who are already using AI to launch scroll-stopping ads in minutes instead of weeks.
+            If you run ads, sell products, or build brands — this saves you money every single month.
           </p>
           <div className="flex flex-wrap justify-center gap-4 mb-6 text-xs text-white/60">
-            <span>Gemini + Veo Inside</span>
+            <span>Run Ads</span>
             <span>&#8226;</span>
-            <span>Multi-format Creative</span>
+            <span>Sell Products</span>
             <span>&#8226;</span>
-            <span>Brief to Export</span>
+            <span>Build Brands</span>
           </div>
           <div className="flex flex-col items-center gap-2">
             <button
@@ -1145,7 +1183,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
             >
               Start Creating Free
             </button>
-            <p className="text-white/40 text-xs">No credit card required. Your API key stays in your browser.</p>
+            <p className="text-white/40 text-xs">No credit card. No lock-in. No excuses.</p>
           </div>
         </div>
       </section>
