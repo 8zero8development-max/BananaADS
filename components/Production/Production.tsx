@@ -1,6 +1,7 @@
 import React, { memo, useMemo, useCallback, useState } from 'react';
 import { AdProject, AppStep, Scene } from '../../types';
 import BananaPro from '../shared/BananaPro';
+import ProgressIndicator, { CompactProgress, InlineProgress } from '../shared/ProgressIndicator';
 import EmailTemplateEditor from '../EmailEditor/EmailTemplateEditor';
 
 interface ProductionProps {
@@ -199,8 +200,12 @@ const FoodSocialLayout = memo<FoodSocialLayoutProps>(({
               {s.imageUrl ? (
                 <img src={s.imageUrl} className="w-full h-full object-cover" alt={`Post ${i + 1}`} />
               ) : s.isGeneratingImage ? (
-                <div className="w-full h-full flex items-center justify-center">
-                  <BananaPro role="artist" size="sm" />
+                <div className="w-full h-full flex flex-col items-center justify-center p-2">
+                  <div className="flex items-center gap-1 mb-1">
+                    <span className="text-lg animate-banana-bounce">🍌</span>
+                    <i className="fa-solid fa-image text-purple-400 text-xs animate-pulse"></i>
+                  </div>
+                  <CompactProgress operation="image" isActive={true} className="w-full" />
                 </div>
               ) : (
                 <div className="w-full h-full flex items-center justify-center">
@@ -233,9 +238,13 @@ const FoodSocialLayout = memo<FoodSocialLayoutProps>(({
                 {scene.imageUrl ? (
                   <img src={scene.imageUrl} className="w-full h-full object-cover" alt={`Post ${idx + 1}`} />
                 ) : scene.isGeneratingImage ? (
-                  <div className="w-full h-full flex flex-col items-center justify-center bg-zinc-900">
-                    <BananaPro role="artist" size="md" />
-                    <p className="text-sm font-bold tracking-widest uppercase mt-4">Auto-Rendering...</p>
+                  <div className="w-full h-full flex flex-col items-center justify-center bg-zinc-900 p-8">
+                    <ProgressIndicator 
+                      operation="image" 
+                      isActive={true} 
+                      state="processing"
+                      size="lg"
+                    />
                   </div>
                 ) : (
                   <div className="w-full h-full flex flex-col items-center justify-center bg-zinc-900">
@@ -417,8 +426,12 @@ const SocialLayout = memo<SocialLayoutProps>(({
               {s.imageUrl ? (
                 <img src={s.imageUrl} className="w-full h-full object-cover" alt={`Post ${i + 1}`} />
               ) : s.isGeneratingImage ? (
-                <div className="w-full h-full flex items-center justify-center">
-                  <BananaPro role="artist" size="sm" />
+                <div className="w-full h-full flex flex-col items-center justify-center p-2">
+                  <div className="flex items-center gap-1 mb-1">
+                    <span className="text-lg animate-banana-bounce">🍌</span>
+                    <i className="fa-solid fa-image text-purple-400 text-xs animate-pulse"></i>
+                  </div>
+                  <CompactProgress operation="image" isActive={true} className="w-full" />
                 </div>
               ) : (
                 <div className="w-full h-full flex items-center justify-center">
@@ -446,9 +459,13 @@ const SocialLayout = memo<SocialLayoutProps>(({
                 {scene.imageUrl ? (
                   <img src={scene.imageUrl} className="w-full h-full object-cover" alt={`Post ${idx + 1}`} />
                 ) : scene.isGeneratingImage ? (
-                  <div className="w-full h-full flex flex-col items-center justify-center bg-zinc-900">
-                    <BananaPro role="artist" size="md" />
-                    <p className="text-sm font-bold tracking-widest uppercase mt-4">Auto-Rendering...</p>
+                  <div className="w-full h-full flex flex-col items-center justify-center bg-zinc-900 p-8">
+                    <ProgressIndicator 
+                      operation="image" 
+                      isActive={true} 
+                      state="processing"
+                      size="lg"
+                    />
                   </div>
                 ) : (
                   <div className="w-full h-full flex flex-col items-center justify-center bg-zinc-900">
@@ -624,10 +641,12 @@ const VideoLayout = memo<VideoLayoutProps>(({
               ) : (
                 <div className="w-full h-full flex flex-col items-center justify-center space-y-4 p-12 text-center bg-black">
                   {scene.isGeneratingImage ? (
-                    <>
-                      <BananaPro role="artist" size="md" />
-                      <p className="text-sm font-bold tracking-widest uppercase">Auto-Rendering...</p>
-                    </>
+                    <ProgressIndicator 
+                      operation="image" 
+                      isActive={true} 
+                      state="processing"
+                      size="lg"
+                    />
                   ) : (
                     <>
                       <div className="w-20 h-20 rounded-full bg-white/5 flex items-center justify-center">
@@ -673,9 +692,14 @@ const VideoLayout = memo<VideoLayoutProps>(({
               </button>
             </div>
             {(scene.isGeneratingVideo) && (
-              <div className="absolute inset-0 bg-black/60 backdrop-blur-sm flex flex-col items-center justify-center z-10">
-                <BananaPro role="cameraman" size="md" />
-                <p className="text-sm font-bold tracking-widest uppercase mt-4">Rendering Cinematic Motion...</p>
+              <div className="absolute inset-0 bg-black/80 backdrop-blur-sm flex flex-col items-center justify-center z-10 p-8">
+                <ProgressIndicator 
+                  operation="video" 
+                  isActive={true} 
+                  state="processing"
+                  size="lg"
+                  customText="Rendering cinematic motion"
+                />
               </div>
             )}
           </div>
@@ -893,8 +917,12 @@ const EmailLayout = memo<EmailLayoutProps>(({
               {s.imageUrl ? (
                 <img src={s.imageUrl} className="w-full h-full object-cover" alt={`Section ${i + 1}`} />
               ) : s.isGeneratingImage ? (
-                <div className="w-full h-full flex items-center justify-center">
-                  <BananaPro role="artist" size="sm" />
+                <div className="w-full h-full flex flex-col items-center justify-center p-2">
+                  <div className="flex items-center gap-1 mb-1">
+                    <span className="text-lg animate-banana-bounce">🍌</span>
+                    <i className="fa-solid fa-envelope text-blue-400 text-xs animate-pulse"></i>
+                  </div>
+                  <CompactProgress operation="image" isActive={true} className="w-full" />
                 </div>
               ) : (
                 <div className="w-full h-full flex items-center justify-center">
@@ -924,9 +952,14 @@ const EmailLayout = memo<EmailLayoutProps>(({
                 {scene.imageUrl ? (
                   <img src={scene.imageUrl} className="w-full h-full object-cover" alt={`Section ${idx + 1}`} />
                 ) : scene.isGeneratingImage ? (
-                  <div className="w-full h-full flex flex-col items-center justify-center bg-zinc-900">
-                    <BananaPro role="artist" size="md" />
-                    <p className="text-sm font-bold tracking-widest uppercase mt-4">Generating Email Section...</p>
+                  <div className="w-full h-full flex flex-col items-center justify-center bg-zinc-900 p-8">
+                    <ProgressIndicator 
+                      operation="image" 
+                      isActive={true} 
+                      state="processing"
+                      size="lg"
+                      customText="Generating email section"
+                    />
                   </div>
                 ) : (
                   <div className="w-full h-full flex flex-col items-center justify-center bg-zinc-900">

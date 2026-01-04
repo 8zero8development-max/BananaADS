@@ -83,6 +83,76 @@ body {
 }
 .animate-banana-vibrate { animation: banana-vibrate 0.3s linear infinite; }
 
+/* --- Progress Indicator Animations --- */
+
+/* Subtle pulse for processing state */
+@keyframes pulse-subtle {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.85; transform: scale(1.01); }
+}
+.animate-pulse-subtle { animation: pulse-subtle 2s ease-in-out infinite; }
+
+/* Success pop animation for completion */
+@keyframes success-pop {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); }
+}
+.animate-success-pop { animation: success-pop 0.4s ease-out; }
+
+/* Shimmer effect for progress bars */
+@keyframes shimmer {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+}
+.animate-shimmer {
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+}
+
+/* Glow pulse for active operations */
+@keyframes glow-pulse {
+    0%, 100% { box-shadow: 0 0 5px rgba(250, 204, 21, 0.3); }
+    50% { box-shadow: 0 0 20px rgba(250, 204, 21, 0.6), 0 0 30px rgba(250, 204, 21, 0.3); }
+}
+.animate-glow-pulse { animation: glow-pulse 2s ease-in-out infinite; }
+
+/* Spin animation for loading icons */
+@keyframes spin-slow {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+.animate-spin-slow { animation: spin-slow 3s linear infinite; }
+
+/* Fade in animation */
+@keyframes fade-in {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+.animate-fade-in { animation: fade-in 0.3s ease-out; }
+
+/* Stage dot pulse */
+@keyframes stage-pulse {
+    0%, 100% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.3); opacity: 0.8; }
+}
+.animate-stage-pulse { animation: stage-pulse 1s ease-in-out infinite; }
+
+/* Progress bar fill animation */
+@keyframes progress-fill {
+    from { width: 0%; }
+}
+.animate-progress-fill { animation: progress-fill 0.5s ease-out; }
+
+/* Error shake animation */
+@keyframes error-shake {
+    0%, 100% { transform: translateX(0); }
+    10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+    20%, 40%, 60%, 80% { transform: translateX(5px); }
+}
+.animate-error-shake { animation: error-shake 0.5s ease-in-out; }
+
 /* --- Onboarding Tour Styles --- */
 
 .onboarding-highlight {

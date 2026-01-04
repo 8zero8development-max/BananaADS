@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { AdBrief } from '../../types';
 import { GeminiService } from '../../services/geminiService';
 import BananaPro, { BananaRole } from '../shared/BananaPro';
+import bananaAssistantImg from '../../attached_assets/banana-assistant.png';
 
 interface Message {
   id: string;
@@ -424,20 +425,24 @@ const BananaAdsAssistant: React.FC<BananaAdsAssistantProps> = ({
       
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className={`w-14 h-14 rounded-full flex items-center justify-center shadow-lg transition-all duration-300 ${
+        className={`w-20 h-20 rounded-full flex items-center justify-center shadow-lg transition-all duration-300 ${
           isOpen 
-            ? 'bg-white/10 hover:bg-white/20' 
-            : 'gradient-accent hover:scale-110'
+            ? 'bg-black/60 border-2 border-white/30 hover:bg-black/80' 
+            : 'bg-black/60 border-2 border-yellow-400 hover:scale-110 hover:border-yellow-300'
         }`}
         aria-label={isOpen ? 'Close assistant' : 'Open assistant'}
         style={{
-          boxShadow: isOpen ? 'none' : '0 0 20px rgba(250, 204, 21, 0.3)',
+          boxShadow: isOpen ? 'none' : '0 0 30px rgba(250, 204, 21, 0.5)',
         }}
       >
         {isOpen ? (
-          <i className="fa-solid fa-xmark text-white text-xl"></i>
+          <i className="fa-solid fa-xmark text-white text-2xl"></i>
         ) : (
-          <span className="text-2xl">🍌</span>
+          <img 
+            src={bananaAssistantImg} 
+            alt="BananaAds Assistant" 
+            className="w-16 h-16 object-contain"
+          />
         )}
       </button>
       

@@ -9,6 +9,34 @@ interface StepIndicatorProps {
   showToast?: (message: string, type: 'success' | 'error' | 'info') => void;
 }
 
+interface StepConfig {
+  label: string;
+  icon: string;
+  completedIcon: string;
+  description: string;
+}
+
+const stepConfigs: StepConfig[] = [
+  { 
+    label: "Brand Brief", 
+    icon: "fa-magnifying-glass", 
+    completedIcon: "fa-check",
+    description: "Research & define your brand"
+  },
+  { 
+    label: "Creative Concepts", 
+    icon: "fa-lightbulb", 
+    completedIcon: "fa-check",
+    description: "Generate creative directions"
+  },
+  { 
+    label: "Production", 
+    icon: "fa-film", 
+    completedIcon: "fa-check",
+    description: "Create your ad assets"
+  }
+];
+
 const StepIndicator: React.FC<StepIndicatorProps> = ({ 
   currentStep, 
   onStepClick, 
@@ -16,7 +44,6 @@ const StepIndicator: React.FC<StepIndicatorProps> = ({
   concepts,
   showToast
 }) => {
-  const steps = ["Brand Brief", "Creative Concepts", "Production"];
   
   const canNavigateToStep = (targetStep: AppStep): boolean => {
     switch (targetStep) {
@@ -52,10 +79,12 @@ const StepIndicator: React.FC<StepIndicatorProps> = ({
   
   return (
     <div className="flex items-center space-x-6 mb-12">
-      {steps.map((label, idx) => {
+      {stepConfigs.map((config, idx) => {
         const stepEnum = idx as AppStep;
         const isAccessible = canNavigateToStep(stepEnum);
         const isClickable = onStepClick && isAccessible;
+        const isCurrentStep = currentStep === idx;
+        const isCompleted = currentStep > idx;
         const isCurrentOrPast = currentStep >= idx;
         
         const stepDataAttribute = idx === 0 ? 'briefing' : idx === 1 ? 'concepts' : 'storyboarding';
@@ -78,31 +107,68 @@ const StepIndicator: React.FC<StepIndicatorProps> = ({
               <div 
                 className={`relative flex items-center justify-center transition-all duration-500 ${
                   isCurrentOrPast 
-                    ? 'scale-110 drop-shadow-[0_0_15px_rgba(250,204,21,0.5)]' 
+                    ? 'scale-110' 
                     : 'opacity-30 grayscale'
-                } ${isClickable ? 'hover:scale-125 hover:drop-shadow-[0_0_20px_rgba(250,204,21,0.7)]' : ''}`}
+                } ${isClickable ? 'hover:scale-125' : ''}`}
               >
-                <div className={`text-4xl select-none ${isClickable ? 'transition-transform group-hover:rotate-12' : ''}`}>
-                  🍌
+                <div className={`w-14 h-14 rounded-2xl flex items-center justify-center relative overflow-hidden transition-all duration-300 ${
+                  isCompleted 
+                    ? 'bg-gradient-to-br from-green-400 to-green-600 animate-success-pop' 
+                    : isCurrentStep 
+                      ? 'bg-black/80 border-2 border-yellow-400/50 ring-2 ring-yellow-400/30 animate-glow-pulse' 
+                      : 'bg-white/10 border border-white/20'
+                } ${isClickable ? 'group-hover:scale-110' : ''}`}>
+                  {isCompleted ? (
+                    <i className={`fa-solid ${config.completedIcon} text-white text-lg`}></i>
+                  ) : isCurrentStep ? (
+                    <div className="flex items-center justify-center">
+                      <span className="text-2xl animate-banana-wiggle drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">🍌</span>
+                    </div>
+                  ) : (
+                    <i className={`fa-solid ${config.icon} text-white/50 text-lg`}></i>
+                  )}
+                  {isCurrentStep && (
+                    <div className="absolute inset-0 bg-gradient-to-br from-yellow-400/10 to-orange-500/10"></div>
+                  )}
                 </div>
-                <div className={`absolute -bottom-1 -right-1 w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold border-2 border-black transition-colors ${
-                  isCurrentOrPast ? 'bg-white text-black' : 'bg-zinc-800 text-white'
-                } ${isClickable ? 'group-hover:bg-yellow-400' : ''}`}>
-                  {idx + 1}
+                <div className={`absolute -bottom-1 -right-1 w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold border-2 border-black transition-all ${
+                  isCompleted 
+                    ? 'bg-green-500 text-white' 
+                    : isCurrentStep 
+                      ? 'bg-yellow-400 text-black animate-pulse-subtle' 
+                      : 'bg-zinc-800 text-white/50'
+                } ${isClickable ? 'group-hover:bg-yellow-400 group-hover:text-black' : ''}`}>
+                  {isCompleted ? <i className="fa-solid fa-check text-[8px]"></i> : idx + 1}
                 </div>
               </div>
-              <span className={`ml-3 text-sm font-bold uppercase tracking-wider transition-colors ${
-                isCurrentOrPast ? 'text-banana' : 'text-white/40'
-              } ${isClickable ? 'group-hover:text-yellow-300' : ''}`}>
-                {label}
-              </span>
+              <div className="ml-3 flex flex-col">
+                <span className={`text-sm font-bold uppercase tracking-wider transition-colors ${
+                  isCurrentStep 
+                    ? 'text-yellow-400' 
+                    : isCompleted 
+                      ? 'text-green-400' 
+                      : 'text-white/40'
+                } ${isClickable ? 'group-hover:text-yellow-300' : ''}`}>
+                  {config.label}
+                </span>
+                <span className={`text-[10px] transition-colors ${
+                  isCurrentOrPast ? 'text-white/50' : 'text-white/20'
+                }`}>
+                  {config.description}
+                </span>
+              </div>
             </div>
-            {idx < steps.length - 1 && (
-              <div className="flex-1 h-1 bg-white/10 rounded-full relative overflow-hidden mx-2">
+            {idx < stepConfigs.length - 1 && (
+              <div className="flex-1 h-1.5 bg-white/10 rounded-full relative overflow-hidden mx-2">
                 <div 
-                  className="absolute top-0 left-0 h-full gradient-accent transition-all duration-700 ease-out" 
-                  style={{ width: currentStep > idx ? '100%' : '0%' }}
+                  className={`absolute top-0 left-0 h-full rounded-full transition-all duration-700 ease-out ${
+                    isCompleted ? 'bg-gradient-to-r from-green-400 to-green-500' : 'gradient-accent'
+                  }`}
+                  style={{ width: currentStep > idx ? '100%' : currentStep === idx ? '50%' : '0%' }}
                 />
+                {currentStep === idx && (
+                  <div className="absolute top-0 left-0 h-full w-1/2 animate-shimmer rounded-full"></div>
+                )}
               </div>
             )}
           </React.Fragment>
