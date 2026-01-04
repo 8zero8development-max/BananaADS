@@ -492,14 +492,19 @@ ${brief.productImage ? "- Product/food photo is attached for visual analysis." :
       if (!text) throw new Error("No response from Gemini");
       const data = JSON.parse(text);
       
-      // Use website analysis typography as fallback if Gemini returns empty
+      // Use website analysis as fallback if Gemini returns empty
       const typographyValue = (data.typography?.trim() || '') || 
         (websiteAnalysis?.typography?.trim() || '') || 
         (websiteAnalysis?.typographyStyle || '');
 
+      // Use website-extracted colors as fallback if Gemini returns empty palette
+      const aiColors = Array.isArray(data.colorPalette) ? data.colorPalette.filter((c: string) => c?.trim()) : [];
+      const websiteColors = websiteAnalysis?.colors || [];
+      const colorPaletteValue = aiColors.length > 0 ? aiColors : websiteColors.slice(0, 5);
+
       return {
         visualStyle: data.visualStyle || '',
-        colorPalette: data.colorPalette || [],
+        colorPalette: colorPaletteValue,
         typography: typographyValue,
         composition: data.composition || '',
         mood: data.mood || '',

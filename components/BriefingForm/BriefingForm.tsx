@@ -579,9 +579,9 @@ const BriefingForm: React.FC<BriefingFormProps> = ({
                         )}
                       </div>
 
-                      {brief.brandDna.colorPalette && brief.brandDna.colorPalette.length > 0 && (
-                        <div className="mb-4">
-                          <span className="text-white/40 text-[10px] uppercase tracking-wider block mb-2">Color Palette</span>
+                      <div className="mb-4">
+                        <span className="text-white/40 text-[10px] uppercase tracking-wider block mb-2">Color Palette</span>
+                        {brief.brandDna.colorPalette && brief.brandDna.colorPalette.length > 0 ? (
                           <div className="flex gap-2">
                             {brief.brandDna.colorPalette.slice(0, 5).map((color, i) => (
                               <div 
@@ -596,8 +596,12 @@ const BriefingForm: React.FC<BriefingFormProps> = ({
                               </div>
                             ))}
                           </div>
-                        </div>
-                      )}
+                        ) : (
+                          <div className="bg-white/5 rounded-lg p-3 border border-white/5">
+                            <p className="text-white/50 text-sm">Not specified</p>
+                          </div>
+                        )}
+                      </div>
 
                       <div className="mb-4">
                         <span className="text-white/40 text-[10px] uppercase tracking-wider block mb-2">Typography</span>
