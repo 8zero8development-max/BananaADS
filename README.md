@@ -165,7 +165,7 @@ Key event handlers include:
 
 The GeminiService in `services/geminiService.ts` acts as the AI orchestration layer, abstracting interactions with four distinct Google Gemini models:
 
-- `gemini-3-pro-preview` - Complex reasoning, brand research, script writing
+- `gemini-3-flash-preview` - Complex reasoning, brand research, script writing (free-tier friendly)
 - `gemini-2.5-flash-image` - All image generation (mood boards, concepts, storyboards)
 - `gemini-2.5-flash-preview-tts` - Text-to-speech voiceover synthesis
 - `veo-3.1-fast-generate-preview` - Cinematic video generation (paid tier only)
@@ -222,7 +222,7 @@ Generated assets (images, videos, audio) are stored as data URLs or blob URLs in
 
 ### AI Model Selection Strategy
 
-Different Gemini models are selected based on task requirements. The `gemini-3-pro-preview` model handles complex reasoning tasks like brand research and script writing where quality matters most. The `gemini-2.5-flash-image` model handles all image generation for speed and cost efficiency. The `gemini-2.5-flash-preview-tts` model provides high-quality text-to-speech. The `veo-3.1-fast-generate-preview` model handles video generation but requires a paid API key.
+Different Gemini models are selected based on task requirements. The `gemini-3-flash-preview` model handles complex reasoning tasks like brand research and script writing while being free-tier friendly. The `gemini-2.5-flash-image` model handles all image generation for speed and cost efficiency. The `gemini-2.5-flash-preview-tts` model provides high-quality text-to-speech. The `veo-3.1-fast-generate-preview` model handles video generation but requires a paid API key.
 
 ### Retry Mechanism
 
@@ -313,7 +313,7 @@ The app features custom "Banana Progress Thingys" (animated indicators) to track
 - **Frontend:** React 19, Tailwind CSS
 - **Build Tool:** Vite
 - **AI Models:**
-    - `gemini-3-pro-preview` (Reasoning & Scripting)
+    - `gemini-3-flash-preview` (Reasoning & Scripting)
     - `gemini-2.5-flash-image` (Image Generation & Vision)
     - `gemini-2.5-flash-preview-tts` (Text-to-Speech)
     - `veo-3.1-fast-generate-preview` (Video Generation)

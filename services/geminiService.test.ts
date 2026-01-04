@@ -65,7 +65,7 @@ describe('GeminiService', () => {
     const result = await GeminiService.researchBrand('Test Brand', 'Test Product');
 
     expect(mockGenerateContent).toHaveBeenCalledWith(expect.objectContaining({
-      model: 'gemini-3-pro-preview',
+      model: 'gemini-3-flash-preview',
       contents: expect.stringContaining('Test Brand'),
     }));
 
@@ -128,7 +128,7 @@ describe('GeminiService', () => {
     const result = await GeminiService.generateScript(brief as any, concept as any);
 
     expect(mockGenerateContent).toHaveBeenCalledWith(expect.objectContaining({
-      model: 'gemini-3-pro-preview',
+      model: 'gemini-3-flash-preview',
     }));
 
     expect(result).toEqual(mockScenes);
