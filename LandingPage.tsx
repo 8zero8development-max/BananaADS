@@ -328,7 +328,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
 
       <section className="py-12 px-8 border-t border-white/5">
         <div className="max-w-6xl mx-auto">
-          <div className="flex items-center justify-center gap-6 mb-8 border-2 border-yellow-500 rounded-2xl p-6 bg-black/30">
+          <div className="flex items-center justify-center gap-6 mb-8">
             <img 
               src={bananaDumbbells} 
               alt="Banana with dumbbells" 
