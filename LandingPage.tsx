@@ -329,6 +329,11 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
       <section className="py-12 px-8 border-t border-white/5">
         <div className="max-w-6xl mx-auto">
           <div className="flex items-center justify-center gap-6 mb-8 border-2 border-yellow-500 rounded-2xl p-6 bg-black/30">
+            <img 
+              src={bananaDumbbells} 
+              alt="Banana with dumbbells" 
+              className="h-24 md:h-32 w-auto object-contain"
+            />
             <h2 className="text-4xl md:text-5xl font-serif">
               <span className="text-yellow-400">Four Powerful</span>
               <br />
@@ -336,26 +341,32 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
                 Creative Workflows
               </span>
             </h2>
-            <img 
-              src={bananaDumbbells} 
-              alt="Banana with dumbbells" 
-              className="h-24 md:h-32 w-auto object-contain"
-            />
           </div>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-            <div className="bg-white/[0.02] border-2 border-yellow-500 rounded-xl p-4 text-center">
+          <div className="relative hidden md:block">
+            <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 1000 200" preserveAspectRatio="none">
+              <path 
+                d="M125 140 Q200 60 280 100 Q360 140 440 60 Q520 -20 600 100 Q680 220 760 100 Q840 -20 875 60" 
+                stroke="#FFD700" 
+                strokeWidth="3" 
+                fill="none"
+                strokeLinecap="round"
+              />
+            </svg>
+          </div>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 relative">
+            <div className="bg-white/[0.02] border-2 border-yellow-500 rounded-xl p-4 text-center md:-translate-y-4">
               <img src={iconCinematic} alt="Cinematic Video" className="w-20 h-20 mx-auto mb-2 rounded-lg object-cover" />
               <p className="text-white/70 text-sm font-medium">Cinematic Video</p>
             </div>
-            <div className="bg-white/[0.02] border-2 border-yellow-500 rounded-xl p-4 text-center">
+            <div className="bg-white/[0.02] border-2 border-yellow-500 rounded-xl p-4 text-center md:translate-y-4">
               <img src={iconSocialPosters} alt="Social Posters" className="w-20 h-20 mx-auto mb-2 rounded-lg object-cover" />
               <p className="text-white/70 text-sm font-medium">Social Posters</p>
             </div>
-            <div className="bg-white/[0.02] border-2 border-yellow-500 rounded-xl p-4 text-center">
+            <div className="bg-white/[0.02] border-2 border-yellow-500 rounded-xl p-4 text-center md:-translate-y-4">
               <img src={iconFoodSocial} alt="Food Socials" className="w-20 h-20 mx-auto mb-2 rounded-lg object-cover" />
               <p className="text-white/70 text-sm font-medium">Food Socials</p>
             </div>
-            <div className="bg-white/[0.02] border-2 border-yellow-500 rounded-xl p-4 text-center">
+            <div className="bg-white/[0.02] border-2 border-yellow-500 rounded-xl p-4 text-center md:translate-y-4">
               <img src={iconEmail} alt="Email Campaign" className="w-20 h-20 mx-auto mb-2 rounded-lg object-cover" />
               <p className="text-white/70 text-sm font-medium">Email Campaign</p>
             </div>
