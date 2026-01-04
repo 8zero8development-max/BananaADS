@@ -11,6 +11,11 @@ import moodKFC from '@assets/download_(8)_1767402167301.png';
 import moodPizza from '@assets/mood-board_(3)_1767402249246.png';
 import moodNike from '@assets/mood-board_(4)_1767402268781.png';
 
+// Custom workflow icons
+import iconCinematic from '@assets/icons/cinematic-video.png';
+import iconFoodSocial from '@assets/icons/food-socials.png';
+import iconEmail from '@assets/icons/email-campaign.png';
+
 // New workflow screenshots - Getting Started
 import screenshotApiKey from '@/bananascreenshots/Input API .png';
 
@@ -400,8 +405,8 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
           {/* Cinematic Video Workflow */}
           <div className="mb-20">
             <div className="flex flex-col items-center text-center gap-3 mb-10">
-              <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-orange-400 to-orange-500 flex items-center justify-center text-3xl shadow-lg shadow-orange-500/30">
-                🎬
+              <div className="w-20 h-20 rounded-2xl overflow-hidden shadow-lg shadow-orange-500/30">
+                <img src={iconCinematic} alt="Cinematic Video" className="w-full h-full object-cover" />
               </div>
               <div>
                 <h3 className="text-3xl font-bold text-white mb-2">Cinematic Video Ads</h3>
@@ -467,8 +472,8 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
           {/* Food Social Workflow */}
           <div className="mb-20">
             <div className="flex flex-col items-center text-center gap-3 mb-10">
-              <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-red-400 to-red-500 flex items-center justify-center text-3xl shadow-lg shadow-red-500/30">
-                🍔
+              <div className="w-20 h-20 rounded-2xl overflow-hidden shadow-lg shadow-red-500/30">
+                <img src={iconFoodSocial} alt="Food Social" className="w-full h-full object-cover" />
               </div>
               <div>
                 <h3 className="text-3xl font-bold text-white mb-2">Food Social Posts</h3>
@@ -531,8 +536,8 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
           {/* Email Campaign Workflow */}
           <div>
             <div className="flex flex-col items-center text-center gap-3 mb-10">
-              <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-purple-400 to-purple-500 flex items-center justify-center text-3xl shadow-lg shadow-purple-500/30">
-                📧
+              <div className="w-20 h-20 rounded-2xl overflow-hidden shadow-lg shadow-purple-500/30">
+                <img src={iconEmail} alt="Email Campaigns" className="w-full h-full object-cover" />
               </div>
               <div>
                 <h3 className="text-3xl font-bold text-white mb-2">Email Campaigns</h3>
