@@ -480,11 +480,31 @@ const BriefingForm: React.FC<BriefingFormProps> = ({
                         <p className="text-white/40 text-xs">Identity Profile</p>
                       </div>
                     </div>
-                    {brief.logoImage && (
-                      <div className="w-14 h-14 rounded-xl bg-white/10 backdrop-blur-sm border border-white/20 p-1.5 shadow-lg">
-                        <img src={brief.logoImage} className="w-full h-full object-contain" alt="Brand Logo" />
-                      </div>
-                    )}
+                    <div className="flex flex-col items-end gap-2">
+                      {brief.logoImage && (
+                        <div className="w-14 h-14 rounded-xl bg-white/10 backdrop-blur-sm border border-white/20 p-1.5 shadow-lg">
+                          <img src={brief.logoImage} className="w-full h-full object-contain" alt="Brand Logo" />
+                        </div>
+                      )}
+                      {brief.brandDna?.colorPalette && brief.brandDna.colorPalette.length > 0 && (
+                        <div className="flex gap-1">
+                          {brief.brandDna.colorPalette.slice(0, 5).map((color, i) => {
+                            const isValidCssColor = color.startsWith('#') || 
+                              color.startsWith('rgb') || 
+                              color.startsWith('hsl') ||
+                              /^[a-z]+$/i.test(color.trim());
+                            return (
+                              <div 
+                                key={i} 
+                                className="w-6 h-6 shadow-sm border border-white/20"
+                                style={{ backgroundColor: isValidCssColor ? color : '#333' }}
+                                title={color}
+                              />
+                            );
+                          })}
+                        </div>
+                      )}
+                    </div>
                   </div>
 
                   <div className="mb-6">
@@ -579,45 +599,54 @@ const BriefingForm: React.FC<BriefingFormProps> = ({
                         )}
                       </div>
 
-                      {brief.brandDna.colorPalette && brief.brandDna.colorPalette.length > 0 && (
-                        <div className="mb-4">
-                          <span className="text-white/40 text-[10px] uppercase tracking-wider block mb-2">Color Palette</span>
+                      <div className="mb-4">
+                        <span className="text-white/40 text-[10px] uppercase tracking-wider block mb-2">Color Palette</span>
+                        {brief.brandDna.colorPalette && brief.brandDna.colorPalette.length > 0 ? (
                           <div className="flex gap-2">
-                            {brief.brandDna.colorPalette.slice(0, 5).map((color, i) => (
-                              <div 
-                                key={i} 
-                                className="w-10 h-10 rounded-lg shadow-md border border-white/10 flex items-center justify-center group relative"
-                                style={{ backgroundColor: color.startsWith('#') ? color : undefined }}
-                                title={color}
-                              >
-                                {!color.startsWith('#') && (
-                                  <span className="text-[8px] text-white/60 text-center leading-tight px-0.5">{color.slice(0, 6)}</span>
-                                )}
-                              </div>
-                            ))}
+                            {brief.brandDna.colorPalette.slice(0, 5).map((color, i) => {
+                              // Check if color is a valid CSS color (hex, rgb, hsl, or named color)
+                              const isValidCssColor = color.startsWith('#') || 
+                                color.startsWith('rgb') || 
+                                color.startsWith('hsl') ||
+                                /^[a-z]+$/i.test(color.trim()); // CSS named colors are single words
+                              return (
+                                <div 
+                                  key={i} 
+                                  className="w-10 h-10 shadow-md border border-white/10 flex items-center justify-center group relative"
+                                  style={{ backgroundColor: isValidCssColor ? color : undefined }}
+                                  title={color}
+                                >
+                                  {!isValidCssColor && (
+                                    <span className="text-[8px] text-white/60 text-center leading-tight px-0.5">{color.slice(0, 6)}</span>
+                                  )}
+                                </div>
+                              );
+                            })}
                           </div>
-                        </div>
-                      )}
-
-                      {brief.brandDna.typography && (
-                        <div className="mb-4">
-                          <span className="text-white/40 text-[10px] uppercase tracking-wider block mb-2">Typography</span>
+                        ) : (
                           <div className="bg-white/5 rounded-lg p-3 border border-white/5">
-                            <p 
-                              className="text-white/90 text-sm font-medium"
-                              style={{ 
-                                fontFamily: brief.brandDna.typography.toLowerCase().includes('serif') && !brief.brandDna.typography.toLowerCase().includes('sans') 
-                                  ? 'Georgia, Times New Roman, serif' 
-                                  : brief.brandDna.typography.toLowerCase().includes('mono') 
-                                    ? 'Consolas, Monaco, monospace' 
-                                    : 'Inter, system-ui, sans-serif'
-                              }}
-                            >
-                              {brief.brandDna.typography}
-                            </p>
+                            <p className="text-white/50 text-sm">Not specified</p>
                           </div>
+                        )}
+                      </div>
+
+                      <div className="mb-4">
+                        <span className="text-white/40 text-[10px] uppercase tracking-wider block mb-2">Typography</span>
+                        <div className="bg-white/5 rounded-lg p-3 border border-white/5">
+                          <p 
+                            className="text-white/90 text-sm font-medium"
+                            style={{ 
+                              fontFamily: brief.brandDna.typography?.toLowerCase().includes('serif') && !brief.brandDna.typography?.toLowerCase().includes('sans') 
+                                ? 'Georgia, Times New Roman, serif' 
+                                : brief.brandDna.typography?.toLowerCase().includes('mono') 
+                                  ? 'Consolas, Monaco, monospace' 
+                                  : 'Inter, system-ui, sans-serif'
+                            }}
+                          >
+                            {brief.brandDna.typography?.trim() || 'Not specified'}
+                          </p>
                         </div>
-                      )}
+                      </div>
 
                       {brief.brandDna.targetPsychographics && brief.brandDna.targetPsychographics.length > 0 && (
                         <div>

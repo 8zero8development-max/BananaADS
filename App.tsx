@@ -143,7 +143,19 @@ const AppContent: React.FC<AppProps> = ({ onBackToLanding }) => {
       }
       
       setBrief(updatedBrief);
-      showToast('Brand research completed! Generating mood board...', 'success');
+      showToast('Brand research completed! Analyzing brand DNA...', 'success');
+      
+      // Generate Brand DNA profile (extracts colors, typography, etc.)
+      try {
+        const brandDna = await GeminiService.researchBrandDna(updatedBrief);
+        updatedBrief = { ...updatedBrief, brandDna, visualStyle: brandDna.visualStyle };
+        setBrief(updatedBrief);
+      } catch (dnaError) {
+        console.error("Brand DNA analysis failed", dnaError);
+        showToast('Brand DNA analysis failed, continuing with mood board...', 'warning');
+      }
+      
+      showToast('Generating mood board...', 'success');
       
       // Automatically generate mood board after research completes
       setGeneratingMoodBoard(true);

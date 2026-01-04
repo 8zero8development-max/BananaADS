@@ -476,7 +476,7 @@ ${brief.productImage ? "- Product/food photo is attached for visual analysis." :
             type: Type.OBJECT,
             properties: {
               visualStyle: { type: Type.STRING, description: "Description of colors, shapes, textures, and overall visual aesthetic" },
-              colorPalette: { type: Type.ARRAY, items: { type: Type.STRING }, description: "3-5 specific colors (hex codes or descriptive names)" },
+              colorPalette: { type: Type.ARRAY, items: { type: Type.STRING }, description: "3-5 specific colors as hex codes (e.g., #FF5733, #000000, #FFFFFF). Always use hex format, never descriptive names." },
               typography: { type: Type.STRING, description: "Font style characteristics (serif/sans-serif, weight, personality)" },
               composition: { type: Type.STRING, description: "Layout preferences and visual hierarchy approach" },
               mood: { type: Type.STRING, description: "Emotional tone and atmosphere of the brand" },
@@ -492,10 +492,20 @@ ${brief.productImage ? "- Product/food photo is attached for visual analysis." :
       if (!text) throw new Error("No response from Gemini");
       const data = JSON.parse(text);
       
+      // Use website analysis as fallback if Gemini returns empty
+      const typographyValue = (data.typography?.trim() || '') || 
+        (websiteAnalysis?.typography?.trim() || '') || 
+        (websiteAnalysis?.typographyStyle || '');
+
+      // Use website-extracted colors as fallback if Gemini returns empty palette
+      const aiColors = Array.isArray(data.colorPalette) ? data.colorPalette.filter((c: string) => c?.trim()) : [];
+      const websiteColors = websiteAnalysis?.colors || [];
+      const colorPaletteValue = aiColors.length > 0 ? aiColors : websiteColors.slice(0, 5);
+
       return {
         visualStyle: data.visualStyle || '',
-        colorPalette: data.colorPalette || [],
-        typography: data.typography || '',
+        colorPalette: colorPaletteValue,
+        typography: typographyValue,
         composition: data.composition || '',
         mood: data.mood || '',
         targetPsychographics: data.targetPsychographics || [],
