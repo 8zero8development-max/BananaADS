@@ -330,19 +330,19 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
           <p className="text-white/40 text-sm uppercase tracking-widest mb-8 text-center">Built for the AI-first creative workflow</p>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
             <div className="bg-white/[0.02] border border-white/10 rounded-xl p-4 text-center">
-              <img src={iconCinematic} alt="Cinematic Video" className="w-10 h-10 mx-auto mb-2 rounded-lg object-cover" />
+              <img src={iconCinematic} alt="Cinematic Video" className="w-20 h-20 mx-auto mb-2 rounded-lg object-cover" />
               <p className="text-white/70 text-sm font-medium">Cinematic Video</p>
             </div>
             <div className="bg-white/[0.02] border border-white/10 rounded-xl p-4 text-center">
-              <img src={iconSocialPosters} alt="Social Posters" className="w-10 h-10 mx-auto mb-2 rounded-lg object-cover" />
+              <img src={iconSocialPosters} alt="Social Posters" className="w-20 h-20 mx-auto mb-2 rounded-lg object-cover" />
               <p className="text-white/70 text-sm font-medium">Social Posters</p>
             </div>
             <div className="bg-white/[0.02] border border-white/10 rounded-xl p-4 text-center">
-              <img src={iconFoodSocial} alt="Food Socials" className="w-10 h-10 mx-auto mb-2 rounded-lg object-cover" />
+              <img src={iconFoodSocial} alt="Food Socials" className="w-20 h-20 mx-auto mb-2 rounded-lg object-cover" />
               <p className="text-white/70 text-sm font-medium">Food Socials</p>
             </div>
             <div className="bg-white/[0.02] border border-white/10 rounded-xl p-4 text-center">
-              <img src={iconEmail} alt="Email Campaign" className="w-10 h-10 mx-auto mb-2 rounded-lg object-cover" />
+              <img src={iconEmail} alt="Email Campaign" className="w-20 h-20 mx-auto mb-2 rounded-lg object-cover" />
               <p className="text-white/70 text-sm font-medium">Email Campaign</p>
             </div>
           </div>
