@@ -476,7 +476,7 @@ ${brief.productImage ? "- Product/food photo is attached for visual analysis." :
             type: Type.OBJECT,
             properties: {
               visualStyle: { type: Type.STRING, description: "Description of colors, shapes, textures, and overall visual aesthetic" },
-              colorPalette: { type: Type.ARRAY, items: { type: Type.STRING }, description: "3-5 specific colors (hex codes or descriptive names)" },
+              colorPalette: { type: Type.ARRAY, items: { type: Type.STRING }, description: "3-5 specific colors as hex codes (e.g., #FF5733, #000000, #FFFFFF). Always use hex format, never descriptive names." },
               typography: { type: Type.STRING, description: "Font style characteristics (serif/sans-serif, weight, personality)" },
               composition: { type: Type.STRING, description: "Layout preferences and visual hierarchy approach" },
               mood: { type: Type.STRING, description: "Emotional tone and atmosphere of the brand" },

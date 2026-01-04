@@ -583,18 +583,25 @@ const BriefingForm: React.FC<BriefingFormProps> = ({
                         <span className="text-white/40 text-[10px] uppercase tracking-wider block mb-2">Color Palette</span>
                         {brief.brandDna.colorPalette && brief.brandDna.colorPalette.length > 0 ? (
                           <div className="flex gap-2">
-                            {brief.brandDna.colorPalette.slice(0, 5).map((color, i) => (
-                              <div 
-                                key={i} 
-                                className="w-10 h-10 rounded-lg shadow-md border border-white/10 flex items-center justify-center group relative"
-                                style={{ backgroundColor: color.startsWith('#') ? color : undefined }}
-                                title={color}
-                              >
-                                {!color.startsWith('#') && (
-                                  <span className="text-[8px] text-white/60 text-center leading-tight px-0.5">{color.slice(0, 6)}</span>
-                                )}
-                              </div>
-                            ))}
+                            {brief.brandDna.colorPalette.slice(0, 5).map((color, i) => {
+                              // Check if color is a valid CSS color (hex, rgb, hsl, or named color)
+                              const isValidCssColor = color.startsWith('#') || 
+                                color.startsWith('rgb') || 
+                                color.startsWith('hsl') ||
+                                /^[a-z]+$/i.test(color.trim()); // CSS named colors are single words
+                              return (
+                                <div 
+                                  key={i} 
+                                  className="w-10 h-10 shadow-md border border-white/10 flex items-center justify-center group relative"
+                                  style={{ backgroundColor: isValidCssColor ? color : undefined }}
+                                  title={color}
+                                >
+                                  {!isValidCssColor && (
+                                    <span className="text-[8px] text-white/60 text-center leading-tight px-0.5">{color.slice(0, 6)}</span>
+                                  )}
+                                </div>
+                              );
+                            })}
                           </div>
                         ) : (
                           <div className="bg-white/5 rounded-lg p-3 border border-white/5">
