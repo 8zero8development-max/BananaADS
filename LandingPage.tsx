@@ -275,7 +275,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
                   alt="Brand Brief - Tell us about your brand"
                   className="rounded-xl w-full"
                 />
-                <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 z-10">
+                <div className="mt-3 flex justify-center">
                   <div className="bg-black/80 border-2 border-yellow-500 rounded-lg px-4 py-2 flex items-center gap-2">
                     <span className="text-white text-sm font-medium">Brand Brief</span>
                     <span>🍌</span>
@@ -294,7 +294,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
                   alt="Creative Concepts - Select your vision"
                   className="rounded-xl w-full"
                 />
-                <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 z-10">
+                <div className="mt-3 flex justify-center">
                   <div className="bg-black/80 border-2 border-yellow-500 rounded-lg px-4 py-2 flex items-center gap-2">
                     <span className="text-white text-sm font-medium">Creative Concepts</span>
                     <span>🍌</span>
@@ -313,7 +313,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
                   alt="Production - Storyboard and video generation"
                   className="rounded-xl w-full"
                 />
-                <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 z-10">
+                <div className="mt-3 flex justify-center">
                   <div className="bg-black/80 border-2 border-yellow-500 rounded-lg px-4 py-2 flex items-center gap-2">
                     <span className="text-white text-sm font-medium">Production</span>
                     <span>🍌</span>
