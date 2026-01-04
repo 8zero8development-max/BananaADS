@@ -217,13 +217,25 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
             <span className="text-yellow-400 text-sm font-medium">The #1 AI Ad Creation Tool for 2026</span>
           </div>
 
-          <h1 className="text-5xl md:text-7xl font-serif mb-6 leading-tight">
-            <span className="bg-gradient-to-r from-white to-gray-400 bg-clip-text text-transparent">
+          <h1 className="text-5xl md:text-7xl font-serif mb-4 leading-tight">
+            <span className="text-silver" style={{ color: '#C0C0C0' }}>
               Launch Scroll-Stopping Ads
             </span>
             <br />
-            <span className="text-yellow-400">In Minutes, Not Weeks</span>
+            <span className="text-silver" style={{ color: '#C0C0C0' }}>In Minutes, Not Weeks</span>
           </h1>
+          
+          <div className="text-4xl md:text-6xl font-bold mb-6 tracking-wider">
+            <span style={{ 
+              background: 'linear-gradient(90deg, #FFFFFF 0%, #FFD700 50%, #FFC300 100%)',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              backgroundClip: 'text'
+            }}>
+              RIPENYOURREVENUE
+            </span>
+            <span style={{ color: '#FFD700' }} className="ml-2"> X10</span>
+          </div>
 
           <p className="text-xl text-white/60 max-w-2xl mx-auto mb-6 leading-relaxed">
             The AI-first ad workflow that turns a simple brief into concepts, storyboards, scripts, voiceovers, and cinematic video.
