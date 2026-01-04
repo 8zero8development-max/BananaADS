@@ -2,6 +2,11 @@ import React, { useState } from 'react';
 import { AdBrief, ProductionType } from '../../types';
 import BananaPro from '../shared/BananaPro';
 
+import cinematicVideoIcon from '@assets/icons/cinematic-video.png';
+import socialPostersIcon from '@assets/icons/social-posters.png';
+import foodSocialsIcon from '@assets/icons/food-socials.png';
+import emailCampaignIcon from '@assets/icons/email-campaign.png';
+
 interface BriefingFormProps {
   brief: AdBrief;
   setBrief: React.Dispatch<React.SetStateAction<AdBrief>>;
@@ -137,46 +142,50 @@ const BriefingForm: React.FC<BriefingFormProps> = ({
           {productionType === 'video' ? ' cinematic experience' : productionType === 'email' ? ' engaging email campaign' : ' high-impact campaign'}.
         </p>
         
-        <div className="flex bg-white/5 rounded-full p-1.5 border border-yellow-500/30 w-fit mb-8">
+        <div className="flex gap-3 mb-8">
           <button 
             onClick={() => setProductionType('video')}
-            className={`px-6 py-2.5 rounded-full text-sm font-bold transition-all flex items-center gap-2 ${
+            title="Cinematic Video"
+            className={`w-16 h-16 rounded-xl overflow-hidden transition-all ${
               productionType === 'video' 
-              ? 'bg-white text-black shadow-lg' 
-              : 'text-white/40 hover:text-white hover:bg-white/5'
+              ? 'ring-2 ring-yellow-400 ring-offset-2 ring-offset-black scale-110 shadow-lg shadow-yellow-500/30' 
+              : 'opacity-50 hover:opacity-80 hover:scale-105'
             }`}
           >
-            <i className="fa-solid fa-film"></i> Cinematic Video
+            <img src={cinematicVideoIcon} alt="Cinematic Video" className="w-full h-full object-cover" />
           </button>
           <button 
             onClick={() => setProductionType('social')}
-            className={`px-6 py-2.5 rounded-full text-sm font-bold transition-all flex items-center gap-2 ${
+            title="Social Posters"
+            className={`w-16 h-16 rounded-xl overflow-hidden transition-all ${
               productionType === 'social' 
-              ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg' 
-              : 'text-white/40 hover:text-white hover:bg-white/5'
+              ? 'ring-2 ring-purple-400 ring-offset-2 ring-offset-black scale-110 shadow-lg shadow-purple-500/30' 
+              : 'opacity-50 hover:opacity-80 hover:scale-105'
             }`}
           >
-            <i className="fa-brands fa-instagram"></i> Social Posters
+            <img src={socialPostersIcon} alt="Social Posters" className="w-full h-full object-cover" />
           </button>
           <button 
             onClick={() => setProductionType('food-social')}
-            className={`px-6 py-2.5 rounded-full text-sm font-bold transition-all flex items-center gap-2 ${
+            title="Food Socials"
+            className={`w-16 h-16 rounded-xl overflow-hidden transition-all ${
               productionType === 'food-social' 
-              ? 'bg-gradient-to-r from-orange-400 to-red-500 text-white shadow-lg' 
-              : 'text-white/40 hover:text-white hover:bg-white/5'
+              ? 'ring-2 ring-orange-400 ring-offset-2 ring-offset-black scale-110 shadow-lg shadow-orange-500/30' 
+              : 'opacity-50 hover:opacity-80 hover:scale-105'
             }`}
           >
-            <i className="fa-solid fa-burger"></i> Food Socials
+            <img src={foodSocialsIcon} alt="Food Socials" className="w-full h-full object-cover" />
           </button>
           <button 
             onClick={() => setProductionType('email')}
-            className={`px-6 py-2.5 rounded-full text-sm font-bold transition-all flex items-center gap-2 ${
+            title="Email Campaign"
+            className={`w-16 h-16 rounded-xl overflow-hidden transition-all ${
               productionType === 'email' 
-              ? 'bg-gradient-to-r from-blue-500 to-cyan-500 text-white shadow-lg' 
-              : 'text-white/40 hover:text-white hover:bg-white/5'
+              ? 'ring-2 ring-blue-400 ring-offset-2 ring-offset-black scale-110 shadow-lg shadow-blue-500/30' 
+              : 'opacity-50 hover:opacity-80 hover:scale-105'
             }`}
           >
-            <i className="fa-solid fa-envelope"></i> Email Campaign
+            <img src={emailCampaignIcon} alt="Email Campaign" className="w-full h-full object-cover" />
           </button>
         </div>
         
@@ -204,6 +213,16 @@ const BriefingForm: React.FC<BriefingFormProps> = ({
             </div>
           </div>
 
+          <div className="space-y-2">
+            <label className="text-xs uppercase tracking-widest text-white/40 font-bold">Product URL <span className="text-[10px] normal-case font-normal text-white/30 ml-2">(Optional info source)</span></label>
+            <input 
+              value={brief.productUrl || ''}
+              onChange={(e) => setBrief({...brief, productUrl: e.target.value})}
+              className="w-full bg-white/5 border border-yellow-500/30 rounded-xl px-4 py-3 focus:outline-none focus:border-yellow-500 transition"
+              placeholder="https://yourbrand.com/product"
+            />
+          </div>
+
           <button 
             type="button"
             onClick={onResearchBrand}
@@ -226,16 +245,6 @@ const BriefingForm: React.FC<BriefingFormProps> = ({
               </>
             )}
           </button>
-
-          <div className="space-y-2">
-            <label className="text-xs uppercase tracking-widest text-white/40 font-bold">Product URL <span className="text-[10px] normal-case font-normal text-white/30 ml-2">(Optional info source)</span></label>
-            <input 
-              value={brief.productUrl || ''}
-              onChange={(e) => setBrief({...brief, productUrl: e.target.value})}
-              className="w-full bg-white/5 border border-yellow-500/30 rounded-xl px-4 py-3 focus:outline-none focus:border-yellow-500 transition"
-              placeholder="https://yourbrand.com/product"
-            />
-          </div>
 
           <div className="grid grid-cols-2 gap-6">
             <div className="space-y-2">
