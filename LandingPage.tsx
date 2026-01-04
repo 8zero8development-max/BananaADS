@@ -15,6 +15,7 @@ import moodNike from '@assets/mood-board_(4)_1767402268781.png';
 import iconCinematic from '@assets/icons/cinematic-video.png';
 import iconFoodSocial from '@assets/icons/food-socials.png';
 import iconEmail from '@assets/icons/email-campaign.png';
+import iconSocialPosters from '@assets/icons/social-posters.png';
 
 // New workflow screenshots - Getting Started
 import screenshotApiKey from '@/bananascreenshots/Input API .png';
@@ -52,6 +53,12 @@ import screenshotEmailOutput5 from '@/bananascreenshots/Email output 5.png';
 import screenshotEmailOutputFor from '@/bananascreenshots/Email output for.png';
 import screenshotEmailCode from '@/bananascreenshots/Email output code.png';
 
+// New workflow screenshots - Social Posters (Facebook)
+import screenshotFacebookConcepts from '@/bananascreenshots/Facebook Concepts.png';
+import screenshotFacebookOne from '@/bananascreenshots/Facebook One.png';
+import screenshotFacebookToo from '@/bananascreenshots/Facebook too.png';
+import screenshotFacebook3 from '@/bananascreenshots/Facebook3.png';
+
 interface LandingPageProps {
   onGetStarted: () => void;
 }
@@ -78,6 +85,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
   // Carousel state for each workflow section
   const [brandDnaIndex, setBrandDnaIndex] = useState(0);
   const [cinematicIndex, setCinematicIndex] = useState(0);
+  const [socialPostersIndex, setSocialPostersIndex] = useState(0);
   const [foodSocialIndex, setFoodSocialIndex] = useState(0);
   const [emailIndex, setEmailIndex] = useState(0);
 
@@ -527,6 +535,71 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
                     key={idx}
                     onClick={() => setFoodSocialIndex(idx)}
                     className={`w-3 h-3 rounded-full transition-all ${foodSocialIndex === idx ? 'bg-red-400 w-8' : 'bg-white/20 hover:bg-white/40'}`}
+                  />
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Social Posters (Facebook) Workflow */}
+          <div className="mb-20">
+            <div className="flex flex-col items-center text-center gap-3 mb-10">
+              <div className="w-20 h-20 rounded-2xl overflow-hidden shadow-lg shadow-blue-500/30">
+                <img src={iconSocialPosters} alt="Social Posters" className="w-full h-full object-cover" />
+              </div>
+              <div>
+                <h3 className="text-3xl font-bold text-white mb-2">Social Posters</h3>
+                <p className="text-white/50 text-lg">Eye-catching Facebook posts designed to engage your audience</p>
+              </div>
+            </div>
+            {/* Carousel */}
+            <div className="relative">
+              <div className="overflow-hidden">
+                <div 
+                  className="flex transition-transform duration-500 ease-out"
+                  style={{ transform: `translateX(-${socialPostersIndex * 100}%)` }}
+                >
+                  {[
+                    { img: screenshotFacebookConcepts, label: 'Facebook Concepts' },
+                    { img: screenshotFacebookOne, label: 'Post Design 1' },
+                    { img: screenshotFacebookToo, label: 'Post Design 2' },
+                    { img: screenshotFacebook3, label: 'Post Design 3' }
+                  ].map((item, idx) => (
+                    <div key={idx} className="w-full flex-shrink-0 px-2">
+                      <div className="bg-black/50 backdrop-blur border border-blue-500/30 rounded-2xl p-4 shadow-2xl max-w-4xl mx-auto">
+                        <img src={item.img} alt={item.label} className="rounded-xl w-full" />
+                        <p className="text-center text-lg text-white/70 mt-4 font-medium">{item.label}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              {/* Navigation Arrows */}
+              <button 
+                onClick={() => setSocialPostersIndex(prev => Math.max(0, prev - 1))}
+                className={`absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 w-12 h-12 rounded-full bg-black/80 border border-blue-500/30 flex items-center justify-center text-blue-400 hover:bg-blue-500/20 transition-all ${socialPostersIndex === 0 ? 'opacity-30 cursor-not-allowed' : 'hover:scale-110'}`}
+                disabled={socialPostersIndex === 0}
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-6 h-6">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
+                </svg>
+              </button>
+              <button 
+                onClick={() => setSocialPostersIndex(prev => Math.min(3, prev + 1))}
+                className={`absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 w-12 h-12 rounded-full bg-black/80 border border-blue-500/30 flex items-center justify-center text-blue-400 hover:bg-blue-500/20 transition-all ${socialPostersIndex === 3 ? 'opacity-30 cursor-not-allowed' : 'hover:scale-110'}`}
+                disabled={socialPostersIndex === 3}
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-6 h-6">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+                </svg>
+              </button>
+              {/* Dots Indicator */}
+              <div className="flex justify-center gap-2 mt-6">
+                {[0, 1, 2, 3].map(idx => (
+                  <button
+                    key={idx}
+                    onClick={() => setSocialPostersIndex(idx)}
+                    className={`w-3 h-3 rounded-full transition-all ${socialPostersIndex === idx ? 'bg-blue-400 w-8' : 'bg-white/20 hover:bg-white/40'}`}
                   />
                 ))}
               </div>
