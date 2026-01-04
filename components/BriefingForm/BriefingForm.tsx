@@ -243,11 +243,12 @@ const BriefingForm: React.FC<BriefingFormProps> = ({
               disabled={isResearching || isGeneratingMoodBoard}
               className={`w-full flex items-center justify-center gap-3 font-bold px-6 py-4 rounded-xl border-2 transition-all ${
                 ((brief.brandName && brief.productName) || (productionType === 'food-social' && (brief.productUrl || brief.keyFeatures.length)))
-                  ? 'text-black bg-gradient-to-r from-yellow-400 to-orange-500 border-yellow-500 hover:shadow-lg hover:shadow-yellow-500/30 hover:scale-[1.02]' 
+                  ? 'text-yellow-400 bg-black/40 border-yellow-400 hover:bg-yellow-400/10 hover:shadow-lg hover:shadow-yellow-500/30 hover:scale-[1.02]' 
                   : 'text-white/40 bg-white/5 border-white/10 hover:text-white/60'
               }`}
             >
-              <span className="text-2xl">🍌</span>
+              <i className="fa-solid fa-magnifying-glass text-yellow-400"></i>
+              <span className="text-xl drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">🍌</span>
               <span>Banana my Brand DNA</span>
             </button>
           )}
@@ -451,10 +452,12 @@ const BriefingForm: React.FC<BriefingFormProps> = ({
             <button 
               type="submit" 
               disabled={isGenerating}
-              className="w-full gradient-accent text-black font-bold py-4 rounded-xl shadow-lg hover:opacity-90 transition flex items-center justify-center space-x-2 disabled:opacity-50"
+              className="w-full bg-black/40 border-2 border-yellow-400 text-yellow-400 font-bold py-4 rounded-xl shadow-lg hover:bg-yellow-400/10 hover:shadow-yellow-500/30 transition flex items-center justify-center space-x-3 disabled:opacity-50"
             >
-              <i className="fa-solid fa-sparkles"></i>
+              <i className="fa-solid fa-lightbulb text-yellow-400"></i>
+              <span className="text-xl drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">🍌</span>
               <span>Generate Creative Concepts</span>
+              <i className="fa-solid fa-sparkles text-yellow-400"></i>
             </button>
           )}
         </form>
@@ -473,8 +476,8 @@ const BriefingForm: React.FC<BriefingFormProps> = ({
                 <div className="relative z-10">
                   <div className="flex items-center justify-between mb-6">
                     <div className="flex items-center gap-3">
-                      <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-yellow-400 to-orange-500 flex items-center justify-center shadow-lg shadow-yellow-500/20">
-                        <span className="text-2xl">🍌</span>
+                      <div className="w-12 h-12 rounded-xl bg-black/60 border-2 border-yellow-400/50 flex items-center justify-center shadow-lg shadow-yellow-500/20">
+                        <span className="text-2xl drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">🍌</span>
                       </div>
                       <div>
                         <h3 className="font-bold text-white text-lg">Brand DNA</h3>
