@@ -267,24 +267,37 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
 
           <div className="relative max-w-5xl mx-auto">
             <div className="absolute inset-0 bg-gradient-to-r from-yellow-500/20 to-orange-500/20 blur-3xl rounded-3xl"></div>
-            <div className="relative grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="bg-black/50 backdrop-blur border border-yellow-500/20 rounded-2xl p-2 shadow-2xl transform hover:scale-105 transition-transform">
+            <div className="relative grid grid-cols-1 md:grid-cols-3 gap-4 items-center">
+              <div className="relative bg-black/50 backdrop-blur border border-yellow-500/20 rounded-2xl p-2 shadow-2xl transform hover:scale-105 transition-transform">
+                <div className="absolute -top-3 -left-3 w-8 h-8 bg-yellow-500 rounded-full flex items-center justify-center text-black font-bold text-sm z-10">1</div>
                 <img
                   src={screenshotBrandInput}
                   alt="Brand Brief - Tell us about your brand"
                   className="rounded-xl w-full"
                 />
                 <p className="text-center text-sm text-white/60 mt-2">Brand Brief</p>
+                <div className="hidden md:block absolute top-1/2 -right-6 transform -translate-y-1/2 z-10">
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M5 12H19M19 12L12 5M19 12L12 19" stroke="#FFD700" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                </div>
               </div>
-              <div className="bg-black/50 backdrop-blur border border-yellow-500/20 rounded-2xl p-2 shadow-2xl transform hover:scale-105 transition-transform md:-translate-y-4">
+              <div className="relative bg-black/50 backdrop-blur border border-yellow-500/20 rounded-2xl p-2 shadow-2xl transform hover:scale-105 transition-transform md:-translate-y-4">
+                <div className="absolute -top-3 -left-3 w-8 h-8 bg-yellow-500 rounded-full flex items-center justify-center text-black font-bold text-sm z-10">2</div>
                 <img
                   src={screenshotCinematicConcepts}
                   alt="Creative Concepts - Select your vision"
                   className="rounded-xl w-full"
                 />
                 <p className="text-center text-sm text-white/60 mt-2">Creative Concepts</p>
+                <div className="hidden md:block absolute top-1/2 -right-6 transform -translate-y-1/2 z-10">
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M5 12H19M19 12L12 5M19 12L12 19" stroke="#FFD700" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                </div>
               </div>
-              <div className="bg-black/50 backdrop-blur border border-yellow-500/20 rounded-2xl p-2 shadow-2xl transform hover:scale-105 transition-transform">
+              <div className="relative bg-black/50 backdrop-blur border border-yellow-500/20 rounded-2xl p-2 shadow-2xl transform hover:scale-105 transition-transform">
+                <div className="absolute -top-3 -left-3 w-8 h-8 bg-yellow-500 rounded-full flex items-center justify-center text-black font-bold text-sm z-10">3</div>
                 <img
                   src={screenshotCinematic1}
                   alt="Production - Storyboard and video generation"
