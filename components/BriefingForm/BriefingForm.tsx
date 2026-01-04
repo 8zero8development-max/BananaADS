@@ -603,6 +603,26 @@ const BriefingForm: React.FC<BriefingFormProps> = ({
                         </div>
                       )}
 
+                      {brief.brandDna.typography && (
+                        <div className="mb-4">
+                          <span className="text-white/40 text-[10px] uppercase tracking-wider block mb-2">Typography</span>
+                          <div className="bg-white/5 rounded-lg p-3 border border-white/5">
+                            <p 
+                              className="text-white/90 text-sm font-medium"
+                              style={{ 
+                                fontFamily: brief.brandDna.typography.toLowerCase().includes('serif') && !brief.brandDna.typography.toLowerCase().includes('sans') 
+                                  ? 'Georgia, Times New Roman, serif' 
+                                  : brief.brandDna.typography.toLowerCase().includes('mono') 
+                                    ? 'Consolas, Monaco, monospace' 
+                                    : 'Inter, system-ui, sans-serif'
+                              }}
+                            >
+                              {brief.brandDna.typography}
+                            </p>
+                          </div>
+                        </div>
+                      )}
+
                       {brief.brandDna.targetPsychographics && brief.brandDna.targetPsychographics.length > 0 && (
                         <div>
                           <span className="text-white/40 text-[10px] uppercase tracking-wider block mb-2">Psychographics</span>

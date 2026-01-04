@@ -373,10 +373,53 @@ export class GeminiService {
       }
   }
 
+  // Website Analysis - Extract colors and typography from a website URL
+  private static async analyzeWebsite(url: string): Promise<{ colors: string[]; fonts: string[]; typography: string; typographyStyle: string } | null> {
+    try {
+      const response = await fetch('/api/analyze-website', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ url }),
+      });
+
+      if (!response.ok) {
+        console.warn(`Website analysis failed: ${response.status} ${response.statusText}`);
+        return null;
+      }
+
+      const data = await response.json();
+      return {
+        colors: data.colors || [],
+        fonts: data.fonts || [],
+        typography: data.typography || '',
+        typographyStyle: data.typographyStyle || 'sans-serif',
+      };
+    } catch (error) {
+      console.warn('Website analysis error:', error);
+      return null;
+    }
+  }
+
   // Brand DNA Research - Enhanced to extract comprehensive structured brand profile
   static async researchBrandDna(brief: AdBrief, version: string = PROMPT_VERSIONS.BRAND_DNA): Promise<BrandDna> {
       const ai = this.getClient();
       
+      // Analyze website for colors and typography if URL is provided
+      let websiteAnalysis: { colors: string[]; fonts: string[]; typography: string; typographyStyle: string } | null = null;
+      if (brief.productUrl) {
+        websiteAnalysis = await this.analyzeWebsite(brief.productUrl);
+      }
+
+      // Build website analysis context for the prompt
+      const websiteContext = websiteAnalysis ? `
+WEBSITE ANALYSIS RESULTS:
+- Extracted Colors: ${websiteAnalysis.colors.slice(0, 10).join(', ') || 'None found'}
+- Extracted Fonts: ${websiteAnalysis.fonts.join(', ') || 'None found'}
+- Typography Style: ${websiteAnalysis.typography || 'Not determined'}
+IMPORTANT: Incorporate these website colors and typography into the Brand DNA profile. The typography field should reflect the website's font choices.` : '';
+
       const prompt = PROMPT_TEMPLATE.build({
         role: 'Brand Strategist and Visual Identity Expert',
         context: `Analyzing brand assets to extract a comprehensive Brand DNA profile.
@@ -390,12 +433,12 @@ Inputs:
 - Desired Tone: "${brief.tone.join(', ')}"
 ${brief.creativeDirection ? `- Creative Direction: "${brief.creativeDirection}"` : ""}
 ${brief.logoImage ? "- Brand logo image is attached for visual analysis." : ""}
-${brief.productImage ? "- Product/food photo is attached for visual analysis." : ""}`,
-        task: `Extract a comprehensive Brand DNA profile by analyzing all provided inputs and images. Identify the brand's visual identity, emotional resonance, and strategic positioning.`,
+${brief.productImage ? "- Product/food photo is attached for visual analysis." : ""}${websiteContext}`,
+        task: `Extract a comprehensive Brand DNA profile by analyzing all provided inputs and images. Identify the brand's visual identity, emotional resonance, and strategic positioning.${websiteAnalysis ? ' Pay special attention to the website analysis results for accurate typography and color information.' : ''}`,
         constraints: [
           'Visual style must describe colors, shapes, textures, and overall aesthetic',
           'Color palette must include 3-5 specific colors (hex codes or descriptive names)',
-          'Typography must describe font style characteristics (serif/sans-serif, weight, personality)',
+          websiteAnalysis ? `Typography MUST incorporate the website fonts: ${websiteAnalysis.typography}` : 'Typography must describe font style characteristics (serif/sans-serif, weight, personality)',
           'Composition must describe layout preferences and visual hierarchy',
           'Mood must capture the emotional tone and atmosphere',
           'Target psychographics must include 3-5 lifestyle/value descriptors',
@@ -1191,6 +1234,7 @@ ${brandContext}${brandDnaContext}`,
         logoImage ? 'Incorporate brand logo naturally in the composition' : 'No logo required',
         brandDna ? `Follow brand visual style: ${brandDna.visualStyle}` : '',
         brandDna?.colorPalette?.length ? `Use brand color palette: ${brandDna.colorPalette.join(', ')}` : '',
+        brandDna?.typography ? `Use typography style: ${brandDna.typography} for any text elements` : '',
         ...VISUAL_STYLE_GUIDE.split('\n').map(line => line.trim()).filter(line => line.startsWith('-')).map(line => line.substring(2))
       ].filter(c => c !== ''),
       outputFormat: 'High-resolution photorealistic image',
