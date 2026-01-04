@@ -16,6 +16,7 @@ import iconCinematic from '@assets/icons/cinematic-video.png';
 import iconFoodSocial from '@assets/icons/food-socials.png';
 import iconEmail from '@assets/icons/email-campaign.png';
 import iconSocialPosters from '@assets/icons/social-posters.png';
+import bananaDumbbells from '@assets/image_1767568037797.png';
 
 // New workflow screenshots - Getting Started
 import screenshotApiKey from '@/bananascreenshots/Input API .png';
@@ -327,14 +328,19 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
 
       <section className="py-16 px-8 border-t border-white/5">
         <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-8">
-            <h2 className="text-4xl md:text-5xl font-serif mb-4">
+          <div className="flex items-center justify-center gap-6 mb-8">
+            <h2 className="text-4xl md:text-5xl font-serif">
               <span className="text-yellow-400">Four Powerful</span>
               <br />
               <span className="bg-gradient-to-r from-white to-gray-400 bg-clip-text text-transparent">
                 Creative Workflows
               </span>
             </h2>
+            <img 
+              src={bananaDumbbells} 
+              alt="Banana with dumbbells" 
+              className="h-24 md:h-32 w-auto object-contain"
+            />
           </div>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
             <div className="bg-white/[0.02] border border-white/10 rounded-xl p-4 text-center">
