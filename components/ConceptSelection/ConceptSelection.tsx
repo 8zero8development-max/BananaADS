@@ -1,6 +1,7 @@
 import React, { memo, useCallback } from 'react';
 import { AdConcept } from '../../types';
 import BananaPro from '../shared/BananaPro';
+import { FullScreenProgress, CompactProgress } from '../shared/ProgressIndicator';
 
 interface ConceptCardProps {
   concept: AdConcept;
@@ -22,9 +23,16 @@ const ConceptCard = memo<ConceptCardProps>(({ concept, onSelect, isGeneratingPre
         {concept.thumbnailUrl ? (
           <img src={concept.thumbnailUrl} className="w-full h-full object-cover transform group-hover:scale-105 transition duration-500" alt={concept.title} />
         ) : (
-          <div className="w-full h-full flex items-center justify-center">
+          <div className="w-full h-full flex flex-col items-center justify-center p-4">
             {isGeneratingPreviews ? (
-              <BananaPro role="artist" size="sm" text="Sketching..." />
+              <div className="w-full">
+                <div className="flex items-center justify-center gap-2 mb-3">
+                  <span className="text-2xl animate-banana-bounce">🍌</span>
+                  <i className="fa-solid fa-image text-purple-400 animate-pulse"></i>
+                </div>
+                <p className="text-xs text-white/50 text-center mb-2">Generating preview...</p>
+                <CompactProgress operation="image" isActive={true} />
+              </div>
             ) : (
               <i className="fa-solid fa-lightbulb text-white/10 text-4xl group-hover:text-white/20 transition"></i>
             )}
@@ -102,13 +110,12 @@ const ConceptSelection: React.FC<ConceptSelectionProps> = ({
           />
         ))}
       </div>
-      {isLoading && (
-        <div className="fixed inset-0 bg-black/80 flex flex-col items-center justify-center z-[100]">
-          <BananaPro role="director" size="lg" />
-          <p className="text-xl font-bold mt-4">Directing the scene...</p>
-          <p className="text-white/50">Generating cinematic storyboard & scripts</p>
-        </div>
-      )}
+      <FullScreenProgress 
+        operation="script" 
+        isActive={isLoading}
+        title="Directing the scene..."
+        subtitle="Generating cinematic storyboard & scripts"
+      />
     </div>
   );
 };

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { AdBrief, ProductionType } from '../../types';
 import BananaPro from '../shared/BananaPro';
+import { InlineProgress } from '../shared/ProgressIndicator';
 
 import cinematicVideoIcon from '@assets/icons/cinematic-video.png';
 import socialPostersIcon from '@assets/icons/social-posters.png';
@@ -227,28 +228,29 @@ const BriefingForm: React.FC<BriefingFormProps> = ({
             />
           </div>
 
-          <button 
-            type="button"
-            onClick={onResearchBrand}
-            disabled={isResearching || isGeneratingMoodBoard}
-            className={`w-full flex items-center justify-center gap-3 font-bold px-6 py-4 rounded-xl border-2 transition-all ${
-              ((brief.brandName && brief.productName) || (productionType === 'food-social' && (brief.productUrl || brief.keyFeatures.length)))
-                ? 'text-black bg-gradient-to-r from-yellow-400 to-orange-500 border-yellow-500 hover:shadow-lg hover:shadow-yellow-500/30 hover:scale-[1.02]' 
-                : 'text-white/40 bg-white/5 border-white/10 hover:text-white/60'
-            }`}
-          >
-            {isResearching || isGeneratingMoodBoard ? (
-              <>
-                <BananaPro role="research" size="sm" />
-                <span>{isResearching ? "Researching..." : "Generating Mood Board..."}</span>
-              </>
-            ) : (
-              <>
-                <span className="text-2xl">🍌</span>
-                <span>Banana my Brand DNA</span>
-              </>
-            )}
-          </button>
+          {isResearching || isGeneratingMoodBoard ? (
+            <div className="w-full rounded-xl border-2 border-yellow-500/30 bg-white/5 p-4">
+              <InlineProgress 
+                operation={isResearching ? 'research' : 'moodboard'} 
+                isActive={true}
+                text={isResearching ? undefined : "Creating mood board"}
+              />
+            </div>
+          ) : (
+            <button 
+              type="button"
+              onClick={onResearchBrand}
+              disabled={isResearching || isGeneratingMoodBoard}
+              className={`w-full flex items-center justify-center gap-3 font-bold px-6 py-4 rounded-xl border-2 transition-all ${
+                ((brief.brandName && brief.productName) || (productionType === 'food-social' && (brief.productUrl || brief.keyFeatures.length)))
+                  ? 'text-black bg-gradient-to-r from-yellow-400 to-orange-500 border-yellow-500 hover:shadow-lg hover:shadow-yellow-500/30 hover:scale-[1.02]' 
+                  : 'text-white/40 bg-white/5 border-white/10 hover:text-white/60'
+              }`}
+            >
+              <span className="text-2xl">🍌</span>
+              <span>Banana my Brand DNA</span>
+            </button>
+          )}
 
           <div className="grid grid-cols-2 gap-6">
             <div className="space-y-2">
@@ -438,14 +440,23 @@ const BriefingForm: React.FC<BriefingFormProps> = ({
             </div>
           </div>
 
-          <button 
-            type="submit" 
-            disabled={isGenerating}
-            className="w-full gradient-accent text-black font-bold py-4 rounded-xl shadow-lg hover:opacity-90 transition flex items-center justify-center space-x-2 disabled:opacity-50"
-          >
-            {isGenerating ? <BananaPro role="director" size="sm" /> : <i className="fa-solid fa-sparkles"></i>}
-            <span>{isGenerating ? "Analyzing Brand DNA..." : "Generate Creative Concepts"}</span>
-          </button>
+          {isGenerating ? (
+            <div className="w-full rounded-xl border-2 border-yellow-500/30 bg-white/5 p-4">
+              <InlineProgress 
+                operation="concepts" 
+                isActive={true}
+              />
+            </div>
+          ) : (
+            <button 
+              type="submit" 
+              disabled={isGenerating}
+              className="w-full gradient-accent text-black font-bold py-4 rounded-xl shadow-lg hover:opacity-90 transition flex items-center justify-center space-x-2 disabled:opacity-50"
+            >
+              <i className="fa-solid fa-sparkles"></i>
+              <span>Generate Creative Concepts</span>
+            </button>
+          )}
         </form>
       </div>
 
@@ -610,16 +621,21 @@ const BriefingForm: React.FC<BriefingFormProps> = ({
             <div className="bg-white/5 rounded-2xl p-6">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="font-bold text-white/70 uppercase text-xs tracking-widest">Mood Board</h3>
-                {!brief.moodBoard && (
+                {!brief.moodBoard && !isGeneratingMoodBoard && (
                   <button 
                     onClick={onGenerateMoodBoard}
                     disabled={isGeneratingMoodBoard || brief.tone.length === 0}
                     className="text-xs bg-yellow-500/20 hover:bg-yellow-500/40 text-yellow-300 px-3 py-1.5 rounded-lg transition disabled:opacity-50 flex items-center gap-2"
                   >
-                    {isGeneratingMoodBoard ? <BananaPro role="artist" size="sm" /> : "Generate"}
+                    Generate
                   </button>
                 )}
               </div>
+              {isGeneratingMoodBoard && !brief.moodBoard && (
+                <div className="mb-4 p-3 rounded-xl border border-pink-500/30 bg-pink-500/10">
+                  <InlineProgress operation="moodboard" isActive={true} />
+                </div>
+              )}
               {brief.moodBoard ? (
                 <div className="relative group overflow-hidden rounded-xl shadow-2xl border border-yellow-500/30">
                   <img src={brief.moodBoard} className="w-full h-auto object-cover" alt="Brand Mood Board" />
