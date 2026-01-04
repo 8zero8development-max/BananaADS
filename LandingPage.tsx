@@ -371,20 +371,6 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
               <p className="text-white/70 text-sm font-medium">Email Campaign</p>
             </div>
           </div>
-          <div className="mt-8 flex flex-wrap justify-center gap-8 text-sm text-white/50">
-            <div className="flex items-center gap-2">
-              <span className="text-yellow-400">&#9733;</span>
-              <span>Powered by Google Gemini & Veo</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="text-green-400">&#128274;</span>
-              <span>API keys stored locally, never on servers</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="text-blue-400">&#128176;</span>
-              <span>Works on Gemini free tier</span>
-            </div>
-          </div>
         </div>
       </section>
 
