@@ -157,6 +157,75 @@ const Production: React.FC<ProductionProps> = ({
   );
 };
 
+const FacebookPostMockup = memo<{
+  brandName: string;
+  logoImage?: string;
+  postText: string;
+  imageUrl?: string;
+}>(({ brandName, logoImage, postText, imageUrl }) => {
+  return (
+    <div className="bg-white rounded-lg shadow-lg overflow-hidden max-w-md mx-auto">
+      {/* Facebook Header */}
+      <div className="p-4">
+        <div className="flex items-center space-x-3">
+          <div className="w-12 h-12 rounded-full bg-gray-200 overflow-hidden flex-shrink-0">
+            {logoImage ? (
+              <img src={logoImage} alt={brandName} className="w-full h-full object-cover" />
+            ) : (
+              <div className="w-full h-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
+                <span className="text-white font-bold text-lg">
+                  {brandName.charAt(0).toUpperCase()}
+                </span>
+              </div>
+            )}
+          </div>
+          <div className="flex-1">
+            <div className="font-semibold text-gray-900">{brandName}</div>
+            <div className="text-xs text-gray-500">Sponsored · Just now</div>
+          </div>
+          <div className="text-gray-400 hover:text-gray-600 cursor-pointer">
+            <i className="fa-solid fa-ellipsis-h"></i>
+          </div>
+        </div>
+      </div>
+
+      {/* Post Text */}
+      <div className="px-4 pb-3">
+        <p className="text-gray-800 text-sm leading-relaxed whitespace-pre-wrap">
+          {postText}
+        </p>
+      </div>
+
+      {/* Post Image */}
+      {imageUrl && (
+        <div className="bg-gray-100">
+          <img src={imageUrl} alt="Post" className="w-full object-cover" />
+        </div>
+      )}
+
+      {/* Facebook Footer */}
+      <div className="p-4 border-t border-gray-200">
+        <div className="flex items-center justify-between text-gray-600">
+          <button className="flex items-center space-x-2 hover:bg-gray-100 px-3 py-1 rounded transition">
+            <i className="fa-solid fa-thumbs-up"></i>
+            <span className="text-sm">Like</span>
+          </button>
+          <button className="flex items-center space-x-2 hover:bg-gray-100 px-3 py-1 rounded transition">
+            <i className="fa-solid fa-comment"></i>
+            <span className="text-sm">Comment</span>
+          </button>
+          <button className="flex items-center space-x-2 hover:bg-gray-100 px-3 py-1 rounded transition">
+            <i className="fa-solid fa-share"></i>
+            <span className="text-sm">Share</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+});
+
+FacebookPostMockup.displayName = 'FacebookPostMockup';
+
 interface FoodSocialLayoutProps {
   project: AdProject;
   selectedFoodPostIdx: number;
@@ -189,6 +258,139 @@ const FoodSocialLayout = memo<FoodSocialLayoutProps>(({
 
   return (
     <div className="space-y-8">
+      {scene && (
+        <>
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-3">
+              <span className="text-sm font-bold text-yellow-400">Post #{idx + 1}</span>
+              <span className="bg-pink-500/10 text-pink-400 text-[10px] font-bold px-2 py-1 rounded">Instagram / FB</span>
+            </div>
+          </div>
+
+          <div className="flex flex-col lg:flex-row gap-8">
+            <div className="lg:w-1/2">
+              <FacebookPostMockup
+                brandName={project.brief.brandName}
+                logoImage={project.brief.logoImage}
+                postText={scene.audioScript}
+                imageUrl={scene.imageUrl}
+              />
+            </div>
+
+            <div className="lg:w-1/2 glass rounded-[24px] p-6 flex flex-col">
+              {scene.selectedCta && (
+                <div className="mb-4 p-3 bg-yellow-500/10 rounded-xl border border-yellow-500/20">
+                  <span className="text-[10px] uppercase tracking-widest text-white/40 block mb-1">Call to Action</span>
+                  <span className="text-yellow-400 font-bold">{scene.selectedCta}</span>
+                </div>
+              )}
+
+              <div className="mb-4">
+                <div className="flex items-center justify-between mb-2">
+                  <label className="text-[10px] uppercase tracking-widest text-white/30 font-bold">Post Caption</label>
+                  <button 
+                    onClick={() => handlePolishScript(idx)}
+                    disabled={scene.isPolishingScript}
+                    className="text-[10px] bg-yellow-500/10 hover:bg-yellow-500/30 text-yellow-300 px-2 py-1 rounded transition flex items-center gap-1"
+                  >
+                    {scene.isPolishingScript ? <BananaPro role="writer" size="sm" /> : <i className="fa-solid fa-wand-magic-sparkles"></i>}
+                    <span>Polish</span>
+                  </button>
+                </div>
+                <div className="bg-black/30 rounded-xl p-4 max-h-[200px] overflow-y-auto">
+                  <p className="text-sm leading-relaxed whitespace-pre-wrap">{scene.audioScript}</p>
+                </div>
+              </div>
+
+              <div className="mb-4">
+                <label className="text-[10px] uppercase tracking-widest text-white/30 font-bold block mb-2">Edit Image with AI</label>
+                <div className="flex gap-0">
+                  <div className="relative flex-grow">
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-white/30"><i className="fa-solid fa-wand-magic-sparkles"></i></span>
+                    <input 
+                      type="text"
+                      value={editInstruction}
+                      onChange={(e) => setEditInstruction(e.target.value)}
+                      placeholder="Add smoke, change background..."
+                      className="w-full bg-white/5 border border-yellow-500/30 rounded-l-xl pl-9 pr-4 py-2.5 text-sm focus:border-yellow-500 outline-none transition"
+                    />
+                  </div>
+                  <button 
+                    onClick={() => handleEditImage(idx)}
+                    disabled={!editInstruction || !scene.imageUrl || scene.isGeneratingImage}
+                    className="bg-yellow-500/10 hover:bg-yellow-500/20 text-yellow-400 border-y border-r border-yellow-500/30 px-4 py-2.5 rounded-r-xl font-bold text-sm transition disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    Edit
+                  </button>
+                </div>
+              </div>
+
+              <div className="flex space-x-2 mb-4">
+                <button 
+                  onClick={() => generateSceneImage(idx)}
+                  disabled={scene.isGeneratingImage}
+                  className="bg-white text-black px-4 py-2 rounded-full text-xs font-bold hover:bg-yellow-50 transition flex items-center space-x-2"
+                >
+                  {scene.isGeneratingImage ? <BananaPro role="artist" size="sm" /> : <i className="fa-solid fa-image"></i>}
+                  <span>{scene.imageUrl ? "Regenerate" : "Generate"}</span>
+                </button>
+                {scene.imageUrl && (
+                  <button
+                    onClick={() => handleDownload(scene.imageUrl!, `FoodSocial-Post-${idx + 1}.png`)}
+                    className="bg-white/20 backdrop-blur text-white px-3 py-2 rounded-full text-xs font-bold hover:bg-white/30 transition"
+                  >
+                    <i className="fa-solid fa-download"></i>
+                  </button>
+                )}
+              </div>
+
+              <details className="group">
+                <summary className="text-[10px] uppercase tracking-widest text-white/30 font-bold cursor-pointer hover:text-white/50 transition flex items-center gap-2 mb-2">
+                  <i className="fa-solid fa-chevron-right text-[8px] transition-transform group-open:rotate-90"></i>
+                  Advanced Prompts
+                </summary>
+                <div className="space-y-3 pl-4 border-l border-white/10">
+                  <div>
+                    <div className="flex justify-between items-center mb-1">
+                      <span className="text-[9px] text-white/40">Graphic Design Prompt</span>
+                      <button 
+                        onClick={() => handleCopyPrompt(scene.visualPrompt, `${idx}-vis`)}
+                        className="text-[9px] text-white/40 hover:text-white transition"
+                      >
+                        {copiedId === `${idx}-vis` ? <span className="text-green-400">Copied</span> : 'Copy'}
+                      </button>
+                    </div>
+                    <p className="text-white/60 text-[11px] leading-relaxed italic line-clamp-3">"{scene.visualPrompt}"</p>
+                  </div>
+                  <div>
+                    <div className="flex justify-between items-center mb-1">
+                      <span className="text-[9px] text-white/40">Nano Banana Prompt</span>
+                      <button 
+                        onClick={() => handleCopyPrompt(`generate_img("Generate a high-end cinematic advertising shot. Description: ${scene.visualPrompt}. 8k, professional lighting, photorealistic.")`, `${idx}-nano`)}
+                        className="text-[9px] text-white/40 hover:text-white transition"
+                      >
+                        {copiedId === `${idx}-nano` ? <span className="text-green-400">Copied</span> : 'Copy'}
+                      </button>
+                    </div>
+                    <div className="bg-black/40 rounded p-2 border border-yellow-500/20">
+                      <p className="text-white/50 text-[10px] font-mono line-clamp-2">generate_img("...")</p>
+                    </div>
+                  </div>
+                </div>
+              </details>
+
+              <div className="mt-auto pt-4 flex items-center space-x-3 border-t border-white/5">
+                <div className="flex -space-x-2">
+                  <div className="w-6 h-6 rounded-full bg-white/10 border-2 border-black flex items-center justify-center text-[8px]"><i className="fa-solid fa-robot"></i></div>
+                  <div className="w-6 h-6 rounded-full bg-yellow-500 border-2 border-black flex items-center justify-center text-[8px] text-black"><i className="fa-solid fa-wand-magic-sparkles"></i></div>
+                </div>
+                <span className="text-[9px] text-white/40 uppercase font-bold tracking-widest">AI Assisted</span>
+              </div>
+            </div>
+          </div>
+        </>
+      )}
+
       <div className="grid grid-cols-3 gap-4">
         {project.scenes.map((s, i) => (
           <div 
@@ -229,154 +431,6 @@ const FoodSocialLayout = memo<FoodSocialLayoutProps>(({
           </div>
         ))}
       </div>
-
-      {scene && (
-        <div className="glass rounded-[40px] overflow-hidden">
-          <div className="flex flex-col lg:flex-row">
-            <div className="lg:w-3/5 bg-black relative group">
-              <div className="aspect-video w-full">
-                {scene.imageUrl ? (
-                  <img src={scene.imageUrl} className="w-full h-full object-cover" alt={`Post ${idx + 1}`} />
-                ) : scene.isGeneratingImage ? (
-                  <div className="w-full h-full flex flex-col items-center justify-center bg-zinc-900 p-8">
-                    <ProgressIndicator 
-                      operation="image" 
-                      isActive={true} 
-                      state="processing"
-                      size="lg"
-                    />
-                  </div>
-                ) : (
-                  <div className="w-full h-full flex flex-col items-center justify-center bg-zinc-900">
-                    <div className="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center mb-4">
-                      <i className="fa-solid fa-image text-white/20 text-2xl"></i>
-                    </div>
-                    <p className="text-white/40 font-medium">Image not generated</p>
-                  </div>
-                )}
-              </div>
-              
-              <div className="absolute bottom-4 left-4 flex space-x-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                <button 
-                  onClick={() => generateSceneImage(idx)}
-                  disabled={scene.isGeneratingImage}
-                  className="bg-white text-black px-4 py-2 rounded-full text-xs font-bold hover:bg-yellow-50 transition flex items-center space-x-2"
-                >
-                  {scene.isGeneratingImage ? <BananaPro role="artist" size="sm" /> : <i className="fa-solid fa-image"></i>}
-                  <span>{scene.imageUrl ? "Regenerate" : "Generate"}</span>
-                </button>
-                {scene.imageUrl && (
-                  <button
-                    onClick={() => handleDownload(scene.imageUrl!, `FoodSocial-Post-${idx + 1}.png`)}
-                    className="bg-white/20 backdrop-blur text-white px-3 py-2 rounded-full text-xs font-bold hover:bg-white/30 transition"
-                  >
-                    <i className="fa-solid fa-download"></i>
-                  </button>
-                )}
-              </div>
-            </div>
-
-            <div className="lg:w-2/5 p-6 flex flex-col border-l border-white/5">
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center gap-3">
-                  <span className="text-sm font-bold text-yellow-400">Post #{idx + 1}</span>
-                  <span className="bg-pink-500/10 text-pink-400 text-[10px] font-bold px-2 py-1 rounded">Instagram / FB</span>
-                </div>
-              </div>
-
-              {scene.selectedCta && (
-                <div className="mb-4 p-3 bg-yellow-500/10 rounded-xl border border-yellow-500/20">
-                  <span className="text-[10px] uppercase tracking-widest text-white/40 block mb-1">Call to Action</span>
-                  <span className="text-yellow-400 font-bold">{scene.selectedCta}</span>
-                </div>
-              )}
-
-              <div className="flex-1 mb-4">
-                <div className="flex items-center justify-between mb-2">
-                  <label className="text-[10px] uppercase tracking-widest text-white/30 font-bold">Post Caption</label>
-                  <button 
-                    onClick={() => handlePolishScript(idx)}
-                    disabled={scene.isPolishingScript}
-                    className="text-[10px] bg-yellow-500/10 hover:bg-yellow-500/30 text-yellow-300 px-2 py-1 rounded transition flex items-center gap-1"
-                  >
-                    {scene.isPolishingScript ? <BananaPro role="writer" size="sm" /> : <i className="fa-solid fa-wand-magic-sparkles"></i>}
-                    <span>Polish</span>
-                  </button>
-                </div>
-                <div className="bg-black/30 rounded-xl p-4 max-h-[200px] overflow-y-auto">
-                  <p className="text-sm leading-relaxed whitespace-pre-wrap">{scene.audioScript}</p>
-                </div>
-              </div>
-
-              <div className="mb-4">
-                <label className="text-[10px] uppercase tracking-widest text-white/30 font-bold block mb-2">Edit Image with AI</label>
-                <div className="flex gap-0">
-                  <div className="relative flex-grow">
-                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-white/30"><i className="fa-solid fa-wand-magic-sparkles"></i></span>
-                    <input 
-                      type="text"
-                      value={editInstruction}
-                      onChange={(e) => setEditInstruction(e.target.value)}
-                      placeholder="Add smoke, change background..."
-                      className="w-full bg-white/5 border border-yellow-500/30 rounded-l-xl pl-9 pr-4 py-2.5 text-sm focus:border-yellow-500 outline-none transition"
-                    />
-                  </div>
-                  <button 
-                    onClick={() => handleEditImage(idx)}
-                    disabled={!editInstruction || !scene.imageUrl || scene.isGeneratingImage}
-                    className="bg-yellow-500/10 hover:bg-yellow-500/20 text-yellow-400 border-y border-r border-yellow-500/30 px-4 py-2.5 rounded-r-xl font-bold text-sm transition disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    Edit
-                  </button>
-                </div>
-              </div>
-
-              <details className="group">
-                <summary className="text-[10px] uppercase tracking-widest text-white/30 font-bold cursor-pointer hover:text-white/50 transition flex items-center gap-2 mb-2">
-                  <i className="fa-solid fa-chevron-right text-[8px] transition-transform group-open:rotate-90"></i>
-                  Advanced Prompts
-                </summary>
-                <div className="space-y-3 pl-4 border-l border-white/10">
-                  <div>
-                    <div className="flex justify-between items-center mb-1">
-                      <span className="text-[9px] text-white/40">Graphic Design Prompt</span>
-                      <button 
-                        onClick={() => handleCopyPrompt(scene.visualPrompt, `${idx}-vis`)}
-                        className="text-[9px] text-white/40 hover:text-white transition"
-                      >
-                        {copiedId === `${idx}-vis` ? <span className="text-green-400">Copied</span> : 'Copy'}
-                      </button>
-                    </div>
-                    <p className="text-white/60 text-[11px] leading-relaxed italic line-clamp-3">"{scene.visualPrompt}"</p>
-                  </div>
-                  <div>
-                    <div className="flex justify-between items-center mb-1">
-                      <span className="text-[9px] text-white/40">Nano Banana Prompt</span>
-                      <button 
-                        onClick={() => handleCopyPrompt(`generate_img("Generate a high-end cinematic advertising shot. Description: ${scene.visualPrompt}. 8k, professional lighting, photorealistic.")`, `${idx}-nano`)}
-                        className="text-[9px] text-white/40 hover:text-white transition"
-                      >
-                        {copiedId === `${idx}-nano` ? <span className="text-green-400">Copied</span> : 'Copy'}
-                      </button>
-                    </div>
-                    <div className="bg-black/40 rounded p-2 border border-yellow-500/20">
-                      <p className="text-white/50 text-[10px] font-mono line-clamp-2">generate_img("...")</p>
-                    </div>
-                  </div>
-                </div>
-              </details>
-
-              <div className="mt-auto pt-4 flex items-center space-x-3 border-t border-white/5">
-                <div className="flex -space-x-2">
-                  <div className="w-6 h-6 rounded-full bg-white/10 border-2 border-black flex items-center justify-center text-[8px]"><i className="fa-solid fa-robot"></i></div>
-                  <div className="w-6 h-6 rounded-full bg-yellow-500 border-2 border-black flex items-center justify-center text-[8px] text-black"><i className="fa-solid fa-wand-magic-sparkles"></i></div>
-                </div>
-                <span className="text-[9px] text-white/40 uppercase font-bold tracking-widest">AI Assisted</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 });
@@ -415,97 +469,27 @@ const SocialLayout = memo<SocialLayoutProps>(({
 
   return (
     <div className="space-y-8">
-      <div className="grid grid-cols-3 gap-4">
-        {project.scenes.map((s, i) => (
-          <div 
-            key={i}
-            onClick={() => setSelectedSocialPostIdx(i)}
-            className={`glass rounded-2xl overflow-hidden cursor-pointer transition-all hover:scale-[1.02] ${selectedSocialPostIdx === i ? 'ring-2 ring-yellow-500 ring-offset-2 ring-offset-black' : 'opacity-70 hover:opacity-100'}`}
-          >
-            <div className="aspect-[3/4] bg-zinc-900 relative">
-              {s.imageUrl ? (
-                <img src={s.imageUrl} className="w-full h-full object-cover" alt={`Post ${i + 1}`} />
-              ) : s.isGeneratingImage ? (
-                <div className="w-full h-full flex flex-col items-center justify-center p-2">
-                  <div className="flex items-center gap-1 mb-1">
-                    <span className="text-lg animate-banana-bounce">🍌</span>
-                    <i className="fa-solid fa-image text-purple-400 text-xs animate-pulse"></i>
-                  </div>
-                  <CompactProgress operation="image" isActive={true} className="w-full" />
-                </div>
-              ) : (
-                <div className="w-full h-full flex items-center justify-center">
-                  <i className="fa-solid fa-image text-white/20 text-2xl"></i>
-                </div>
-              )}
-              {selectedSocialPostIdx === i && (
-                <div className="absolute top-2 right-2 w-6 h-6 rounded-full bg-yellow-500 flex items-center justify-center">
-                  <i className="fa-solid fa-check text-black text-xs"></i>
-                </div>
-              )}
-            </div>
-            <div className="p-3 bg-zinc-900/50">
-              <span className="text-xs font-bold text-yellow-400">Post #{i + 1}</span>
+      {scene && (
+        <>
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-3">
+              <span className="text-sm font-bold text-yellow-400">Post #{idx + 1}</span>
+              <span className="bg-pink-500/10 text-pink-400 text-[10px] font-bold px-2 py-1 rounded">Instagram / FB</span>
             </div>
           </div>
-        ))}
-      </div>
 
-      {scene && (
-        <div className="glass rounded-[40px] overflow-hidden">
-          <div className="flex flex-col lg:flex-row">
-            <div className="lg:w-5/12 bg-black relative group flex items-center justify-center">
-              <div className="aspect-[3/4] h-[500px]">
-                {scene.imageUrl ? (
-                  <img src={scene.imageUrl} className="w-full h-full object-cover" alt={`Post ${idx + 1}`} />
-                ) : scene.isGeneratingImage ? (
-                  <div className="w-full h-full flex flex-col items-center justify-center bg-zinc-900 p-8">
-                    <ProgressIndicator 
-                      operation="image" 
-                      isActive={true} 
-                      state="processing"
-                      size="lg"
-                    />
-                  </div>
-                ) : (
-                  <div className="w-full h-full flex flex-col items-center justify-center bg-zinc-900">
-                    <div className="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center mb-4">
-                      <i className="fa-solid fa-image text-white/20 text-2xl"></i>
-                    </div>
-                    <p className="text-white/40 font-medium">Image not generated</p>
-                  </div>
-                )}
-              </div>
-              
-              <div className="absolute bottom-4 left-4 flex space-x-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                <button 
-                  onClick={() => generateSceneImage(idx)}
-                  disabled={scene.isGeneratingImage}
-                  className="bg-white text-black px-4 py-2 rounded-full text-xs font-bold hover:bg-yellow-50 transition flex items-center space-x-2"
-                >
-                  {scene.isGeneratingImage ? <BananaPro role="artist" size="sm" /> : <i className="fa-solid fa-image"></i>}
-                  <span>{scene.imageUrl ? "Regenerate" : "Generate"}</span>
-                </button>
-                {scene.imageUrl && (
-                  <button
-                    onClick={() => handleDownload(scene.imageUrl!, `SocialPoster-Post-${idx + 1}.png`)}
-                    className="bg-white/20 backdrop-blur text-white px-3 py-2 rounded-full text-xs font-bold hover:bg-white/30 transition"
-                  >
-                    <i className="fa-solid fa-download"></i>
-                  </button>
-                )}
-              </div>
+          <div className="flex flex-col lg:flex-row gap-8">
+            <div className="lg:w-1/2">
+              <FacebookPostMockup
+                brandName={project.brief.brandName}
+                logoImage={project.brief.logoImage}
+                postText={scene.audioScript}
+                imageUrl={scene.imageUrl}
+              />
             </div>
 
-            <div className="lg:w-7/12 p-6 flex flex-col border-l border-white/5">
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center gap-3">
-                  <span className="text-sm font-bold text-yellow-400">Post #{idx + 1}</span>
-                  <span className="bg-pink-500/10 text-pink-400 text-[10px] font-bold px-2 py-1 rounded">Instagram / FB</span>
-                </div>
-              </div>
-
-              <div className="flex-1 mb-4">
+            <div className="lg:w-1/2 glass rounded-[24px] p-6 flex flex-col">
+              <div className="mb-4">
                 <div className="flex items-center justify-between mb-2">
                   <label className="text-[10px] uppercase tracking-widest text-white/30 font-bold">Post Caption</label>
                   <button 
@@ -545,6 +529,25 @@ const SocialLayout = memo<SocialLayoutProps>(({
                 </div>
               </div>
 
+              <div className="flex space-x-2 mb-4">
+                <button 
+                  onClick={() => generateSceneImage(idx)}
+                  disabled={scene.isGeneratingImage}
+                  className="bg-white text-black px-4 py-2 rounded-full text-xs font-bold hover:bg-yellow-50 transition flex items-center space-x-2"
+                >
+                  {scene.isGeneratingImage ? <BananaPro role="artist" size="sm" /> : <i className="fa-solid fa-image"></i>}
+                  <span>{scene.imageUrl ? "Regenerate" : "Generate"}</span>
+                </button>
+                {scene.imageUrl && (
+                  <button
+                    onClick={() => handleDownload(scene.imageUrl!, `SocialPoster-Post-${idx + 1}.png`)}
+                    className="bg-white/20 backdrop-blur text-white px-3 py-2 rounded-full text-xs font-bold hover:bg-white/30 transition"
+                  >
+                    <i className="fa-solid fa-download"></i>
+                  </button>
+                )}
+              </div>
+
               <details className="group">
                 <summary className="text-[10px] uppercase tracking-widest text-white/30 font-bold cursor-pointer hover:text-white/50 transition flex items-center gap-2 mb-2">
                   <i className="fa-solid fa-chevron-right text-[8px] transition-transform group-open:rotate-90"></i>
@@ -589,8 +592,44 @@ const SocialLayout = memo<SocialLayoutProps>(({
               </div>
             </div>
           </div>
-        </div>
+        </>
       )}
+
+      <div className="grid grid-cols-3 gap-4">
+        {project.scenes.map((s, i) => (
+          <div 
+            key={i}
+            onClick={() => setSelectedSocialPostIdx(i)}
+            className={`glass rounded-2xl overflow-hidden cursor-pointer transition-all hover:scale-[1.02] ${selectedSocialPostIdx === i ? 'ring-2 ring-yellow-500 ring-offset-2 ring-offset-black' : 'opacity-70 hover:opacity-100'}`}
+          >
+            <div className="aspect-[3/4] bg-zinc-900 relative">
+              {s.imageUrl ? (
+                <img src={s.imageUrl} className="w-full h-full object-cover" alt={`Post ${i + 1}`} />
+              ) : s.isGeneratingImage ? (
+                <div className="w-full h-full flex flex-col items-center justify-center p-2">
+                  <div className="flex items-center gap-1 mb-1">
+                    <span className="text-lg animate-banana-bounce">🍌</span>
+                    <i className="fa-solid fa-image text-purple-400 text-xs animate-pulse"></i>
+                  </div>
+                  <CompactProgress operation="image" isActive={true} className="w-full" />
+                </div>
+              ) : (
+                <div className="w-full h-full flex items-center justify-center">
+                  <i className="fa-solid fa-image text-white/20 text-2xl"></i>
+                </div>
+              )}
+              {selectedSocialPostIdx === i && (
+                <div className="absolute top-2 right-2 w-6 h-6 rounded-full bg-yellow-500 flex items-center justify-center">
+                  <i className="fa-solid fa-check text-black text-xs"></i>
+                </div>
+              )}
+            </div>
+            <div className="p-3 bg-zinc-900/50">
+              <span className="text-xs font-bold text-yellow-400">Post #{i + 1}</span>
+            </div>
+          </div>
+        ))}
+      </div>
     </div>
   );
 });
