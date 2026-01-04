@@ -218,12 +218,14 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
           </div>
 
           <h1 className="text-5xl md:text-7xl font-serif mb-4 leading-tight">
-            <span className="text-silver" style={{ color: '#C0C0C0' }}>
+            <span style={{ color: '#FFD700' }}>
               Launch Scroll-Stopping Ads
             </span>
             <br />
-            <span className="text-silver" style={{ color: '#C0C0C0' }}>In Minutes, Not Weeks</span>
+            <span style={{ color: '#FFD700' }}>In Minutes, Not Weeks</span>
           </h1>
+          
+          <div className="w-64 h-px bg-gradient-to-r from-transparent via-yellow-500/50 to-transparent mx-auto mb-6"></div>
           
           <div className="text-4xl md:text-6xl font-bold mb-6 tracking-wider flex items-center justify-center">
             <span className="text-white">RIPENYOUR</span>
