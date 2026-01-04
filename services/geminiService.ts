@@ -1461,4 +1461,67 @@ Art Direction:
     const videoBlob = await videoResponse.blob();
     return URL.createObjectURL(videoBlob);
   }
+
+  static async generateSocialVideo(
+    prompt: string,
+    motionPrompt: string,
+    initialImage?: string,
+    aspectRatio: string = '16:9'
+  ): Promise<string> {
+    const ai = this.getClient();
+    
+    // Combine visual and motion prompts into a single VeO prompt
+    const veoPrompt = `${prompt}. Motion: ${motionPrompt}. High consistency with input image. Photorealistic 8k.`;
+    
+    // Determine mimeType if image exists
+    const mimeType = initialImage ? initialImage.split(';')[0].split(':')[1] : undefined;
+
+    // Wrap initial generation request in retry
+    let operation = await this.retry(async () => {
+        return await ai.models.generateVideos({
+            model: 'veo-3.1-fast-generate-preview',
+            prompt: veoPrompt,
+            image: initialImage && mimeType ? {
+                imageBytes: initialImage.split(',')[1],
+                mimeType: mimeType
+            } : undefined,
+            config: {
+                numberOfVideos: 1,
+                resolution: '720p',
+                aspectRatio: aspectRatio as '16:9' | '9:16'
+            }
+        });
+    });
+
+    // Polling with Timeout and Retry
+    const startTime = Date.now();
+    const TIMEOUT_MS = 300000; // 5 minutes timeout
+
+    while (!operation.done) {
+      if (Date.now() - startTime > TIMEOUT_MS) {
+        throw new Error("Video generation timed out after 5 minutes");
+      }
+      await new Promise(resolve => setTimeout(resolve, 5000));
+      // Wrap polling in retry to handle transient API errors during check
+      operation = await this.retry(async () => await ai.operations.getVideosOperation({ operation: operation }));
+    }
+
+    const downloadLink = operation.response?.generatedVideos?.[0]?.video?.uri;
+    if (!downloadLink) throw new Error("Video generation failed");
+
+    // Client-side download using the stored API key from sessionStorage
+    const apiKey = this.getStoredApiKey();
+    if (!apiKey) {
+      throw new Error("API key not configured. Please add your Gemini API key in settings.");
+    }
+    
+    // Append API key to download URL (the URI may already have query params)
+    const separator = downloadLink.includes('?') ? '&' : '?';
+    const videoResponse = await fetch(`${downloadLink}${separator}key=${apiKey}`);
+    if (!videoResponse.ok) {
+        throw new Error(`Failed to download video: ${videoResponse.statusText}`);
+    }
+    const videoBlob = await videoResponse.blob();
+    return URL.createObjectURL(videoBlob);
+  }
 }

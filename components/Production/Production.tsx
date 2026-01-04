@@ -19,6 +19,7 @@ interface ProductionProps {
   copiedId: string | null;
   generateSceneImage: (idx: number, projectRef?: AdProject) => Promise<void>;
   generateSceneVideo: (idx: number) => Promise<void>;
+  generateSocialVideo: (idx: number) => Promise<void>;
   playVoiceover: (idx: number) => Promise<void>;
   handlePolishScript: (idx: number) => Promise<void>;
   handleEditImage: (idx: number) => Promise<void>;
@@ -28,6 +29,7 @@ interface ProductionProps {
 
 const Production: React.FC<ProductionProps> = ({
   project,
+  setProject,
   setStep,
   selectedFoodPostIdx,
   setSelectedFoodPostIdx,
@@ -40,6 +42,7 @@ const Production: React.FC<ProductionProps> = ({
   copiedId,
   generateSceneImage,
   generateSceneVideo,
+  generateSocialVideo,
   playVoiceover,
   handlePolishScript,
   handleEditImage,
@@ -96,12 +99,14 @@ const Production: React.FC<ProductionProps> = ({
       {project.projectType === 'food-social' && (
         <FoodSocialLayout
           project={project}
+          setProject={setProject}
           selectedFoodPostIdx={selectedFoodPostIdx}
           setSelectedFoodPostIdx={setSelectedFoodPostIdx}
           editInstruction={editInstruction}
           setEditInstruction={setEditInstruction}
           copiedId={copiedId}
           generateSceneImage={generateSceneImage}
+          generateSocialVideo={generateSocialVideo}
           handlePolishScript={handlePolishScript}
           handleEditImage={handleEditImage}
           handleCopyPrompt={handleCopyPrompt}
@@ -112,12 +117,14 @@ const Production: React.FC<ProductionProps> = ({
       {project.projectType === 'social' && (
         <SocialLayout
           project={project}
+          setProject={setProject}
           selectedSocialPostIdx={selectedSocialPostIdx}
           setSelectedSocialPostIdx={setSelectedSocialPostIdx}
           editInstruction={editInstruction}
           setEditInstruction={setEditInstruction}
           copiedId={copiedId}
           generateSceneImage={generateSceneImage}
+          generateSocialVideo={generateSocialVideo}
           handlePolishScript={handlePolishScript}
           handleEditImage={handleEditImage}
           handleCopyPrompt={handleCopyPrompt}
@@ -228,12 +235,14 @@ FacebookPostMockup.displayName = 'FacebookPostMockup';
 
 interface FoodSocialLayoutProps {
   project: AdProject;
+  setProject: React.Dispatch<React.SetStateAction<AdProject | null>>;
   selectedFoodPostIdx: number;
   setSelectedFoodPostIdx: React.Dispatch<React.SetStateAction<number>>;
   editInstruction: string;
   setEditInstruction: React.Dispatch<React.SetStateAction<string>>;
   copiedId: string | null;
   generateSceneImage: (idx: number, projectRef?: AdProject) => Promise<void>;
+  generateSocialVideo: (idx: number) => Promise<void>;
   handlePolishScript: (idx: number) => Promise<void>;
   handleEditImage: (idx: number) => Promise<void>;
   handleCopyPrompt: (text: string, id: string) => Promise<void>;
@@ -242,12 +251,14 @@ interface FoodSocialLayoutProps {
 
 const FoodSocialLayout = memo<FoodSocialLayoutProps>(({
   project,
+  setProject,
   selectedFoodPostIdx,
   setSelectedFoodPostIdx,
   editInstruction,
   setEditInstruction,
   copiedId,
   generateSceneImage,
+  generateSocialVideo,
   handlePolishScript,
   handleEditImage,
   handleCopyPrompt,
@@ -255,6 +266,24 @@ const FoodSocialLayout = memo<FoodSocialLayoutProps>(({
 }) => {
   const scene = useMemo(() => project.scenes[selectedFoodPostIdx], [project.scenes, selectedFoodPostIdx]);
   const idx = selectedFoodPostIdx;
+
+  const handleMotionPromptChange = useCallback((value: string) => {
+    setProject(prev => {
+      if (!prev) return null;
+      const newScenes = [...prev.scenes];
+      newScenes[idx] = { ...newScenes[idx], motionPrompt: value };
+      return { ...prev, scenes: newScenes };
+    });
+  }, [setProject, idx]);
+
+  const handleAspectRatioChange = useCallback((value: string) => {
+    setProject(prev => {
+      if (!prev) return null;
+      const newScenes = [...prev.scenes];
+      newScenes[idx] = { ...newScenes[idx], aspectRatio: value };
+      return { ...prev, scenes: newScenes };
+    });
+  }, [setProject, idx]);
 
   return (
     <div className="space-y-8">
@@ -325,6 +354,43 @@ const FoodSocialLayout = memo<FoodSocialLayoutProps>(({
                 </div>
               </div>
 
+              <div className="mb-4">
+                <label className="text-[10px] uppercase tracking-widest text-white/30 font-bold block mb-2">Motion Prompt</label>
+                <textarea
+                  rows={2}
+                  value={scene.motionPrompt || ''}
+                  onChange={(e) => handleMotionPromptChange(e.target.value)}
+                  placeholder="Describe the motion: 'Slow zoom in', 'Product rotates', 'Steam rises', etc."
+                  className="w-full bg-white/5 border border-yellow-500/30 rounded-xl px-4 py-2.5 text-sm focus:border-yellow-500 outline-none transition resize-none"
+                />
+              </div>
+
+              <div className="mb-4">
+                <label className="text-[10px] uppercase tracking-widest text-white/30 font-bold block mb-2">Aspect Ratio</label>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => handleAspectRatioChange('16:9')}
+                    className={`px-4 py-2 rounded-lg text-xs font-bold transition ${
+                      (scene.aspectRatio || '16:9') === '16:9'
+                        ? 'bg-yellow-500 text-black'
+                        : 'bg-white/10 text-white hover:bg-white/20'
+                    }`}
+                  >
+                    Landscape (16:9)
+                  </button>
+                  <button
+                    onClick={() => handleAspectRatioChange('9:16')}
+                    className={`px-4 py-2 rounded-lg text-xs font-bold transition ${
+                      scene.aspectRatio === '9:16'
+                        ? 'bg-yellow-500 text-black'
+                        : 'bg-white/10 text-white hover:bg-white/20'
+                    }`}
+                  >
+                    Portrait (9:16)
+                  </button>
+                </div>
+              </div>
+
               <div className="flex space-x-2 mb-4">
                 <button 
                   onClick={() => generateSceneImage(idx)}
@@ -333,6 +399,14 @@ const FoodSocialLayout = memo<FoodSocialLayoutProps>(({
                 >
                   {scene.isGeneratingImage ? <BananaPro role="artist" size="sm" /> : <i className="fa-solid fa-image"></i>}
                   <span>{scene.imageUrl ? "Regenerate" : "Generate"}</span>
+                </button>
+                <button 
+                  onClick={() => generateSocialVideo(idx)}
+                  disabled={scene.isGeneratingVideo || !scene.imageUrl}
+                  className="gradient-accent text-black px-4 py-2 rounded-full text-xs font-bold hover:scale-105 transition flex items-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {scene.isGeneratingVideo ? <BananaPro role="cameraman" size="sm" /> : <i className="fa-solid fa-play"></i>}
+                  <span>Animate Social Video</span>
                 </button>
                 {scene.imageUrl && (
                   <button
@@ -343,6 +417,18 @@ const FoodSocialLayout = memo<FoodSocialLayoutProps>(({
                   </button>
                 )}
               </div>
+
+              {scene.isGeneratingVideo && (
+                <div className="mb-4 p-4 bg-black/40 rounded-xl border border-yellow-500/20">
+                  <ProgressIndicator 
+                    operation="video" 
+                    isActive={true} 
+                    state="processing"
+                    size="sm"
+                    customText="Rendering social video"
+                  />
+                </div>
+              )}
 
               <details className="group">
                 <summary className="text-[10px] uppercase tracking-widest text-white/30 font-bold cursor-pointer hover:text-white/50 transition flex items-center gap-2 mb-2">
@@ -439,12 +525,14 @@ FoodSocialLayout.displayName = 'FoodSocialLayout';
 
 interface SocialLayoutProps {
   project: AdProject;
+  setProject: React.Dispatch<React.SetStateAction<AdProject | null>>;
   selectedSocialPostIdx: number;
   setSelectedSocialPostIdx: React.Dispatch<React.SetStateAction<number>>;
   editInstruction: string;
   setEditInstruction: React.Dispatch<React.SetStateAction<string>>;
   copiedId: string | null;
   generateSceneImage: (idx: number, projectRef?: AdProject) => Promise<void>;
+  generateSocialVideo: (idx: number) => Promise<void>;
   handlePolishScript: (idx: number) => Promise<void>;
   handleEditImage: (idx: number) => Promise<void>;
   handleCopyPrompt: (text: string, id: string) => Promise<void>;
@@ -453,12 +541,14 @@ interface SocialLayoutProps {
 
 const SocialLayout = memo<SocialLayoutProps>(({
   project,
+  setProject,
   selectedSocialPostIdx,
   setSelectedSocialPostIdx,
   editInstruction,
   setEditInstruction,
   copiedId,
   generateSceneImage,
+  generateSocialVideo,
   handlePolishScript,
   handleEditImage,
   handleCopyPrompt,
@@ -466,6 +556,24 @@ const SocialLayout = memo<SocialLayoutProps>(({
 }) => {
   const scene = useMemo(() => project.scenes[selectedSocialPostIdx], [project.scenes, selectedSocialPostIdx]);
   const idx = selectedSocialPostIdx;
+
+  const handleMotionPromptChange = useCallback((value: string) => {
+    setProject(prev => {
+      if (!prev) return null;
+      const newScenes = [...prev.scenes];
+      newScenes[idx] = { ...newScenes[idx], motionPrompt: value };
+      return { ...prev, scenes: newScenes };
+    });
+  }, [setProject, idx]);
+
+  const handleAspectRatioChange = useCallback((value: string) => {
+    setProject(prev => {
+      if (!prev) return null;
+      const newScenes = [...prev.scenes];
+      newScenes[idx] = { ...newScenes[idx], aspectRatio: value };
+      return { ...prev, scenes: newScenes };
+    });
+  }, [setProject, idx]);
 
   return (
     <div className="space-y-8">
@@ -529,6 +637,43 @@ const SocialLayout = memo<SocialLayoutProps>(({
                 </div>
               </div>
 
+              <div className="mb-4">
+                <label className="text-[10px] uppercase tracking-widest text-white/30 font-bold block mb-2">Motion Prompt</label>
+                <textarea
+                  rows={2}
+                  value={scene.motionPrompt || ''}
+                  onChange={(e) => handleMotionPromptChange(e.target.value)}
+                  placeholder="Describe the motion: 'Slow zoom in', 'Product rotates', 'Steam rises', etc."
+                  className="w-full bg-white/5 border border-yellow-500/30 rounded-xl px-4 py-2.5 text-sm focus:border-yellow-500 outline-none transition resize-none"
+                />
+              </div>
+
+              <div className="mb-4">
+                <label className="text-[10px] uppercase tracking-widest text-white/30 font-bold block mb-2">Aspect Ratio</label>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => handleAspectRatioChange('16:9')}
+                    className={`px-4 py-2 rounded-lg text-xs font-bold transition ${
+                      (scene.aspectRatio || '16:9') === '16:9'
+                        ? 'bg-yellow-500 text-black'
+                        : 'bg-white/10 text-white hover:bg-white/20'
+                    }`}
+                  >
+                    Landscape (16:9)
+                  </button>
+                  <button
+                    onClick={() => handleAspectRatioChange('9:16')}
+                    className={`px-4 py-2 rounded-lg text-xs font-bold transition ${
+                      scene.aspectRatio === '9:16'
+                        ? 'bg-yellow-500 text-black'
+                        : 'bg-white/10 text-white hover:bg-white/20'
+                    }`}
+                  >
+                    Portrait (9:16)
+                  </button>
+                </div>
+              </div>
+
               <div className="flex space-x-2 mb-4">
                 <button 
                   onClick={() => generateSceneImage(idx)}
@@ -537,6 +682,14 @@ const SocialLayout = memo<SocialLayoutProps>(({
                 >
                   {scene.isGeneratingImage ? <BananaPro role="artist" size="sm" /> : <i className="fa-solid fa-image"></i>}
                   <span>{scene.imageUrl ? "Regenerate" : "Generate"}</span>
+                </button>
+                <button 
+                  onClick={() => generateSocialVideo(idx)}
+                  disabled={scene.isGeneratingVideo || !scene.imageUrl}
+                  className="gradient-accent text-black px-4 py-2 rounded-full text-xs font-bold hover:scale-105 transition flex items-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {scene.isGeneratingVideo ? <BananaPro role="cameraman" size="sm" /> : <i className="fa-solid fa-play"></i>}
+                  <span>Animate Social Video</span>
                 </button>
                 {scene.imageUrl && (
                   <button
@@ -547,6 +700,18 @@ const SocialLayout = memo<SocialLayoutProps>(({
                   </button>
                 )}
               </div>
+
+              {scene.isGeneratingVideo && (
+                <div className="mb-4 p-4 bg-black/40 rounded-xl border border-yellow-500/20">
+                  <ProgressIndicator 
+                    operation="video" 
+                    isActive={true} 
+                    state="processing"
+                    size="sm"
+                    customText="Rendering social video"
+                  />
+                </div>
+              )}
 
               <details className="group">
                 <summary className="text-[10px] uppercase tracking-widest text-white/30 font-bold cursor-pointer hover:text-white/50 transition flex items-center gap-2 mb-2">

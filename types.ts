@@ -57,6 +57,8 @@ export interface Scene {
   isGeneratingVoice?: boolean;
   isPolishingScript?: boolean; // New state for script refinement
   selectedCta?: string; // For Food Socials overlay text
+  motionPrompt?: string; // For animated social videos - describes desired motion/animation
+  aspectRatio?: string; // For animated social videos - '16:9' or '9:16'
 }
 
 export interface AdProject {

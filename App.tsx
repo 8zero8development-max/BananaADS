@@ -425,6 +425,55 @@ const AppContent: React.FC<AppProps> = ({ onBackToLanding }) => {
     }
   };
 
+  const generateSocialVideo = async (idx: number) => {
+    if (!project) return;
+    const scene = project.scenes[idx];
+    
+    setProject(prev => {
+      if(!prev) return null;
+      const scenes = [...prev.scenes];
+      scenes[idx].isGeneratingVideo = true;
+      return { ...prev, scenes };
+    });
+
+    try {
+      const videoUrl = await GeminiService.generateSocialVideo(
+        scene.visualPrompt,
+        scene.motionPrompt || 'Subtle motion, gentle camera movement',
+        scene.imageUrl,
+        scene.aspectRatio || '16:9'
+      );
+      setProject(prev => {
+        if(!prev) return null;
+        const scenes = [...prev.scenes];
+        scenes[idx] = { ...scenes[idx], videoUrl, isGeneratingVideo: false };
+        return { ...prev, scenes };
+      });
+    } catch (error) {
+      const errorMessage = (error as any).message || 'Unknown error';
+      
+      // Handle "entity not found" error - typically means API key doesn't have video access
+      if (errorMessage.includes("Requested entity was not found")) {
+        // Only call Replit-specific API if it exists
+        if (typeof (window as any).aistudio?.openSelectKey === 'function') {
+          await (window as any).aistudio.openSelectKey();
+        } else {
+          showToast("Video generation requires a paid Gemini API key with Veo access.", 'error');
+        }
+      } else {
+        showToast(`Social video generation failed: ${errorMessage}`, 'error');
+      }
+      
+      console.error("Error generating social video:", error);
+      setProject(prev => {
+        if(!prev) return null;
+        const scenes = [...prev.scenes];
+        scenes[idx].isGeneratingVideo = false;
+        return { ...prev, scenes };
+      });
+    }
+  };
+
   const playVoiceover = async (idx: number) => {
     if (!project) return;
     setProject(prev => {
@@ -765,6 +814,7 @@ const AppContent: React.FC<AppProps> = ({ onBackToLanding }) => {
             copiedId={copiedId}
             generateSceneImage={generateSceneImage}
             generateSceneVideo={generateSceneVideo}
+            generateSocialVideo={generateSocialVideo}
             playVoiceover={playVoiceover}
             handlePolishScript={handlePolishScript}
             handleEditImage={handleEditImage}
