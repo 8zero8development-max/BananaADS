@@ -74,44 +74,40 @@ const AgeDemographicsChart: React.FC<{ targetAudience: string }> = ({ targetAudi
 
 const BrandToneVisualizer: React.FC<{ tones: string[] }> = ({ tones }) => {
   const toneColors: Record<string, string> = {
-    premium: 'from-amber-400 to-yellow-600',
-    luxury: 'from-purple-400 to-pink-600',
-    cinematic: 'from-blue-400 to-indigo-600',
-    inspiring: 'from-orange-400 to-red-500',
-    professional: 'from-slate-400 to-gray-600',
-    playful: 'from-pink-400 to-rose-500',
-    bold: 'from-red-500 to-orange-600',
-    elegant: 'from-violet-400 to-purple-600',
-    modern: 'from-cyan-400 to-blue-500',
-    minimal: 'from-gray-300 to-slate-500',
-    energetic: 'from-yellow-400 to-orange-500',
-    sophisticated: 'from-indigo-400 to-purple-600',
-    friendly: 'from-green-400 to-emerald-500',
-    trustworthy: 'from-blue-400 to-cyan-500',
-    innovative: 'from-violet-500 to-fuchsia-500',
+    premium: 'bg-amber-500/20 text-amber-300 border-amber-500/30',
+    luxury: 'bg-purple-500/20 text-purple-300 border-purple-500/30',
+    cinematic: 'bg-blue-500/20 text-blue-300 border-blue-500/30',
+    inspiring: 'bg-orange-500/20 text-orange-300 border-orange-500/30',
+    professional: 'bg-slate-500/20 text-slate-300 border-slate-500/30',
+    playful: 'bg-pink-500/20 text-pink-300 border-pink-500/30',
+    bold: 'bg-red-500/20 text-red-300 border-red-500/30',
+    elegant: 'bg-violet-500/20 text-violet-300 border-violet-500/30',
+    modern: 'bg-cyan-500/20 text-cyan-300 border-cyan-500/30',
+    minimal: 'bg-gray-500/20 text-gray-300 border-gray-500/30',
+    energetic: 'bg-yellow-500/20 text-yellow-300 border-yellow-500/30',
+    sophisticated: 'bg-indigo-500/20 text-indigo-300 border-indigo-500/30',
+    friendly: 'bg-green-500/20 text-green-300 border-green-500/30',
+    trustworthy: 'bg-blue-500/20 text-blue-300 border-blue-500/30',
+    innovative: 'bg-fuchsia-500/20 text-fuchsia-300 border-fuchsia-500/30',
   };
 
-  const getGradient = (tone: string) => {
+  const getTagStyle = (tone: string) => {
     const toneLower = tone.toLowerCase().trim();
-    for (const [key, gradient] of Object.entries(toneColors)) {
-      if (toneLower.includes(key)) return gradient;
+    for (const [key, style] of Object.entries(toneColors)) {
+      if (toneLower.includes(key)) return style;
     }
-    return 'from-yellow-400 to-orange-500';
+    return 'bg-yellow-500/20 text-yellow-300 border-yellow-500/30';
   };
 
   return (
-    <div className="grid grid-cols-2 gap-2">
-      {tones.slice(0, 4).map((tone, i) => (
-        <div 
+    <div className="flex flex-wrap gap-1.5">
+      {tones.slice(0, 6).map((tone, i) => (
+        <span 
           key={i}
-          className={`relative overflow-hidden rounded-xl p-3 bg-gradient-to-br ${getGradient(tone)} group cursor-default`}
+          className={`px-2 py-1 rounded text-[10px] font-medium border ${getTagStyle(tone)}`}
         >
-          <div className="absolute inset-0 bg-black/40 group-hover:bg-black/30 transition-colors" />
-          <div className="relative z-10">
-            <span className="text-white font-bold text-sm drop-shadow-lg">{tone.trim()}</span>
-          </div>
-          <div className="absolute -bottom-2 -right-2 w-12 h-12 bg-white/10 rounded-full blur-xl" />
-        </div>
+          {tone.trim()}
+        </span>
       ))}
     </div>
   );
