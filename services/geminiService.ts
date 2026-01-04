@@ -1,6 +1,6 @@
 
 import { GoogleGenAI, Type, Modality } from "@google/genai";
-import { AdBrief, AdConcept, Scene } from "../types";
+import { AdBrief, AdConcept, Scene, BrandDna } from "../types";
 
 const API_KEY_STORAGE_KEY = 'banana_ads_gemini_api_key';
 
@@ -9,6 +9,7 @@ const API_KEY_STORAGE_KEY = 'banana_ads_gemini_api_key';
 // ============================================================================
 const PROMPT_VERSIONS = {
   BRAND_RESEARCH: '1.0',
+  BRAND_DNA: '2.0',
   CONCEPTS: '2.1',
   FOOD_SOCIAL_CONCEPTS: '2.0',
   SCRIPT: '1.3',
@@ -67,6 +68,26 @@ Product: ${brief.productName}
 Target Audience: ${brief.targetAudience}
 Tone: ${brief.tone.join(', ')}
 Key Features: ${brief.keyFeatures.join(', ')}${brief.creativeDirection ? `\nCreative Direction: ${brief.creativeDirection}` : ''}`;
+};
+
+const buildBrandDnaContext = (dna: BrandDna): string => {
+  return `
+BRAND DNA PROFILE:
+Visual Style: ${dna.visualStyle}
+Color Palette: ${dna.colorPalette?.join(', ') || 'Not specified'}
+Typography: ${dna.typography || 'Not specified'}
+Composition: ${dna.composition || 'Not specified'}
+Mood: ${dna.mood || 'Not specified'}
+Target Psychographics: ${dna.targetPsychographics?.join(', ') || 'Not specified'}
+Brand Archetype: ${dna.brandArchetype || 'Not specified'}
+
+BRAND DNA GUIDELINES:
+- All visual outputs MUST reflect the ${dna.visualStyle} style
+- Use the color palette: ${dna.colorPalette?.join(', ') || 'brand-appropriate colors'}
+- Typography should be ${dna.typography || 'consistent with brand'}
+- Composition should follow ${dna.composition || 'brand-preferred layouts'}
+- Maintain ${dna.mood || 'appropriate'} emotional tone
+`;
 };
 
 const VISUAL_STYLE_GUIDE = `Style Requirements:
@@ -352,37 +373,55 @@ export class GeminiService {
       }
   }
 
-  // Brand DNA Research logic for Food Socials
-  static async researchBrandDna(brief: AdBrief): Promise<Partial<AdBrief>> {
+  // Brand DNA Research - Enhanced to extract comprehensive structured brand profile
+  static async researchBrandDna(brief: AdBrief, version: string = PROMPT_VERSIONS.BRAND_DNA): Promise<BrandDna> {
       const ai = this.getClient();
       
-      let prompt = `Analyze the provided brand assets to extract a structured Brand DNA profile.
-      
-      Inputs:
-      - Description/Features: "${brief.keyFeatures.join(', ')}"
-      - Website: "${brief.productUrl}"
-      - Target Audience: "${brief.targetAudience}"
-      - Desired Tone: "${brief.tone.join(', ')}"
-      ${brief.creativeDirection ? `- Creative Direction: "${brief.creativeDirection}"` : ""}
-      ${brief.productName ? `- Product Name: "${brief.productName}"` : ""}
-      ${brief.logoImage ? "- A logo image is attached." : ""}
-      ${brief.productImage ? "- A sample product/food photo is attached." : ""}
-    
-      Task:
-      1. Analyze the visual style (colors, fonts, lighting, plating, vibe) from the logo, sample product photo, and the Creative Direction input.
-      2. Extract a 'visualStyle' string description.
-      `;
+      const prompt = PROMPT_TEMPLATE.build({
+        role: 'Brand Strategist and Visual Identity Expert',
+        context: `Analyzing brand assets to extract a comprehensive Brand DNA profile.
+
+Inputs:
+- Brand Name: "${brief.brandName}"
+- Product Name: "${brief.productName}"
+- Description/Features: "${brief.keyFeatures.join(', ')}"
+- Website: "${brief.productUrl || 'Not provided'}"
+- Target Audience: "${brief.targetAudience}"
+- Desired Tone: "${brief.tone.join(', ')}"
+${brief.creativeDirection ? `- Creative Direction: "${brief.creativeDirection}"` : ""}
+${brief.logoImage ? "- Brand logo image is attached for visual analysis." : ""}
+${brief.productImage ? "- Product/food photo is attached for visual analysis." : ""}`,
+        task: `Extract a comprehensive Brand DNA profile by analyzing all provided inputs and images. Identify the brand's visual identity, emotional resonance, and strategic positioning.`,
+        constraints: [
+          'Visual style must describe colors, shapes, textures, and overall aesthetic',
+          'Color palette must include 3-5 specific colors (hex codes or descriptive names)',
+          'Typography must describe font style characteristics (serif/sans-serif, weight, personality)',
+          'Composition must describe layout preferences and visual hierarchy',
+          'Mood must capture the emotional tone and atmosphere',
+          'Target psychographics must include 3-5 lifestyle/value descriptors',
+          'Brand archetype must be one of the 12 Jungian archetypes (e.g., Hero, Creator, Caregiver, Explorer)'
+        ],
+        outputFormat: 'JSON object with fields: visualStyle, colorPalette (array), typography, composition, mood, targetPsychographics (array), brandArchetype',
+        errorHandling: [
+          ...ERROR_HANDLING_INSTRUCTIONS.general,
+          ...ERROR_HANDLING_INSTRUCTIONS.jsonOutput,
+          'If images are not provided, infer visual style from text descriptions',
+          'If brand archetype is unclear, select the most likely based on tone and audience'
+        ]
+      });
     
       const parts: any[] = [{ text: prompt }];
       
       if (brief.logoImage && brief.logoImage.startsWith('data:')) {
         const { mimeType, data } = await this.resolveImage(brief.logoImage);
         parts.push({ inlineData: { mimeType, data } });
+        parts.push({ text: "REFERENCE IMAGE (LOGO): Analyze this brand logo for colors, typography style, and visual identity cues." });
       }
     
       if (brief.productImage && brief.productImage.startsWith('data:')) {
         const { mimeType, data } = await this.resolveImage(brief.productImage);
         parts.push({ inlineData: { mimeType, data } });
+        parts.push({ text: "REFERENCE IMAGE (PRODUCT): Analyze this product image for visual style, lighting, composition, and mood." });
       }
     
       const response = await ai.models.generateContent({
@@ -393,9 +432,15 @@ export class GeminiService {
           responseSchema: {
             type: Type.OBJECT,
             properties: {
-              visualStyle: { type: Type.STRING, description: "Description of colors, shapes, and visual identity inferred from logo/desc/photo/direction" },
+              visualStyle: { type: Type.STRING, description: "Description of colors, shapes, textures, and overall visual aesthetic" },
+              colorPalette: { type: Type.ARRAY, items: { type: Type.STRING }, description: "3-5 specific colors (hex codes or descriptive names)" },
+              typography: { type: Type.STRING, description: "Font style characteristics (serif/sans-serif, weight, personality)" },
+              composition: { type: Type.STRING, description: "Layout preferences and visual hierarchy approach" },
+              mood: { type: Type.STRING, description: "Emotional tone and atmosphere of the brand" },
+              targetPsychographics: { type: Type.ARRAY, items: { type: Type.STRING }, description: "3-5 lifestyle/value descriptors of target audience" },
+              brandArchetype: { type: Type.STRING, description: "One of 12 Jungian archetypes (Hero, Creator, Caregiver, Explorer, etc.)" }
             },
-            required: ["visualStyle"]
+            required: ["visualStyle", "colorPalette", "typography", "composition", "mood", "targetPsychographics", "brandArchetype"]
           }
         }
       });
@@ -403,7 +448,16 @@ export class GeminiService {
       const text = response.text;
       if (!text) throw new Error("No response from Gemini");
       const data = JSON.parse(text);
-      return { visualStyle: data.visualStyle };
+      
+      return {
+        visualStyle: data.visualStyle || '',
+        colorPalette: data.colorPalette || [],
+        typography: data.typography || '',
+        composition: data.composition || '',
+        mood: data.mood || '',
+        targetPsychographics: data.targetPsychographics || [],
+        brandArchetype: data.brandArchetype || ''
+      };
   }
 
   static async generateMoodBoard(brief: AdBrief, referenceImage?: string, logoImage?: string): Promise<string> {
@@ -517,12 +571,13 @@ export class GeminiService {
   static async generateConcepts(brief: AdBrief, version: string = PROMPT_VERSIONS.CONCEPTS): Promise<AdConcept[]> {
     const ai = this.getClient();
     const brandContext = buildBrandContext(brief);
+    const brandDnaContext = brief.brandDna ? buildBrandDnaContext(brief.brandDna) : '';
     
     const prompt = PROMPT_TEMPLATE.build({
       role: 'Creative Director and Advertising Strategist',
       context: `Creating cinematic advertisement concepts for a brand campaign.
 
-${brandContext}${brief.creativeDirection ? `
+${brandContext}${brandDnaContext}${brief.creativeDirection ? `
 
 CAMPAIGN STRATEGY PIVOT:
 The user has specified a specific Creative Direction that may differ from standard brand DNA.
@@ -572,6 +627,7 @@ Ensure concepts align strictly with this direction, even if it contradicts the s
   // Specialized Concept Generation for Food Socials
   static async generateFoodSocialConcepts(brief: AdBrief, version: string = PROMPT_VERSIONS.FOOD_SOCIAL_CONCEPTS): Promise<AdConcept[]> {
       const ai = this.getClient();
+      const brandDnaContext = brief.brandDna ? buildBrandDnaContext(brief.brandDna) : '';
       
       const prompt = PROMPT_TEMPLATE.build({
         role: 'World-class Art Director & Graphic Designer specializing in food advertising',
@@ -579,10 +635,11 @@ Ensure concepts align strictly with this direction, even if it contradicts the s
 
 Brand DNA:
 - Tone: ${brief.tone.join(', ')}
-- Visual Style: ${brief.visualStyle || 'High-end appetizing'}
+- Visual Style: ${brief.brandDna?.visualStyle || brief.visualStyle || 'High-end appetizing'}
 - Keywords: ${brief.keyFeatures.join(', ')}
 ${brief.logoImage ? '- Brand logo is attached for reference - incorporate it into the designs.' : ''}
-${brief.productImage ? '- Product image is attached for reference.' : ''}`,
+${brief.productImage ? '- Product image is attached for reference.' : ''}
+${brandDnaContext}`,
         task: 'Generate 3 DISTINCT Art Direction concepts for Social Media Ads focusing on LAYOUT, TYPOGRAPHY, and COMPOSITION. Think: Magazine Ads, Billboards, Pop-Art, Modern Minimalist, 90s Retro.',
         constraints: [
           'Each concept MUST incorporate the brand logo for brand consistency',
@@ -943,6 +1000,7 @@ ${brief.productImage ? '- Product image is attached for reference.' : ''}`,
   static async generateScript(brief: AdBrief, concept: AdConcept, version: string = PROMPT_VERSIONS.SCRIPT): Promise<Scene[]> {
     const ai = this.getClient();
     const brandContext = buildBrandContext(brief);
+    const brandDnaContext = brief.brandDna ? buildBrandDnaContext(brief.brandDna) : '';
     
     const prompt = PROMPT_TEMPLATE.build({
       role: 'Cinematic Scriptwriter and Video Production Director',
@@ -953,7 +1011,7 @@ Concept Details:
 - Hook: ${concept.hook}
 - Summary: ${concept.summary}
 
-${brandContext}`,
+${brandContext}${brandDnaContext}`,
       task: 'Write a 5-scene cinematic script optimized for Image-to-Video generation. Each scene must describe a single, continuous motion lasting 5-8 seconds.',
       constraints: [
         'Script must have exactly 5 scenes',
@@ -1083,9 +1141,10 @@ ${brandContext}`,
     return response.text?.trim() || script;
   }
 
-  static async generateStoryboardImage(visualPrompt: string, productImage?: string, styleReferenceImage?: string, aspectRatio: string = "16:9", logoImage?: string, version: string = PROMPT_VERSIONS.STORYBOARD_IMAGE): Promise<string> {
+  static async generateStoryboardImage(visualPrompt: string, productImage?: string, styleReferenceImage?: string, aspectRatio: string = "16:9", logoImage?: string, version: string = PROMPT_VERSIONS.STORYBOARD_IMAGE, brandDna?: BrandDna): Promise<string> {
     const ai = this.getClient();
     const parts: any[] = [];
+    const brandDnaContext = brandDna ? buildBrandDnaContext(brandDna) : '';
 
     // 1. Add Product Reference if available
     if (productImage) {
@@ -1124,14 +1183,16 @@ ${brandContext}`,
     const logoInstruction = logoImage ? " Include the brand logo naturally in the composition." : "";
     const mainPrompt = PROMPT_TEMPLATE.build({
       role: 'Commercial Photography Director and Visual Artist',
-      context: `Generating a high-end commercial storyboard visual for an advertisement scene.`,
+      context: `Generating a high-end commercial storyboard visual for an advertisement scene.${brandDnaContext}`,
       task: `Create a photorealistic commercial image based on the following description: ${visualPrompt}`,
       constraints: [
         'Product from reference image MUST appear prominently in the scene',
         'Maintain visual consistency with style reference if provided',
         logoImage ? 'Incorporate brand logo naturally in the composition' : 'No logo required',
+        brandDna ? `Follow brand visual style: ${brandDna.visualStyle}` : '',
+        brandDna?.colorPalette?.length ? `Use brand color palette: ${brandDna.colorPalette.join(', ')}` : '',
         ...VISUAL_STYLE_GUIDE.split('\n').map(line => line.trim()).filter(line => line.startsWith('-')).map(line => line.substring(2))
-      ],
+      ].filter(c => c !== ''),
       outputFormat: 'High-resolution photorealistic image',
       errorHandling: ERROR_HANDLING_INSTRUCTIONS.imageGeneration
     });
@@ -1161,6 +1222,7 @@ ${brandContext}`,
   // Specialized Image Gen for Food Socials with Text Overlay logic support (via prompt)
   static async generateFoodHeroImage(brief: AdBrief, concept: AdConcept, ctaText: string, version: string = PROMPT_VERSIONS.FOOD_HERO_IMAGE): Promise<string> {
       const ai = this.getClient();
+      const brandDnaContext = brief.brandDna ? buildBrandDnaContext(brief.brandDna) : '';
       
       const prompt = PROMPT_TEMPLATE.build({
         role: 'Food Photography Director and Advertising Graphic Designer',
@@ -1169,8 +1231,8 @@ ${brandContext}`,
 Brand Identity:
 - Brand Name: ${brief.brandName}
 - Product: ${brief.productName}
-- Visual Style: ${brief.visualStyle || 'High-end appetizing'}
-
+- Visual Style: ${brief.brandDna?.visualStyle || brief.visualStyle || 'High-end appetizing'}
+${brandDnaContext}
 Art Direction:
 - Concept: ${concept.title}
 - Visual Prompt: ${concept.visualPrompt}`,
@@ -1181,8 +1243,10 @@ Art Direction:
           'BRANDING: Incorporate brand logo naturally if provided',
           'FOOD: Product must look appetizing and premium',
           'Composition must be balanced and visually appealing',
+          brief.brandDna?.colorPalette?.length ? `Use brand color palette: ${brief.brandDna.colorPalette.join(', ')}` : '',
+          brief.brandDna?.typography ? `Typography style: ${brief.brandDna.typography}` : '',
           ...VISUAL_STYLE_GUIDE.split('\n').map(line => line.trim()).filter(line => line.startsWith('-')).map(line => line.substring(2))
-        ],
+        ].filter(c => c !== ''),
         outputFormat: 'Seamless, finished advertisement graphic in 16:9 aspect ratio',
         errorHandling: [
           ...ERROR_HANDLING_INSTRUCTIONS.imageGeneration,

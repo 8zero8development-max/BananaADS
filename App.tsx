@@ -67,12 +67,12 @@ const AppContent: React.FC<AppProps> = ({ onBackToLanding }) => {
       
       if (productionType === 'food-social') {
         const dna = await GeminiService.researchBrandDna(brief);
-        setBrief(prev => ({ ...prev, visualStyle: dna.visualStyle }));
-        generatedConcepts = await GeminiService.generateFoodSocialConcepts({ ...brief, visualStyle: dna.visualStyle });
+        setBrief(prev => ({ ...prev, brandDna: dna, visualStyle: dna.visualStyle }));
+        generatedConcepts = await GeminiService.generateFoodSocialConcepts({ ...brief, brandDna: dna, visualStyle: dna.visualStyle });
       } else if (productionType === 'email') {
         const dna = await GeminiService.researchBrandDna(brief);
-        setBrief(prev => ({ ...prev, visualStyle: dna.visualStyle }));
-        generatedConcepts = await GeminiService.generateEmailCampaign({ ...brief, visualStyle: dna.visualStyle });
+        setBrief(prev => ({ ...prev, brandDna: dna, visualStyle: dna.visualStyle }));
+        generatedConcepts = await GeminiService.generateEmailCampaign({ ...brief, brandDna: dna, visualStyle: dna.visualStyle });
       } else {
         generatedConcepts = await GeminiService.generateConcepts(brief);
       }

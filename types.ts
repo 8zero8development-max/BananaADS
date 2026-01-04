@@ -1,3 +1,12 @@
+export interface BrandDna {
+  visualStyle: string;
+  colorPalette: string[];
+  typography: string;
+  composition: string;
+  mood: string;
+  targetPsychographics: string[];
+  brandArchetype: string;
+}
 
 export interface AdBrief {
   brandName: string;
@@ -12,7 +21,8 @@ export interface AdBrief {
   productUrl?: string;
   moodBoard?: string;
   researchSources?: string[];
-  visualStyle?: string; // For Food Socials Brand DNA
+  visualStyle?: string; // For Food Socials Brand DNA (legacy)
+  brandDna?: BrandDna; // Structured Brand DNA profile
   emailTemplate?: string; // For email-specific template selection
   // Contact info for email campaigns (used in footer graphics)
   contactPhone?: string;
