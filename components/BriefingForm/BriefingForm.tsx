@@ -362,28 +362,146 @@ const BriefingForm: React.FC<BriefingFormProps> = ({
                 </div>
               )}
             </div>
-            <div className="flex-grow glass rounded-2xl p-6 relative overflow-hidden">
-              <div className="absolute top-0 right-0 p-32 bg-yellow-500/10 blur-[100px] rounded-full"></div>
-              <h3 className="font-bold text-white/70 uppercase text-xs tracking-widest mb-4 relative z-10">Brand DNA</h3>
-              <div className="space-y-4 relative z-10">
-                <div>
-                  <span className="text-white/40 text-xs block mb-1">Tone</span>
-                  <div className="flex flex-wrap gap-2">
-                    {brief.tone.length > 0 ? brief.tone.map((t, i) => (
-                      <span key={i} className="px-2 py-1 bg-white/10 rounded text-xs text-white/80">{t.trim()}</span>
-                    )) : <span className="text-white/20 text-sm italic">Define tone...</span>}
+            <div className="flex-grow relative">
+              <div className="absolute inset-0 bg-gradient-to-br from-yellow-500/5 via-transparent to-purple-500/5 rounded-3xl"></div>
+              <div className="relative glass rounded-3xl p-6 border border-white/10 overflow-hidden">
+                <div className="absolute top-0 right-0 w-64 h-64 bg-yellow-500/10 blur-[100px] rounded-full -translate-y-1/2 translate-x-1/2"></div>
+                <div className="absolute bottom-0 left-0 w-48 h-48 bg-purple-500/10 blur-[80px] rounded-full translate-y-1/2 -translate-x-1/2"></div>
+                
+                <div className="relative z-10">
+                  <div className="flex items-center justify-between mb-6">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-yellow-400 to-orange-500 flex items-center justify-center shadow-lg shadow-yellow-500/20">
+                        <i className="fa-solid fa-dna text-black text-sm"></i>
+                      </div>
+                      <div>
+                        <h3 className="font-bold text-white text-sm">Brand DNA</h3>
+                        <p className="text-white/40 text-xs">Identity Profile</p>
+                      </div>
+                    </div>
+                    {brief.logoImage && (
+                      <div className="w-12 h-12 rounded-xl bg-white/10 backdrop-blur-sm border border-white/20 p-1.5 shadow-lg">
+                        <img src={brief.logoImage} className="w-full h-full object-contain" alt="Brand Logo" />
+                      </div>
+                    )}
                   </div>
-                </div>
-                <div>
-                  <span className="text-white/40 text-xs block mb-1">Audience</span>
-                  <p className="text-sm text-white/80">{brief.targetAudience || <span className="text-white/20 italic">Define audience...</span>}</p>
-                </div>
-                {brief.visualStyle && (
-                  <div>
-                    <span className="text-white/40 text-xs block mb-1">Inferred Visual Style</span>
-                    <p className="text-sm text-white/80 border-l-2 border-yellow-500 pl-2">{brief.visualStyle}</p>
+
+                  <div className="grid grid-cols-2 gap-4 mb-5">
+                    <div className="bg-white/5 rounded-xl p-4 border border-white/5 hover:border-yellow-500/30 transition-colors group">
+                      <div className="flex items-center gap-2 mb-2">
+                        <i className="fa-solid fa-users text-yellow-400/70 text-xs"></i>
+                        <span className="text-white/50 text-xs font-medium uppercase tracking-wider">Audience</span>
+                      </div>
+                      <p className="text-sm text-white/90 leading-relaxed">
+                        {brief.targetAudience || <span className="text-white/30 italic">Define audience...</span>}
+                      </p>
+                    </div>
+                    
+                    <div className="bg-white/5 rounded-xl p-4 border border-white/5 hover:border-yellow-500/30 transition-colors group">
+                      <div className="flex items-center gap-2 mb-2">
+                        <i className="fa-solid fa-bullseye text-purple-400/70 text-xs"></i>
+                        <span className="text-white/50 text-xs font-medium uppercase tracking-wider">Key Features</span>
+                      </div>
+                      <div className="space-y-1">
+                        {brief.keyFeatures.length > 0 ? brief.keyFeatures.slice(0, 3).map((f, i) => (
+                          <p key={i} className="text-xs text-white/70 truncate flex items-center gap-1.5">
+                            <span className="w-1 h-1 rounded-full bg-yellow-400/50"></span>
+                            {f.trim()}
+                          </p>
+                        )) : <span className="text-white/30 text-xs italic">Add features...</span>}
+                        {brief.keyFeatures.length > 3 && (
+                          <p className="text-xs text-white/40">+{brief.keyFeatures.length - 3} more</p>
+                        )}
+                      </div>
+                    </div>
                   </div>
-                )}
+
+                  <div className="mb-5">
+                    <div className="flex items-center gap-2 mb-3">
+                      <i className="fa-solid fa-palette text-pink-400/70 text-xs"></i>
+                      <span className="text-white/50 text-xs font-medium uppercase tracking-wider">Brand Tone</span>
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      {brief.tone.length > 0 ? brief.tone.map((t, i) => (
+                        <span 
+                          key={i} 
+                          className="px-3 py-1.5 bg-gradient-to-r from-yellow-500/20 to-orange-500/20 rounded-full text-xs text-white/90 font-medium border border-yellow-500/20 shadow-sm"
+                        >
+                          {t.trim()}
+                        </span>
+                      )) : <span className="text-white/30 text-sm italic">Define tone...</span>}
+                    </div>
+                  </div>
+
+                  {(brief.visualStyle || brief.brandDna?.visualStyle) && (
+                    <div className="bg-gradient-to-r from-yellow-500/10 to-transparent rounded-xl p-4 border-l-2 border-yellow-500">
+                      <div className="flex items-center gap-2 mb-2">
+                        <i className="fa-solid fa-eye text-yellow-400 text-xs"></i>
+                        <span className="text-yellow-400/90 text-xs font-bold uppercase tracking-wider">Visual Style</span>
+                      </div>
+                      <p className="text-sm text-white/80 leading-relaxed">
+                        {brief.brandDna?.visualStyle || brief.visualStyle}
+                      </p>
+                    </div>
+                  )}
+
+                  {brief.brandDna && (
+                    <div className="mt-5 pt-5 border-t border-white/10">
+                      <div className="flex items-center gap-2 mb-4">
+                        <i className="fa-solid fa-fingerprint text-cyan-400/70 text-xs"></i>
+                        <span className="text-white/50 text-xs font-medium uppercase tracking-wider">Extended Profile</span>
+                      </div>
+                      
+                      <div className="grid grid-cols-2 gap-3">
+                        {brief.brandDna.brandArchetype && (
+                          <div className="bg-white/5 rounded-lg p-3 border border-white/5">
+                            <span className="text-white/40 text-[10px] uppercase tracking-wider block mb-1">Archetype</span>
+                            <p className="text-white/90 text-sm font-medium">{brief.brandDna.brandArchetype}</p>
+                          </div>
+                        )}
+                        {brief.brandDna.mood && (
+                          <div className="bg-white/5 rounded-lg p-3 border border-white/5">
+                            <span className="text-white/40 text-[10px] uppercase tracking-wider block mb-1">Mood</span>
+                            <p className="text-white/90 text-sm font-medium">{brief.brandDna.mood}</p>
+                          </div>
+                        )}
+                      </div>
+
+                      {brief.brandDna.colorPalette && brief.brandDna.colorPalette.length > 0 && (
+                        <div className="mt-3">
+                          <span className="text-white/40 text-[10px] uppercase tracking-wider block mb-2">Color Palette</span>
+                          <div className="flex gap-2">
+                            {brief.brandDna.colorPalette.slice(0, 5).map((color, i) => (
+                              <div 
+                                key={i} 
+                                className="w-8 h-8 rounded-lg shadow-md border border-white/10 flex items-center justify-center group relative"
+                                style={{ backgroundColor: color.startsWith('#') ? color : undefined }}
+                                title={color}
+                              >
+                                {!color.startsWith('#') && (
+                                  <span className="text-[8px] text-white/60 text-center leading-tight px-0.5">{color.slice(0, 6)}</span>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {brief.brandDna.targetPsychographics && brief.brandDna.targetPsychographics.length > 0 && (
+                        <div className="mt-3">
+                          <span className="text-white/40 text-[10px] uppercase tracking-wider block mb-2">Psychographics</span>
+                          <div className="flex flex-wrap gap-1.5">
+                            {brief.brandDna.targetPsychographics.map((p, i) => (
+                              <span key={i} className="px-2 py-1 bg-cyan-500/10 rounded text-[10px] text-cyan-300/80 border border-cyan-500/20">
+                                {p}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
           </div>
