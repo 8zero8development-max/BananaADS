@@ -1,14 +1,56 @@
 import React, { useState, useEffect } from 'react';
-import screenshot1 from '@assets/Screenshot_2025-12-31_at_16.38.43_1767400681070.png';
-import screenshot2 from '@assets/Screenshot_2025-12-31_at_16.41.00_1767400725339.png';
-import screenshot3 from '@assets/Screenshot_2025-12-31_at_16.42.49_1767400752193.png';
+
+// Social post ads (keeping these)
 import adKFC from '@assets/poster-KFC_1767401674348.png';
 import adKebab from '@assets/poster-King_Kebab_1767401686129.png';
 import adPizza from '@assets/poster-Rocket_Pizza_&_Ice_Cream_1767401693311.png';
 import adBurger from '@assets/poster-Dopey_Dan\'s_Burger_Ranch_(4)_1767401798890.png';
+
+// Mood boards (keeping these)
 import moodKFC from '@assets/download_(8)_1767402167301.png';
 import moodPizza from '@assets/mood-board_(3)_1767402249246.png';
 import moodNike from '@assets/mood-board_(4)_1767402268781.png';
+
+// Custom workflow icons
+import iconCinematic from '@assets/icons/cinematic-video.png';
+import iconFoodSocial from '@assets/icons/food-socials.png';
+import iconEmail from '@assets/icons/email-campaign.png';
+
+// New workflow screenshots - Getting Started
+import screenshotApiKey from '@/bananascreenshots/Input API .png';
+
+// New workflow screenshots - Brand DNA Research
+import screenshotBrandInput from '@/bananascreenshots/Input brand details.png';
+import screenshotSearchingWeb from '@/bananascreenshots/Banana in your DNA.png';
+import screenshotBrandDNA from '@/bananascreenshots/Retrieve brand name DNA.png';
+import screenshotBrandDNA2 from '@/bananascreenshots/Retrieve Brand DNA 2.png';
+import screenshotMoodBoard from '@/bananascreenshots/Full professional mood board.png';
+
+// New workflow screenshots - Cinematic Video
+import screenshotCinematicConcepts from '@/bananascreenshots/Cinematic Concepts.png';
+import screenshotAnalyseConcept from '@/bananascreenshots/Analyse concept.png';
+import screenshotCinematic1 from '@/bananascreenshots/Cinematic 1.png';
+import screenshotCinematic2 from '@/bananascreenshots/Cinematic 2.png';
+import screenshotCinematic3 from '@/bananascreenshots/Cinematic 3.png';
+import screenshotCinematicGen from '@/bananascreenshots/Cinematic image generation.png';
+
+// New workflow screenshots - Food Social
+import screenshotFoodSocial1 from '@/bananascreenshots/Food Social 1.png';
+import screenshotFoodSocialGen from '@/bananascreenshots/Food social generation.png';
+import screenshotFoodSocial2 from '@/bananascreenshots/Food social too.png';
+
+// New workflow screenshots - Email Campaign
+import screenshotEmailGen from '@/bananascreenshots/Email generation.png';
+import screenshotEmailConcepts from '@/bananascreenshots/Email concepts.png';
+import screenshotEmail1 from '@/bananascreenshots/Email 1.png';
+import screenshotEmailTo from '@/bananascreenshots/Email to.png';
+import screenshotEmailTemplateGen from '@/bananascreenshots/Email template generation.png';
+import screenshotEmailOutput1 from '@/bananascreenshots/Email output 1.png';
+import screenshotEmailOutput2 from '@/bananascreenshots/Email output 2.png';
+import screenshotEmailOutput3 from '@/bananascreenshots/Email output 3.png';
+import screenshotEmailOutput5 from '@/bananascreenshots/Email output 5.png';
+import screenshotEmailOutputFor from '@/bananascreenshots/Email output for.png';
+import screenshotEmailCode from '@/bananascreenshots/Email output code.png';
 
 interface LandingPageProps {
   onGetStarted: () => void;
@@ -32,6 +74,12 @@ interface Product {
 const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(false);
+  
+  // Carousel state for each workflow section
+  const [brandDnaIndex, setBrandDnaIndex] = useState(0);
+  const [cinematicIndex, setCinematicIndex] = useState(0);
+  const [foodSocialIndex, setFoodSocialIndex] = useState(0);
+  const [emailIndex, setEmailIndex] = useState(0);
 
   useEffect(() => {
     fetch('/api/products')
@@ -143,7 +191,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
         <div className="flex items-center space-x-6">
           <a href="#features" className="text-white/60 hover:text-yellow-400 transition text-sm font-medium">Features</a>
           <a href="#pricing" className="text-white/60 hover:text-yellow-400 transition text-sm font-medium">Pricing</a>
-          <button 
+          <button
             onClick={() => {
               localStorage.removeItem('onboarding-completed');
               onGetStarted();
@@ -160,7 +208,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
           <div className="inline-flex items-center gap-2 bg-yellow-500/10 border border-yellow-500/30 rounded-full px-4 py-2 mb-8">
             <span className="text-yellow-400 text-sm font-medium">The #1 AI Ad Creation Tool for 2026</span>
           </div>
-          
+
           <h1 className="text-5xl md:text-7xl font-serif mb-6 leading-tight">
             <span className="bg-gradient-to-r from-white to-gray-400 bg-clip-text text-transparent">
               Launch Scroll-Stopping Ads
@@ -168,7 +216,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
             <br />
             <span className="text-yellow-400">In Minutes, Not Weeks</span>
           </h1>
-          
+
           <p className="text-xl text-white/60 max-w-2xl mx-auto mb-6 leading-relaxed">
             The AI-first ad workflow that turns a simple brief into concepts, storyboards, scripts, voiceovers, and cinematic video.
           </p>
@@ -187,9 +235,9 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
               <span>Export-ready in minutes</span>
             </div>
           </div>
-          
+
           <div className="flex flex-col items-center gap-3 mb-16">
-            <button 
+            <button
               onClick={() => {
                 localStorage.removeItem('onboarding-completed');
                 onGetStarted();
@@ -205,24 +253,24 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
             <div className="absolute inset-0 bg-gradient-to-r from-yellow-500/20 to-orange-500/20 blur-3xl rounded-3xl"></div>
             <div className="relative grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="bg-black/50 backdrop-blur border border-yellow-500/20 rounded-2xl p-2 shadow-2xl transform hover:scale-105 transition-transform">
-                <img 
-                  src={screenshot1} 
+                <img
+                  src={screenshotBrandInput}
                   alt="Brand Brief - Tell us about your brand"
                   className="rounded-xl w-full"
                 />
                 <p className="text-center text-sm text-white/60 mt-2">Brand Brief</p>
               </div>
               <div className="bg-black/50 backdrop-blur border border-yellow-500/20 rounded-2xl p-2 shadow-2xl transform hover:scale-105 transition-transform md:-translate-y-4">
-                <img 
-                  src={screenshot2} 
+                <img
+                  src={screenshotCinematicConcepts}
                   alt="Creative Concepts - Select your vision"
                   className="rounded-xl w-full"
                 />
                 <p className="text-center text-sm text-white/60 mt-2">Creative Concepts</p>
               </div>
               <div className="bg-black/50 backdrop-blur border border-yellow-500/20 rounded-2xl p-2 shadow-2xl transform hover:scale-105 transition-transform">
-                <img 
-                  src={screenshot3} 
+                <img
+                  src={screenshotCinematic1}
                   alt="Production - Storyboard and video generation"
                   className="rounded-xl w-full"
                 />
@@ -266,6 +314,294 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
             <div className="flex items-center gap-2">
               <span className="text-blue-400">&#128176;</span>
               <span>Works on Gemini free tier</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Workflow Showcase Section */}
+      <section className="py-24 px-8 border-t border-white/5 bg-gradient-to-b from-transparent via-yellow-500/5 to-transparent">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center mb-16">
+            <p className="text-white/40 text-sm uppercase tracking-widest mb-4">See The Complete Workflow</p>
+            <h2 className="text-4xl md:text-5xl font-serif mb-4">
+              <span className="text-yellow-400">Four Powerful</span>
+              <br />
+              <span className="bg-gradient-to-r from-white to-gray-400 bg-clip-text text-transparent">
+                Creative Workflows
+              </span>
+            </h2>
+            <p className="text-white/50 text-lg max-w-2xl mx-auto">
+              From brand research to final export, see how BananaADS transforms your ideas into stunning campaigns
+            </p>
+          </div>
+
+          {/* Brand DNA Research Workflow */}
+          <div className="mb-20">
+            <div className="flex flex-col items-center text-center gap-3 mb-10">
+              <div className="w-20 h-20 flex items-center justify-center text-5xl drop-shadow-lg">
+                🍌
+              </div>
+              <div>
+                <h3 className="text-3xl font-bold text-white mb-2">Brand DNA Research</h3>
+                <p className="text-white/50 text-lg">AI analyzes your brand to create the perfect campaign foundation</p>
+              </div>
+            </div>
+            {/* Carousel */}
+            <div className="relative">
+              <div className="overflow-hidden">
+                <div 
+                  className="flex transition-transform duration-500 ease-out"
+                  style={{ transform: `translateX(-${brandDnaIndex * 100}%)` }}
+                >
+                  {[
+                    { img: screenshotApiKey, label: 'Secure API Setup' },
+                    { img: screenshotSearchingWeb, label: 'AI Web Research' },
+                    { img: screenshotBrandDNA, label: 'Brand DNA Profile' },
+                    { img: screenshotBrandDNA2, label: 'Extended Profile' },
+                    { img: screenshotMoodBoard, label: 'AI Mood Board' }
+                  ].map((item, idx) => (
+                    <div key={idx} className="w-full flex-shrink-0 px-2">
+                      <div className="bg-black/50 backdrop-blur border border-yellow-500/30 rounded-2xl p-4 shadow-2xl max-w-4xl mx-auto">
+                        <img src={item.img} alt={item.label} className="rounded-xl w-full" />
+                        <p className="text-center text-lg text-white/70 mt-4 font-medium">{item.label}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              {/* Navigation Arrows */}
+              <button 
+                onClick={() => setBrandDnaIndex(prev => Math.max(0, prev - 1))}
+                className={`absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 w-12 h-12 rounded-full bg-black/80 border border-yellow-500/30 flex items-center justify-center text-yellow-400 hover:bg-yellow-500/20 transition-all ${brandDnaIndex === 0 ? 'opacity-30 cursor-not-allowed' : 'hover:scale-110'}`}
+                disabled={brandDnaIndex === 0}
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-6 h-6">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
+                </svg>
+              </button>
+              <button 
+                onClick={() => setBrandDnaIndex(prev => Math.min(4, prev + 1))}
+                className={`absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 w-12 h-12 rounded-full bg-black/80 border border-yellow-500/30 flex items-center justify-center text-yellow-400 hover:bg-yellow-500/20 transition-all ${brandDnaIndex === 4 ? 'opacity-30 cursor-not-allowed' : 'hover:scale-110'}`}
+                disabled={brandDnaIndex === 4}
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-6 h-6">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+                </svg>
+              </button>
+              {/* Dots Indicator */}
+              <div className="flex justify-center gap-2 mt-6">
+                {[0, 1, 2, 3, 4].map(idx => (
+                  <button
+                    key={idx}
+                    onClick={() => setBrandDnaIndex(idx)}
+                    className={`w-3 h-3 rounded-full transition-all ${brandDnaIndex === idx ? 'bg-yellow-400 w-8' : 'bg-white/20 hover:bg-white/40'}`}
+                  />
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Cinematic Video Workflow */}
+          <div className="mb-20">
+            <div className="flex flex-col items-center text-center gap-3 mb-10">
+              <div className="w-20 h-20 rounded-2xl overflow-hidden shadow-lg shadow-orange-500/30">
+                <img src={iconCinematic} alt="Cinematic Video" className="w-full h-full object-cover" />
+              </div>
+              <div>
+                <h3 className="text-3xl font-bold text-white mb-2">Cinematic Video Ads</h3>
+                <p className="text-white/50 text-lg">Create broadcast-quality video storyboards with AI</p>
+              </div>
+            </div>
+            {/* Carousel */}
+            <div className="relative">
+              <div className="overflow-hidden">
+                <div 
+                  className="flex transition-transform duration-500 ease-out"
+                  style={{ transform: `translateX(-${cinematicIndex * 100}%)` }}
+                >
+                  {[
+                    { img: screenshotCinematicConcepts, label: '3 Creative Concepts' },
+                    { img: screenshotAnalyseConcept, label: 'AI Director at Work' },
+                    { img: screenshotCinematicGen, label: 'Generating Scenes' },
+                    { img: screenshotCinematic1, label: 'Scene 1' },
+                    { img: screenshotCinematic2, label: 'Scene 2' },
+                    { img: screenshotCinematic3, label: 'Scene 3' }
+                  ].map((item, idx) => (
+                    <div key={idx} className="w-full flex-shrink-0 px-2">
+                      <div className="bg-black/50 backdrop-blur border border-orange-500/30 rounded-2xl p-4 shadow-2xl max-w-4xl mx-auto">
+                        <img src={item.img} alt={item.label} className="rounded-xl w-full" />
+                        <p className="text-center text-lg text-white/70 mt-4 font-medium">{item.label}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              {/* Navigation Arrows */}
+              <button 
+                onClick={() => setCinematicIndex(prev => Math.max(0, prev - 1))}
+                className={`absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 w-12 h-12 rounded-full bg-black/80 border border-orange-500/30 flex items-center justify-center text-orange-400 hover:bg-orange-500/20 transition-all ${cinematicIndex === 0 ? 'opacity-30 cursor-not-allowed' : 'hover:scale-110'}`}
+                disabled={cinematicIndex === 0}
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-6 h-6">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
+                </svg>
+              </button>
+              <button 
+                onClick={() => setCinematicIndex(prev => Math.min(5, prev + 1))}
+                className={`absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 w-12 h-12 rounded-full bg-black/80 border border-orange-500/30 flex items-center justify-center text-orange-400 hover:bg-orange-500/20 transition-all ${cinematicIndex === 5 ? 'opacity-30 cursor-not-allowed' : 'hover:scale-110'}`}
+                disabled={cinematicIndex === 5}
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-6 h-6">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+                </svg>
+              </button>
+              {/* Dots Indicator */}
+              <div className="flex justify-center gap-2 mt-6">
+                {[0, 1, 2, 3, 4, 5].map(idx => (
+                  <button
+                    key={idx}
+                    onClick={() => setCinematicIndex(idx)}
+                    className={`w-3 h-3 rounded-full transition-all ${cinematicIndex === idx ? 'bg-orange-400 w-8' : 'bg-white/20 hover:bg-white/40'}`}
+                  />
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Food Social Workflow */}
+          <div className="mb-20">
+            <div className="flex flex-col items-center text-center gap-3 mb-10">
+              <div className="w-20 h-20 rounded-2xl overflow-hidden shadow-lg shadow-red-500/30">
+                <img src={iconFoodSocial} alt="Food Social" className="w-full h-full object-cover" />
+              </div>
+              <div>
+                <h3 className="text-3xl font-bold text-white mb-2">Food Social Posts</h3>
+                <p className="text-white/50 text-lg">Mouth-watering food photography for social media</p>
+              </div>
+            </div>
+            {/* Carousel */}
+            <div className="relative">
+              <div className="overflow-hidden">
+                <div 
+                  className="flex transition-transform duration-500 ease-out"
+                  style={{ transform: `translateX(-${foodSocialIndex * 100}%)` }}
+                >
+                  {[
+                    { img: screenshotFoodSocialGen, label: 'AI Food Photographer' },
+                    { img: screenshotFoodSocial1, label: 'Social Post Ready' },
+                    { img: screenshotFoodSocial2, label: 'Multiple Variations' }
+                  ].map((item, idx) => (
+                    <div key={idx} className="w-full flex-shrink-0 px-2">
+                      <div className="bg-black/50 backdrop-blur border border-red-500/30 rounded-2xl p-4 shadow-2xl max-w-4xl mx-auto">
+                        <img src={item.img} alt={item.label} className="rounded-xl w-full" />
+                        <p className="text-center text-lg text-white/70 mt-4 font-medium">{item.label}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              {/* Navigation Arrows */}
+              <button 
+                onClick={() => setFoodSocialIndex(prev => Math.max(0, prev - 1))}
+                className={`absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 w-12 h-12 rounded-full bg-black/80 border border-red-500/30 flex items-center justify-center text-red-400 hover:bg-red-500/20 transition-all ${foodSocialIndex === 0 ? 'opacity-30 cursor-not-allowed' : 'hover:scale-110'}`}
+                disabled={foodSocialIndex === 0}
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-6 h-6">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
+                </svg>
+              </button>
+              <button 
+                onClick={() => setFoodSocialIndex(prev => Math.min(2, prev + 1))}
+                className={`absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 w-12 h-12 rounded-full bg-black/80 border border-red-500/30 flex items-center justify-center text-red-400 hover:bg-red-500/20 transition-all ${foodSocialIndex === 2 ? 'opacity-30 cursor-not-allowed' : 'hover:scale-110'}`}
+                disabled={foodSocialIndex === 2}
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-6 h-6">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+                </svg>
+              </button>
+              {/* Dots Indicator */}
+              <div className="flex justify-center gap-2 mt-6">
+                {[0, 1, 2].map(idx => (
+                  <button
+                    key={idx}
+                    onClick={() => setFoodSocialIndex(idx)}
+                    className={`w-3 h-3 rounded-full transition-all ${foodSocialIndex === idx ? 'bg-red-400 w-8' : 'bg-white/20 hover:bg-white/40'}`}
+                  />
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Email Campaign Workflow */}
+          <div>
+            <div className="flex flex-col items-center text-center gap-3 mb-10">
+              <div className="w-20 h-20 rounded-2xl overflow-hidden shadow-lg shadow-purple-500/30">
+                <img src={iconEmail} alt="Email Campaigns" className="w-full h-full object-cover" />
+              </div>
+              <div>
+                <h3 className="text-3xl font-bold text-white mb-2">Email Campaigns</h3>
+                <p className="text-white/50 text-lg">Complete email templates with AI-generated visuals and copy</p>
+              </div>
+            </div>
+            {/* Carousel */}
+            <div className="relative">
+              <div className="overflow-hidden">
+                <div 
+                  className="flex transition-transform duration-500 ease-out"
+                  style={{ transform: `translateX(-${emailIndex * 100}%)` }}
+                >
+                  {[
+                    { img: screenshotEmailGen, label: 'Campaign Setup' },
+                    { img: screenshotEmailConcepts, label: '3 Email Concepts' },
+                    { img: screenshotEmail1, label: 'Section Generation' },
+                    { img: screenshotEmailTo, label: 'All Sections' },
+                    { img: screenshotEmailOutput1, label: 'Hero Section' },
+                    { img: screenshotEmailOutput2, label: 'Body Section' },
+                    { img: screenshotEmailOutput3, label: 'Infographic' },
+                    { img: screenshotEmailOutputFor, label: 'Rich Content' },
+                    { img: screenshotEmailOutput5, label: 'Footer Section' },
+                    { img: screenshotEmailTemplateGen, label: 'AI Generating' },
+                    { img: screenshotEmailCode, label: 'Export HTML Code' }
+                  ].map((item, idx) => (
+                    <div key={idx} className="w-full flex-shrink-0 px-2">
+                      <div className="bg-black/50 backdrop-blur border border-purple-500/30 rounded-2xl p-4 shadow-2xl max-w-4xl mx-auto">
+                        <img src={item.img} alt={item.label} className="rounded-xl w-full" />
+                        <p className="text-center text-lg text-white/70 mt-4 font-medium">{item.label}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              {/* Navigation Arrows */}
+              <button 
+                onClick={() => setEmailIndex(prev => Math.max(0, prev - 1))}
+                className={`absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 w-12 h-12 rounded-full bg-black/80 border border-purple-500/30 flex items-center justify-center text-purple-400 hover:bg-purple-500/20 transition-all ${emailIndex === 0 ? 'opacity-30 cursor-not-allowed' : 'hover:scale-110'}`}
+                disabled={emailIndex === 0}
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-6 h-6">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
+                </svg>
+              </button>
+              <button 
+                onClick={() => setEmailIndex(prev => Math.min(10, prev + 1))}
+                className={`absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 w-12 h-12 rounded-full bg-black/80 border border-purple-500/30 flex items-center justify-center text-purple-400 hover:bg-purple-500/20 transition-all ${emailIndex === 10 ? 'opacity-30 cursor-not-allowed' : 'hover:scale-110'}`}
+                disabled={emailIndex === 10}
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-6 h-6">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+                </svg>
+              </button>
+              {/* Dots Indicator */}
+              <div className="flex justify-center gap-2 mt-6">
+                {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(idx => (
+                  <button
+                    key={idx}
+                    onClick={() => setEmailIndex(idx)}
+                    className={`w-2 h-2 rounded-full transition-all ${emailIndex === idx ? 'bg-purple-400 w-6' : 'bg-white/20 hover:bg-white/40'}`}
+                  />
+                ))}
+              </div>
             </div>
           </div>
         </div>
@@ -389,7 +725,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
 
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
             {features.map((feature, idx) => (
-              <div 
+              <div
                 key={idx}
                 className="group bg-white/[0.02] hover:bg-white/[0.05] border border-yellow-500/10 hover:border-yellow-500/30 rounded-2xl p-8 transition-all duration-300"
               >
@@ -405,7 +741,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
           </div>
 
           <div className="mt-16 text-center">
-            <button 
+            <button
               onClick={onGetStarted}
               className="bg-gradient-to-r from-yellow-400 to-orange-500 text-black px-10 py-4 rounded-full font-bold text-lg hover:scale-105 transition shadow-lg shadow-yellow-500/25"
             >
@@ -419,7 +755,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
       <section className="py-24 px-8 bg-gradient-to-b from-transparent via-yellow-500/5 to-transparent relative overflow-hidden">
         <div className="absolute top-1/4 left-0 w-96 h-96 bg-yellow-500/10 blur-[120px] rounded-full"></div>
         <div className="absolute bottom-1/4 right-0 w-96 h-96 bg-orange-500/10 blur-[120px] rounded-full"></div>
-        
+
         <div className="max-w-6xl mx-auto relative">
           <div className="text-center mb-16">
             <p className="text-white/40 text-sm uppercase tracking-widest mb-4">How It Works</p>
@@ -438,7 +774,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
           <div className="grid lg:grid-cols-2 gap-16 items-start">
             <div className="relative">
               <div className="absolute left-[23px] top-[60px] bottom-[60px] w-[2px] bg-gradient-to-b from-yellow-400 via-yellow-500 to-orange-500 hidden md:block"></div>
-              
+
               <div className="space-y-6">
                 <div className="group relative bg-gradient-to-r from-yellow-500/10 to-transparent border border-yellow-500/20 hover:border-yellow-500/40 rounded-2xl p-6 transition-all duration-300 hover:scale-[1.02] hover:shadow-lg hover:shadow-yellow-500/10">
                   <div className="flex gap-5">
@@ -492,7 +828,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
                 </div>
               </div>
             </div>
-            
+
             <div className="relative">
               <div className="absolute inset-0 bg-gradient-to-r from-yellow-500/10 to-orange-500/10 blur-3xl rounded-full"></div>
               <div className="relative bg-black/60 backdrop-blur-xl border border-yellow-500/20 rounded-2xl overflow-hidden">
@@ -504,7 +840,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
                     <span className="ml-4 text-white/40 text-sm font-medium">Campaign Pipeline</span>
                   </div>
                 </div>
-                
+
                 <div className="p-6 space-y-4">
                   <div className="flex items-center gap-4 bg-green-500/10 border border-green-500/30 rounded-xl p-4">
                     <div className="w-10 h-10 rounded-lg bg-green-500/20 flex items-center justify-center">
@@ -516,7 +852,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
                     </div>
                     <div className="text-xs text-green-400/60">12 sources</div>
                   </div>
-                  
+
                   <div className="flex items-center gap-4 bg-yellow-500/10 border border-yellow-500/30 rounded-xl p-4">
                     <div className="w-10 h-10 rounded-lg bg-yellow-500/20 flex items-center justify-center">
                       <span className="text-yellow-400 text-lg">🎬</span>
@@ -531,7 +867,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
                       <div className="w-6 h-6 rounded bg-red-500/30"></div>
                     </div>
                   </div>
-                  
+
                   <div className="flex items-center gap-4 bg-orange-500/10 border border-orange-500/30 rounded-xl p-4">
                     <div className="w-10 h-10 rounded-lg bg-orange-500/20 flex items-center justify-center animate-pulse">
                       <span className="text-orange-400 text-lg">🎥</span>
@@ -544,7 +880,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
                     </div>
                     <div className="text-xs text-orange-400/60">75%</div>
                   </div>
-                  
+
                   <div className="grid grid-cols-4 gap-2 pt-2">
                     <div className="text-center p-2 bg-white/5 rounded-lg">
                       <div className="text-lg mb-1">📸</div>
@@ -590,11 +926,11 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
 
           <div className="grid md:grid-cols-3 gap-6">
             {pricingPlans.map((plan, idx) => (
-              <div 
+              <div
                 key={idx}
                 className={`relative rounded-2xl p-8 transition-all ${
-                  plan.popular 
-                    ? 'bg-gradient-to-b from-yellow-500/10 to-orange-500/10 border-2 border-yellow-500/50 scale-105' 
+                  plan.popular
+                    ? 'bg-gradient-to-b from-yellow-500/10 to-orange-500/10 border-2 border-yellow-500/50 scale-105'
                     : 'bg-white/[0.02] border border-white/10 hover:border-yellow-500/30'
                 }`}
               >
@@ -603,10 +939,10 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
                     MOST POPULAR
                   </div>
                 )}
-                
+
                 <h3 className="text-xl font-bold mb-2">{plan.name}</h3>
                 <p className="text-white/40 text-sm mb-6">{plan.description}</p>
-                
+
                 <div className="mb-6">
                   {plan.originalPrice && (
                     <div className="text-sm text-white/40 line-through mb-1">Reduced from {plan.originalPrice}</div>
@@ -614,7 +950,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
                   <span className="text-4xl font-bold text-white">{plan.price}</span>
                   <span className="text-white/40">{plan.period}</span>
                 </div>
-                
+
                 <ul className="space-y-3 mb-8">
                   {plan.features.map((feature, fidx) => (
                     <li key={fidx} className="flex items-center gap-2 text-sm text-white/70">
@@ -623,12 +959,12 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
                     </li>
                   ))}
                 </ul>
-                
-                <button 
+
+                <button
                   onClick={onGetStarted}
                   className={`w-full py-3 rounded-full font-bold transition ${
-                    plan.popular 
-                      ? 'bg-gradient-to-r from-yellow-400 to-orange-500 text-black hover:scale-105' 
+                    plan.popular
+                      ? 'bg-gradient-to-r from-yellow-400 to-orange-500 text-black hover:scale-105'
                       : 'bg-white/10 text-white hover:bg-white/20'
                   }`}
                 >
@@ -663,7 +999,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
             <span>Brief to Export</span>
           </div>
           <div className="flex flex-col items-center gap-3">
-            <button 
+            <button
               onClick={onGetStarted}
               className="bg-gradient-to-r from-yellow-400 to-orange-500 text-black px-10 py-4 rounded-full font-bold text-lg hover:scale-105 transition shadow-lg shadow-yellow-500/25"
             >
