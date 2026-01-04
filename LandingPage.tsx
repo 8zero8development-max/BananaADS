@@ -339,7 +339,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
           {/* Brand DNA Research Workflow */}
           <div className="mb-20">
             <div className="flex flex-col items-center text-center gap-3 mb-10">
-              <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-yellow-400 to-yellow-500 flex items-center justify-center text-3xl shadow-lg shadow-yellow-500/30">
+              <div className="w-20 h-20 flex items-center justify-center text-5xl drop-shadow-lg">
                 🍌
               </div>
               <div>
