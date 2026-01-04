@@ -1,14 +1,51 @@
 import React, { useState, useEffect } from 'react';
-import screenshot1 from '@assets/Screenshot_2025-12-31_at_16.38.43_1767400681070.png';
-import screenshot2 from '@assets/Screenshot_2025-12-31_at_16.41.00_1767400725339.png';
-import screenshot3 from '@assets/Screenshot_2025-12-31_at_16.42.49_1767400752193.png';
+
+// Social post ads (keeping these)
 import adKFC from '@assets/poster-KFC_1767401674348.png';
 import adKebab from '@assets/poster-King_Kebab_1767401686129.png';
 import adPizza from '@assets/poster-Rocket_Pizza_&_Ice_Cream_1767401693311.png';
 import adBurger from '@assets/poster-Dopey_Dan\'s_Burger_Ranch_(4)_1767401798890.png';
+
+// Mood boards (keeping these)
 import moodKFC from '@assets/download_(8)_1767402167301.png';
 import moodPizza from '@assets/mood-board_(3)_1767402249246.png';
 import moodNike from '@assets/mood-board_(4)_1767402268781.png';
+
+// New workflow screenshots - Getting Started
+import screenshotApiKey from '@/bananascreenshots/Input API .png';
+
+// New workflow screenshots - Brand DNA Research
+import screenshotBrandInput from '@/bananascreenshots/Input brand details.png';
+import screenshotSearchingWeb from '@/bananascreenshots/Banana in your DNA.png';
+import screenshotBrandDNA from '@/bananascreenshots/Retrieve brand name DNA.png';
+import screenshotBrandDNA2 from '@/bananascreenshots/Retrieve Brand DNA 2.png';
+import screenshotMoodBoard from '@/bananascreenshots/Full professional mood board.png';
+
+// New workflow screenshots - Cinematic Video
+import screenshotCinematicConcepts from '@/bananascreenshots/Cinematic Concepts.png';
+import screenshotAnalyseConcept from '@/bananascreenshots/Analyse concept.png';
+import screenshotCinematic1 from '@/bananascreenshots/Cinematic 1.png';
+import screenshotCinematic2 from '@/bananascreenshots/Cinematic 2.png';
+import screenshotCinematic3 from '@/bananascreenshots/Cinematic 3.png';
+import screenshotCinematicGen from '@/bananascreenshots/Cinematic image generation.png';
+
+// New workflow screenshots - Food Social
+import screenshotFoodSocial1 from '@/bananascreenshots/Food Social 1.png';
+import screenshotFoodSocialGen from '@/bananascreenshots/Food social generation.png';
+import screenshotFoodSocial2 from '@/bananascreenshots/Food social too.png';
+
+// New workflow screenshots - Email Campaign
+import screenshotEmailGen from '@/bananascreenshots/Email generation.png';
+import screenshotEmailConcepts from '@/bananascreenshots/Email concepts.png';
+import screenshotEmail1 from '@/bananascreenshots/Email 1.png';
+import screenshotEmailTo from '@/bananascreenshots/Email to.png';
+import screenshotEmailTemplateGen from '@/bananascreenshots/Email template generation.png';
+import screenshotEmailOutput1 from '@/bananascreenshots/Email output 1.png';
+import screenshotEmailOutput2 from '@/bananascreenshots/Email output 2.png';
+import screenshotEmailOutput3 from '@/bananascreenshots/Email output 3.png';
+import screenshotEmailOutput5 from '@/bananascreenshots/Email output 5.png';
+import screenshotEmailOutputFor from '@/bananascreenshots/Email output for.png';
+import screenshotEmailCode from '@/bananascreenshots/Email output code.png';
 
 interface LandingPageProps {
   onGetStarted: () => void;
@@ -143,7 +180,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
         <div className="flex items-center space-x-6">
           <a href="#features" className="text-white/60 hover:text-yellow-400 transition text-sm font-medium">Features</a>
           <a href="#pricing" className="text-white/60 hover:text-yellow-400 transition text-sm font-medium">Pricing</a>
-          <button 
+          <button
             onClick={() => {
               localStorage.removeItem('onboarding-completed');
               onGetStarted();
@@ -160,7 +197,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
           <div className="inline-flex items-center gap-2 bg-yellow-500/10 border border-yellow-500/30 rounded-full px-4 py-2 mb-8">
             <span className="text-yellow-400 text-sm font-medium">The #1 AI Ad Creation Tool for 2026</span>
           </div>
-          
+
           <h1 className="text-5xl md:text-7xl font-serif mb-6 leading-tight">
             <span className="bg-gradient-to-r from-white to-gray-400 bg-clip-text text-transparent">
               Launch Scroll-Stopping Ads
@@ -168,7 +205,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
             <br />
             <span className="text-yellow-400">In Minutes, Not Weeks</span>
           </h1>
-          
+
           <p className="text-xl text-white/60 max-w-2xl mx-auto mb-6 leading-relaxed">
             The AI-first ad workflow that turns a simple brief into concepts, storyboards, scripts, voiceovers, and cinematic video.
           </p>
@@ -187,9 +224,9 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
               <span>Export-ready in minutes</span>
             </div>
           </div>
-          
+
           <div className="flex flex-col items-center gap-3 mb-16">
-            <button 
+            <button
               onClick={() => {
                 localStorage.removeItem('onboarding-completed');
                 onGetStarted();
@@ -205,24 +242,24 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
             <div className="absolute inset-0 bg-gradient-to-r from-yellow-500/20 to-orange-500/20 blur-3xl rounded-3xl"></div>
             <div className="relative grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="bg-black/50 backdrop-blur border border-yellow-500/20 rounded-2xl p-2 shadow-2xl transform hover:scale-105 transition-transform">
-                <img 
-                  src={screenshot1} 
+                <img
+                  src={screenshotBrandInput}
                   alt="Brand Brief - Tell us about your brand"
                   className="rounded-xl w-full"
                 />
                 <p className="text-center text-sm text-white/60 mt-2">Brand Brief</p>
               </div>
               <div className="bg-black/50 backdrop-blur border border-yellow-500/20 rounded-2xl p-2 shadow-2xl transform hover:scale-105 transition-transform md:-translate-y-4">
-                <img 
-                  src={screenshot2} 
+                <img
+                  src={screenshotCinematicConcepts}
                   alt="Creative Concepts - Select your vision"
                   className="rounded-xl w-full"
                 />
                 <p className="text-center text-sm text-white/60 mt-2">Creative Concepts</p>
               </div>
               <div className="bg-black/50 backdrop-blur border border-yellow-500/20 rounded-2xl p-2 shadow-2xl transform hover:scale-105 transition-transform">
-                <img 
-                  src={screenshot3} 
+                <img
+                  src={screenshotCinematic1}
                   alt="Production - Storyboard and video generation"
                   className="rounded-xl w-full"
                 />
@@ -266,6 +303,189 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
             <div className="flex items-center gap-2">
               <span className="text-blue-400">&#128176;</span>
               <span>Works on Gemini free tier</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Workflow Showcase Section */}
+      <section className="py-24 px-8 border-t border-white/5 bg-gradient-to-b from-transparent via-yellow-500/5 to-transparent">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center mb-16">
+            <p className="text-white/40 text-sm uppercase tracking-widest mb-4">See The Complete Workflow</p>
+            <h2 className="text-4xl md:text-5xl font-serif mb-4">
+              <span className="text-yellow-400">Four Powerful</span>
+              <br />
+              <span className="bg-gradient-to-r from-white to-gray-400 bg-clip-text text-transparent">
+                Creative Workflows
+              </span>
+            </h2>
+            <p className="text-white/50 text-lg max-w-2xl mx-auto">
+              From brand research to final export, see how BananaADS transforms your ideas into stunning campaigns
+            </p>
+          </div>
+
+          {/* Brand DNA Research Workflow */}
+          <div className="mb-20">
+            <div className="flex items-center gap-4 mb-8">
+              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-yellow-400 to-yellow-500 flex items-center justify-center text-black font-bold text-lg shadow-lg shadow-yellow-500/30">
+                01
+              </div>
+              <div>
+                <h3 className="text-2xl font-bold text-white">Brand DNA Research</h3>
+                <p className="text-white/50">AI analyzes your brand to create the perfect campaign foundation</p>
+              </div>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div className="bg-black/50 backdrop-blur border border-yellow-500/20 rounded-2xl p-2 shadow-2xl hover:border-yellow-500/40 transition-all group">
+                <img src={screenshotApiKey} alt="API Key Setup" className="rounded-xl w-full group-hover:scale-[1.02] transition-transform" />
+                <p className="text-center text-sm text-white/60 mt-2">Secure API Setup</p>
+              </div>
+              <div className="bg-black/50 backdrop-blur border border-yellow-500/20 rounded-2xl p-2 shadow-2xl hover:border-yellow-500/40 transition-all group">
+                <img src={screenshotSearchingWeb} alt="Searching Web" className="rounded-xl w-full group-hover:scale-[1.02] transition-transform" />
+                <p className="text-center text-sm text-white/60 mt-2">AI Web Research</p>
+              </div>
+              <div className="bg-black/50 backdrop-blur border border-yellow-500/20 rounded-2xl p-2 shadow-2xl hover:border-yellow-500/40 transition-all group">
+                <img src={screenshotBrandDNA} alt="Brand DNA Results" className="rounded-xl w-full group-hover:scale-[1.02] transition-transform" />
+                <p className="text-center text-sm text-white/60 mt-2">Brand DNA Profile</p>
+              </div>
+              <div className="bg-black/50 backdrop-blur border border-yellow-500/20 rounded-2xl p-2 shadow-2xl hover:border-yellow-500/40 transition-all group">
+                <img src={screenshotBrandDNA2} alt="Extended Brand Profile" className="rounded-xl w-full group-hover:scale-[1.02] transition-transform" />
+                <p className="text-center text-sm text-white/60 mt-2">Extended Profile</p>
+              </div>
+              <div className="bg-black/50 backdrop-blur border border-yellow-500/20 rounded-2xl p-2 shadow-2xl hover:border-yellow-500/40 transition-all group md:col-span-2 lg:col-span-1">
+                <img src={screenshotMoodBoard} alt="Mood Board Generation" className="rounded-xl w-full group-hover:scale-[1.02] transition-transform" />
+                <p className="text-center text-sm text-white/60 mt-2">AI Mood Board</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Cinematic Video Workflow */}
+          <div className="mb-20">
+            <div className="flex items-center gap-4 mb-8">
+              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-yellow-500 to-orange-400 flex items-center justify-center text-black font-bold text-lg shadow-lg shadow-orange-500/30">
+                02
+              </div>
+              <div>
+                <h3 className="text-2xl font-bold text-white">Cinematic Video Ads</h3>
+                <p className="text-white/50">Create broadcast-quality video storyboards with AI</p>
+              </div>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div className="bg-black/50 backdrop-blur border border-orange-500/20 rounded-2xl p-2 shadow-2xl hover:border-orange-500/40 transition-all group">
+                <img src={screenshotCinematicConcepts} alt="Cinematic Concepts" className="rounded-xl w-full group-hover:scale-[1.02] transition-transform" />
+                <p className="text-center text-sm text-white/60 mt-2">3 Creative Concepts</p>
+              </div>
+              <div className="bg-black/50 backdrop-blur border border-orange-500/20 rounded-2xl p-2 shadow-2xl hover:border-orange-500/40 transition-all group">
+                <img src={screenshotAnalyseConcept} alt="Analyzing Concept" className="rounded-xl w-full group-hover:scale-[1.02] transition-transform" />
+                <p className="text-center text-sm text-white/60 mt-2">AI Director at Work</p>
+              </div>
+              <div className="bg-black/50 backdrop-blur border border-orange-500/20 rounded-2xl p-2 shadow-2xl hover:border-orange-500/40 transition-all group">
+                <img src={screenshotCinematicGen} alt="Image Generation" className="rounded-xl w-full group-hover:scale-[1.02] transition-transform" />
+                <p className="text-center text-sm text-white/60 mt-2">Generating Scenes</p>
+              </div>
+              <div className="bg-black/50 backdrop-blur border border-orange-500/20 rounded-2xl p-2 shadow-2xl hover:border-orange-500/40 transition-all group">
+                <img src={screenshotCinematic1} alt="Storyboard Scene 1" className="rounded-xl w-full group-hover:scale-[1.02] transition-transform" />
+                <p className="text-center text-sm text-white/60 mt-2">Scene 1</p>
+              </div>
+              <div className="bg-black/50 backdrop-blur border border-orange-500/20 rounded-2xl p-2 shadow-2xl hover:border-orange-500/40 transition-all group">
+                <img src={screenshotCinematic2} alt="Storyboard Scene 2" className="rounded-xl w-full group-hover:scale-[1.02] transition-transform" />
+                <p className="text-center text-sm text-white/60 mt-2">Scene 2</p>
+              </div>
+              <div className="bg-black/50 backdrop-blur border border-orange-500/20 rounded-2xl p-2 shadow-2xl hover:border-orange-500/40 transition-all group">
+                <img src={screenshotCinematic3} alt="Storyboard Scene 3" className="rounded-xl w-full group-hover:scale-[1.02] transition-transform" />
+                <p className="text-center text-sm text-white/60 mt-2">Scene 3</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Food Social Workflow */}
+          <div className="mb-20">
+            <div className="flex items-center gap-4 mb-8">
+              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-orange-400 to-red-500 flex items-center justify-center text-black font-bold text-lg shadow-lg shadow-red-500/30">
+                03
+              </div>
+              <div>
+                <h3 className="text-2xl font-bold text-white">Food Social Posts</h3>
+                <p className="text-white/50">Mouth-watering food photography for social media</p>
+              </div>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="bg-black/50 backdrop-blur border border-red-500/20 rounded-2xl p-2 shadow-2xl hover:border-red-500/40 transition-all group">
+                <img src={screenshotFoodSocialGen} alt="Food Social Generation" className="rounded-xl w-full group-hover:scale-[1.02] transition-transform" />
+                <p className="text-center text-sm text-white/60 mt-2">AI Food Photographer</p>
+              </div>
+              <div className="bg-black/50 backdrop-blur border border-red-500/20 rounded-2xl p-2 shadow-2xl hover:border-red-500/40 transition-all group">
+                <img src={screenshotFoodSocial1} alt="Food Social Output 1" className="rounded-xl w-full group-hover:scale-[1.02] transition-transform" />
+                <p className="text-center text-sm text-white/60 mt-2">Social Post Ready</p>
+              </div>
+              <div className="bg-black/50 backdrop-blur border border-red-500/20 rounded-2xl p-2 shadow-2xl hover:border-red-500/40 transition-all group">
+                <img src={screenshotFoodSocial2} alt="Food Social Output 2" className="rounded-xl w-full group-hover:scale-[1.02] transition-transform" />
+                <p className="text-center text-sm text-white/60 mt-2">Multiple Variations</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Email Campaign Workflow */}
+          <div>
+            <div className="flex items-center gap-4 mb-8">
+              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center text-black font-bold text-lg shadow-lg shadow-purple-500/30">
+                04
+              </div>
+              <div>
+                <h3 className="text-2xl font-bold text-white">Email Campaigns</h3>
+                <p className="text-white/50">Complete email templates with AI-generated visuals and copy</p>
+              </div>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+              <div className="bg-black/50 backdrop-blur border border-purple-500/20 rounded-2xl p-2 shadow-2xl hover:border-purple-500/40 transition-all group">
+                <img src={screenshotEmailGen} alt="Email Generation Setup" className="rounded-xl w-full group-hover:scale-[1.02] transition-transform" />
+                <p className="text-center text-sm text-white/60 mt-2">Campaign Setup</p>
+              </div>
+              <div className="bg-black/50 backdrop-blur border border-purple-500/20 rounded-2xl p-2 shadow-2xl hover:border-purple-500/40 transition-all group">
+                <img src={screenshotEmailConcepts} alt="Email Concepts" className="rounded-xl w-full group-hover:scale-[1.02] transition-transform" />
+                <p className="text-center text-sm text-white/60 mt-2">3 Email Concepts</p>
+              </div>
+              <div className="bg-black/50 backdrop-blur border border-purple-500/20 rounded-2xl p-2 shadow-2xl hover:border-purple-500/40 transition-all group">
+                <img src={screenshotEmail1} alt="Email Section Generation" className="rounded-xl w-full group-hover:scale-[1.02] transition-transform" />
+                <p className="text-center text-sm text-white/60 mt-2">Section Generation</p>
+              </div>
+              <div className="bg-black/50 backdrop-blur border border-purple-500/20 rounded-2xl p-2 shadow-2xl hover:border-purple-500/40 transition-all group">
+                <img src={screenshotEmailTo} alt="Email Sections Overview" className="rounded-xl w-full group-hover:scale-[1.02] transition-transform" />
+                <p className="text-center text-sm text-white/60 mt-2">All Sections</p>
+              </div>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+              <div className="bg-black/50 backdrop-blur border border-purple-500/20 rounded-2xl p-2 shadow-2xl hover:border-purple-500/40 transition-all group">
+                <img src={screenshotEmailOutput1} alt="Email Hero Section" className="rounded-xl w-full group-hover:scale-[1.02] transition-transform" />
+                <p className="text-center text-sm text-white/60 mt-2">Hero Section</p>
+              </div>
+              <div className="bg-black/50 backdrop-blur border border-purple-500/20 rounded-2xl p-2 shadow-2xl hover:border-purple-500/40 transition-all group">
+                <img src={screenshotEmailOutput2} alt="Email Body Section" className="rounded-xl w-full group-hover:scale-[1.02] transition-transform" />
+                <p className="text-center text-sm text-white/60 mt-2">Body Section</p>
+              </div>
+              <div className="bg-black/50 backdrop-blur border border-purple-500/20 rounded-2xl p-2 shadow-2xl hover:border-purple-500/40 transition-all group">
+                <img src={screenshotEmailOutput3} alt="Email Infographic" className="rounded-xl w-full group-hover:scale-[1.02] transition-transform" />
+                <p className="text-center text-sm text-white/60 mt-2">Infographic</p>
+              </div>
+              <div className="bg-black/50 backdrop-blur border border-purple-500/20 rounded-2xl p-2 shadow-2xl hover:border-purple-500/40 transition-all group">
+                <img src={screenshotEmailOutputFor} alt="Email Content" className="rounded-xl w-full group-hover:scale-[1.02] transition-transform" />
+                <p className="text-center text-sm text-white/60 mt-2">Rich Content</p>
+              </div>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="bg-black/50 backdrop-blur border border-purple-500/20 rounded-2xl p-2 shadow-2xl hover:border-purple-500/40 transition-all group">
+                <img src={screenshotEmailOutput5} alt="Email Footer" className="rounded-xl w-full group-hover:scale-[1.02] transition-transform" />
+                <p className="text-center text-sm text-white/60 mt-2">Footer Section</p>
+              </div>
+              <div className="bg-black/50 backdrop-blur border border-purple-500/20 rounded-2xl p-2 shadow-2xl hover:border-purple-500/40 transition-all group">
+                <img src={screenshotEmailTemplateGen} alt="Template Generation" className="rounded-xl w-full group-hover:scale-[1.02] transition-transform" />
+                <p className="text-center text-sm text-white/60 mt-2">AI Generating</p>
+              </div>
+              <div className="bg-black/50 backdrop-blur border border-purple-500/20 rounded-2xl p-2 shadow-2xl hover:border-purple-500/40 transition-all group">
+                <img src={screenshotEmailCode} alt="HTML Code Export" className="rounded-xl w-full group-hover:scale-[1.02] transition-transform" />
+                <p className="text-center text-sm text-white/60 mt-2">Export HTML Code</p>
+              </div>
             </div>
           </div>
         </div>
@@ -389,7 +609,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
 
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
             {features.map((feature, idx) => (
-              <div 
+              <div
                 key={idx}
                 className="group bg-white/[0.02] hover:bg-white/[0.05] border border-yellow-500/10 hover:border-yellow-500/30 rounded-2xl p-8 transition-all duration-300"
               >
@@ -405,7 +625,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
           </div>
 
           <div className="mt-16 text-center">
-            <button 
+            <button
               onClick={onGetStarted}
               className="bg-gradient-to-r from-yellow-400 to-orange-500 text-black px-10 py-4 rounded-full font-bold text-lg hover:scale-105 transition shadow-lg shadow-yellow-500/25"
             >
@@ -419,7 +639,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
       <section className="py-24 px-8 bg-gradient-to-b from-transparent via-yellow-500/5 to-transparent relative overflow-hidden">
         <div className="absolute top-1/4 left-0 w-96 h-96 bg-yellow-500/10 blur-[120px] rounded-full"></div>
         <div className="absolute bottom-1/4 right-0 w-96 h-96 bg-orange-500/10 blur-[120px] rounded-full"></div>
-        
+
         <div className="max-w-6xl mx-auto relative">
           <div className="text-center mb-16">
             <p className="text-white/40 text-sm uppercase tracking-widest mb-4">How It Works</p>
@@ -438,7 +658,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
           <div className="grid lg:grid-cols-2 gap-16 items-start">
             <div className="relative">
               <div className="absolute left-[23px] top-[60px] bottom-[60px] w-[2px] bg-gradient-to-b from-yellow-400 via-yellow-500 to-orange-500 hidden md:block"></div>
-              
+
               <div className="space-y-6">
                 <div className="group relative bg-gradient-to-r from-yellow-500/10 to-transparent border border-yellow-500/20 hover:border-yellow-500/40 rounded-2xl p-6 transition-all duration-300 hover:scale-[1.02] hover:shadow-lg hover:shadow-yellow-500/10">
                   <div className="flex gap-5">
@@ -492,7 +712,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
                 </div>
               </div>
             </div>
-            
+
             <div className="relative">
               <div className="absolute inset-0 bg-gradient-to-r from-yellow-500/10 to-orange-500/10 blur-3xl rounded-full"></div>
               <div className="relative bg-black/60 backdrop-blur-xl border border-yellow-500/20 rounded-2xl overflow-hidden">
@@ -504,7 +724,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
                     <span className="ml-4 text-white/40 text-sm font-medium">Campaign Pipeline</span>
                   </div>
                 </div>
-                
+
                 <div className="p-6 space-y-4">
                   <div className="flex items-center gap-4 bg-green-500/10 border border-green-500/30 rounded-xl p-4">
                     <div className="w-10 h-10 rounded-lg bg-green-500/20 flex items-center justify-center">
@@ -516,7 +736,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
                     </div>
                     <div className="text-xs text-green-400/60">12 sources</div>
                   </div>
-                  
+
                   <div className="flex items-center gap-4 bg-yellow-500/10 border border-yellow-500/30 rounded-xl p-4">
                     <div className="w-10 h-10 rounded-lg bg-yellow-500/20 flex items-center justify-center">
                       <span className="text-yellow-400 text-lg">🎬</span>
@@ -531,7 +751,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
                       <div className="w-6 h-6 rounded bg-red-500/30"></div>
                     </div>
                   </div>
-                  
+
                   <div className="flex items-center gap-4 bg-orange-500/10 border border-orange-500/30 rounded-xl p-4">
                     <div className="w-10 h-10 rounded-lg bg-orange-500/20 flex items-center justify-center animate-pulse">
                       <span className="text-orange-400 text-lg">🎥</span>
@@ -544,7 +764,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
                     </div>
                     <div className="text-xs text-orange-400/60">75%</div>
                   </div>
-                  
+
                   <div className="grid grid-cols-4 gap-2 pt-2">
                     <div className="text-center p-2 bg-white/5 rounded-lg">
                       <div className="text-lg mb-1">📸</div>
@@ -590,11 +810,11 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
 
           <div className="grid md:grid-cols-3 gap-6">
             {pricingPlans.map((plan, idx) => (
-              <div 
+              <div
                 key={idx}
                 className={`relative rounded-2xl p-8 transition-all ${
-                  plan.popular 
-                    ? 'bg-gradient-to-b from-yellow-500/10 to-orange-500/10 border-2 border-yellow-500/50 scale-105' 
+                  plan.popular
+                    ? 'bg-gradient-to-b from-yellow-500/10 to-orange-500/10 border-2 border-yellow-500/50 scale-105'
                     : 'bg-white/[0.02] border border-white/10 hover:border-yellow-500/30'
                 }`}
               >
@@ -603,10 +823,10 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
                     MOST POPULAR
                   </div>
                 )}
-                
+
                 <h3 className="text-xl font-bold mb-2">{plan.name}</h3>
                 <p className="text-white/40 text-sm mb-6">{plan.description}</p>
-                
+
                 <div className="mb-6">
                   {plan.originalPrice && (
                     <div className="text-sm text-white/40 line-through mb-1">Reduced from {plan.originalPrice}</div>
@@ -614,7 +834,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
                   <span className="text-4xl font-bold text-white">{plan.price}</span>
                   <span className="text-white/40">{plan.period}</span>
                 </div>
-                
+
                 <ul className="space-y-3 mb-8">
                   {plan.features.map((feature, fidx) => (
                     <li key={fidx} className="flex items-center gap-2 text-sm text-white/70">
@@ -623,12 +843,12 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
                     </li>
                   ))}
                 </ul>
-                
-                <button 
+
+                <button
                   onClick={onGetStarted}
                   className={`w-full py-3 rounded-full font-bold transition ${
-                    plan.popular 
-                      ? 'bg-gradient-to-r from-yellow-400 to-orange-500 text-black hover:scale-105' 
+                    plan.popular
+                      ? 'bg-gradient-to-r from-yellow-400 to-orange-500 text-black hover:scale-105'
                       : 'bg-white/10 text-white hover:bg-white/20'
                   }`}
                 >
@@ -663,7 +883,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
             <span>Brief to Export</span>
           </div>
           <div className="flex flex-col items-center gap-3">
-            <button 
+            <button
               onClick={onGetStarted}
               className="bg-gradient-to-r from-yellow-400 to-orange-500 text-black px-10 py-4 rounded-full font-bold text-lg hover:scale-105 transition shadow-lg shadow-yellow-500/25"
             >
