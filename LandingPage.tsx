@@ -326,9 +326,9 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
         </div>
       </section>
 
-      <section className="py-16 px-8 border-t border-white/5">
+      <section className="py-12 px-8 border-t border-white/5">
         <div className="max-w-6xl mx-auto">
-          <div className="flex items-center justify-center gap-6 mb-8">
+          <div className="flex items-center justify-center gap-6 mb-8 border-2 border-yellow-500 rounded-2xl p-6 bg-black/30">
             <h2 className="text-4xl md:text-5xl font-serif">
               <span className="text-yellow-400">Four Powerful</span>
               <br />
@@ -343,19 +343,19 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
             />
           </div>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-            <div className="bg-white/[0.02] border border-white/10 rounded-xl p-4 text-center">
+            <div className="bg-white/[0.02] border-2 border-yellow-500 rounded-xl p-4 text-center">
               <img src={iconCinematic} alt="Cinematic Video" className="w-20 h-20 mx-auto mb-2 rounded-lg object-cover" />
               <p className="text-white/70 text-sm font-medium">Cinematic Video</p>
             </div>
-            <div className="bg-white/[0.02] border border-white/10 rounded-xl p-4 text-center">
+            <div className="bg-white/[0.02] border-2 border-yellow-500 rounded-xl p-4 text-center">
               <img src={iconSocialPosters} alt="Social Posters" className="w-20 h-20 mx-auto mb-2 rounded-lg object-cover" />
               <p className="text-white/70 text-sm font-medium">Social Posters</p>
             </div>
-            <div className="bg-white/[0.02] border border-white/10 rounded-xl p-4 text-center">
+            <div className="bg-white/[0.02] border-2 border-yellow-500 rounded-xl p-4 text-center">
               <img src={iconFoodSocial} alt="Food Socials" className="w-20 h-20 mx-auto mb-2 rounded-lg object-cover" />
               <p className="text-white/70 text-sm font-medium">Food Socials</p>
             </div>
-            <div className="bg-white/[0.02] border border-white/10 rounded-xl p-4 text-center">
+            <div className="bg-white/[0.02] border-2 border-yellow-500 rounded-xl p-4 text-center">
               <img src={iconEmail} alt="Email Campaign" className="w-20 h-20 mx-auto mb-2 rounded-lg object-cover" />
               <p className="text-white/70 text-sm font-medium">Email Campaign</p>
             </div>
