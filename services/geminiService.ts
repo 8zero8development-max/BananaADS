@@ -281,38 +281,40 @@ export class GeminiService {
       ]
     });
 
-    const response = await ai.models.generateContent({
-      model: "gemini-3-pro-preview",
-      contents: prompt,
-      config: {
-        tools: [{ googleSearch: {} }],
-        responseMimeType: "application/json",
-        responseSchema: {
-          type: Type.OBJECT,
-          properties: {
-            targetAudience: { type: Type.STRING },
-            tone: { type: Type.ARRAY, items: { type: Type.STRING } },
-            keyFeatures: { type: Type.ARRAY, items: { type: Type.STRING } },
-            logoImage: { type: Type.STRING, description: "URL to the brand logo if found on the web" },
+    return this.retry(async () => {
+      const response = await ai.models.generateContent({
+        model: "gemini-3-pro-preview",
+        contents: prompt,
+        config: {
+          tools: [{ googleSearch: {} }],
+          responseMimeType: "application/json",
+          responseSchema: {
+            type: Type.OBJECT,
+            properties: {
+              targetAudience: { type: Type.STRING },
+              tone: { type: Type.ARRAY, items: { type: Type.STRING } },
+              keyFeatures: { type: Type.ARRAY, items: { type: Type.STRING } },
+              logoImage: { type: Type.STRING, description: "URL to the brand logo if found on the web" },
+            },
+            required: ["targetAudience", "tone", "keyFeatures"],
           },
-          required: ["targetAudience", "tone", "keyFeatures"],
         },
-      },
-    });
-
-    const data = JSON.parse(response.text || "{}");
-    
-    // Extract grounding sources
-    const sources: string[] = [];
-    if (response.candidates?.[0]?.groundingMetadata?.groundingChunks) {
-      response.candidates[0].groundingMetadata.groundingChunks.forEach((chunk: any) => {
-        if (chunk.web?.uri) {
-          sources.push(chunk.web.uri);
-        }
       });
-    }
 
-    return { ...data, researchSources: sources };
+      const data = JSON.parse(response.text || "{}");
+      
+      // Extract grounding sources
+      const sources: string[] = [];
+      if (response.candidates?.[0]?.groundingMetadata?.groundingChunks) {
+        response.candidates[0].groundingMetadata.groundingChunks.forEach((chunk: any) => {
+          if (chunk.web?.uri) {
+            sources.push(chunk.web.uri);
+          }
+        });
+      }
+
+      return { ...data, researchSources: sources };
+    });
   }
   
   // Refactored to use manual parsing as requested for better Search tool compatibility
@@ -341,36 +343,36 @@ export class GeminiService {
       }
       `;
     
-      const response = await ai.models.generateContent({
-        model: 'gemini-3-pro-preview',
-        contents: { parts: [{ text: prompt }] },
-        config: {
-          tools: [{ googleSearch: {} }]
-          // Removed responseSchema here to allow flexible search result processing
+      return this.retry(async () => {
+        const response = await ai.models.generateContent({
+          model: 'gemini-3-pro-preview',
+          contents: { parts: [{ text: prompt }] },
+          config: {
+            tools: [{ googleSearch: {} }]
+          }
+        });
+      
+        let text = response.text;
+        if (!text) throw new Error("No response from Gemini");
+
+        // Clean up potential markdown formatting from the model
+        text = text.replace(/```json/g, '').replace(/```/g, '').trim();
+
+        try {
+          const data = JSON.parse(text);
+          return {
+               brandName: data.brandName,
+               productName: data.productName,
+               targetAudience: data.targetAudience,
+               tone: Array.isArray(data.tone) ? data.tone : [data.tone],
+               keyFeatures: Array.isArray(data.keyFeatures) ? data.keyFeatures : [data.keyFeatures],
+               logoImage: data.logoImage
+          };
+        } catch (e) {
+          console.error("Failed to parse JSON from autoFillFoodBrief:", text);
+          throw new Error("AI returned invalid JSON format. Please try again.");
         }
       });
-    
-      let text = response.text;
-      if (!text) throw new Error("No response from Gemini");
-
-      // Clean up potential markdown formatting from the model
-      text = text.replace(/```json/g, '').replace(/```/g, '').trim();
-
-      try {
-        const data = JSON.parse(text);
-        return {
-             brandName: data.brandName,
-             productName: data.productName,
-             targetAudience: data.targetAudience,
-             tone: Array.isArray(data.tone) ? data.tone : [data.tone],
-             keyFeatures: Array.isArray(data.keyFeatures) ? data.keyFeatures : [data.keyFeatures],
-             logoImage: data.logoImage
-        };
-      } catch (e) {
-        console.error("Failed to parse JSON from autoFillFoodBrief:", text);
-        // Fallback or re-throw
-        throw new Error("AI returned invalid JSON format. Please try again.");
-      }
   }
 
   // Website Analysis - Extract colors and typography from a website URL
@@ -467,50 +469,52 @@ ${brief.productImage ? "- Product/food photo is attached for visual analysis." :
         parts.push({ text: "REFERENCE IMAGE (PRODUCT): Analyze this product image for visual style, lighting, composition, and mood." });
       }
     
-      const response = await ai.models.generateContent({
-        model: 'gemini-2.5-flash',
-        contents: { parts },
-        config: {
-          responseMimeType: "application/json",
-          responseSchema: {
-            type: Type.OBJECT,
-            properties: {
-              visualStyle: { type: Type.STRING, description: "Description of colors, shapes, textures, and overall visual aesthetic" },
-              colorPalette: { type: Type.ARRAY, items: { type: Type.STRING }, description: "3-5 specific colors as hex codes (e.g., #FF5733, #000000, #FFFFFF). Always use hex format, never descriptive names." },
-              typography: { type: Type.STRING, description: "Font style characteristics (serif/sans-serif, weight, personality)" },
-              composition: { type: Type.STRING, description: "Layout preferences and visual hierarchy approach" },
-              mood: { type: Type.STRING, description: "Emotional tone and atmosphere of the brand" },
-              targetPsychographics: { type: Type.ARRAY, items: { type: Type.STRING }, description: "3-5 lifestyle/value descriptors of target audience" },
-              brandArchetype: { type: Type.STRING, description: "One of 12 Jungian archetypes (Hero, Creator, Caregiver, Explorer, etc.)" }
-            },
-            required: ["visualStyle", "colorPalette", "typography", "composition", "mood", "targetPsychographics", "brandArchetype"]
+      return this.retry(async () => {
+        const response = await ai.models.generateContent({
+          model: 'gemini-2.5-flash',
+          contents: { parts },
+          config: {
+            responseMimeType: "application/json",
+            responseSchema: {
+              type: Type.OBJECT,
+              properties: {
+                visualStyle: { type: Type.STRING, description: "Description of colors, shapes, textures, and overall visual aesthetic" },
+                colorPalette: { type: Type.ARRAY, items: { type: Type.STRING }, description: "3-5 specific colors as hex codes (e.g., #FF5733, #000000, #FFFFFF). Always use hex format, never descriptive names." },
+                typography: { type: Type.STRING, description: "Font style characteristics (serif/sans-serif, weight, personality)" },
+                composition: { type: Type.STRING, description: "Layout preferences and visual hierarchy approach" },
+                mood: { type: Type.STRING, description: "Emotional tone and atmosphere of the brand" },
+                targetPsychographics: { type: Type.ARRAY, items: { type: Type.STRING }, description: "3-5 lifestyle/value descriptors of target audience" },
+                brandArchetype: { type: Type.STRING, description: "One of 12 Jungian archetypes (Hero, Creator, Caregiver, Explorer, etc.)" }
+              },
+              required: ["visualStyle", "colorPalette", "typography", "composition", "mood", "targetPsychographics", "brandArchetype"]
+            }
           }
-        }
-      });
-    
-      const text = response.text;
-      if (!text) throw new Error("No response from Gemini");
-      const data = JSON.parse(text);
+        });
       
-      // Use website analysis as fallback if Gemini returns empty
-      const typographyValue = (data.typography?.trim() || '') || 
-        (websiteAnalysis?.typography?.trim() || '') || 
-        (websiteAnalysis?.typographyStyle || '');
+        const text = response.text;
+        if (!text) throw new Error("No response from Gemini");
+        const data = JSON.parse(text);
+        
+        // Use website analysis as fallback if Gemini returns empty
+        const typographyValue = (data.typography?.trim() || '') || 
+          (websiteAnalysis?.typography?.trim() || '') || 
+          (websiteAnalysis?.typographyStyle || '');
 
-      // Use website-extracted colors as fallback if Gemini returns empty palette
-      const aiColors = Array.isArray(data.colorPalette) ? data.colorPalette.filter((c: string) => c?.trim()) : [];
-      const websiteColors = websiteAnalysis?.colors || [];
-      const colorPaletteValue = aiColors.length > 0 ? aiColors : websiteColors.slice(0, 5);
+        // Use website-extracted colors as fallback if Gemini returns empty palette
+        const aiColors = Array.isArray(data.colorPalette) ? data.colorPalette.filter((c: string) => c?.trim()) : [];
+        const websiteColors = websiteAnalysis?.colors || [];
+        const colorPaletteValue = aiColors.length > 0 ? aiColors : websiteColors.slice(0, 5);
 
-      return {
-        visualStyle: data.visualStyle || '',
-        colorPalette: colorPaletteValue,
-        typography: typographyValue,
-        composition: data.composition || '',
-        mood: data.mood || '',
-        targetPsychographics: data.targetPsychographics || [],
-        brandArchetype: data.brandArchetype || ''
-      };
+        return {
+          visualStyle: data.visualStyle || '',
+          colorPalette: colorPaletteValue,
+          typography: typographyValue,
+          composition: data.composition || '',
+          mood: data.mood || '',
+          targetPsychographics: data.targetPsychographics || [],
+          brandArchetype: data.brandArchetype || ''
+        };
+      });
   }
 
   static async generateMoodBoard(brief: AdBrief, referenceImage?: string, logoImage?: string): Promise<string> {
@@ -653,28 +657,30 @@ Ensure concepts align strictly with this direction, even if it contradicts the s
       examples: CONCEPT_EXAMPLES
     });
 
-    const response = await ai.models.generateContent({
-      model: "gemini-3-flash-preview",
-      contents: prompt,
-      config: {
-        responseMimeType: "application/json",
-        responseSchema: {
-          type: Type.ARRAY,
-          items: {
-            type: Type.OBJECT,
-            properties: {
-              id: { type: Type.STRING, description: "Unique identifier following pattern concept_N" },
-              title: { type: Type.STRING, description: "Memorable concept title (2-4 words)" },
-              hook: { type: Type.STRING, description: "Punchy tagline (3-7 words)" },
-              summary: { type: Type.STRING, description: "Creative rationale (1-2 sentences)" },
+    return this.retry(async () => {
+      const response = await ai.models.generateContent({
+        model: "gemini-3-flash-preview",
+        contents: prompt,
+        config: {
+          responseMimeType: "application/json",
+          responseSchema: {
+            type: Type.ARRAY,
+            items: {
+              type: Type.OBJECT,
+              properties: {
+                id: { type: Type.STRING, description: "Unique identifier following pattern concept_N" },
+                title: { type: Type.STRING, description: "Memorable concept title (2-4 words)" },
+                hook: { type: Type.STRING, description: "Punchy tagline (3-7 words)" },
+                summary: { type: Type.STRING, description: "Creative rationale (1-2 sentences)" },
+              },
+              required: ["id", "title", "hook", "summary"],
             },
-            required: ["id", "title", "hook", "summary"],
           },
         },
-      },
-    });
+      });
 
-    return JSON.parse(response.text || "[]");
+      return JSON.parse(response.text || "[]");
+    });
   }
 
   // Specialized Concept Generation for Food Socials
@@ -726,31 +732,33 @@ ${brandDnaContext}`,
         parts.push({ text: "REFERENCE IMAGE (LOGO): This is the brand logo. It MUST be incorporated into each poster design for brand consistency." });
       }
 
-      const response = await ai.models.generateContent({
-        model: 'gemini-2.5-flash',
-        contents: { parts },
-        config: {
-          responseMimeType: "application/json",
-          responseSchema: {
-            type: Type.ARRAY,
-            items: {
-              type: Type.OBJECT,
-              properties: {
-                id: { type: Type.STRING, description: "Unique identifier following pattern concept_N" },
-                title: { type: Type.STRING, description: "Short internal concept name (2-4 words)" },
-                hook: { type: Type.STRING, description: "Punchy tagline (3-7 words)" },
-                summary: { type: Type.STRING, description: "Rationale explaining why this concept works" },
-                visualPrompt: { type: Type.STRING, description: "Detailed prompt for Professional Advertising Poster including typography, background, color palette, logo placement" },
-                copyAngle: { type: Type.STRING, description: "Instructions for copywriter on tone and messaging approach" },
-                overlayCtas: { type: Type.ARRAY, items: { type: Type.STRING, description: "Punchy headline option (2-5 words)" }, description: "Exactly 3 distinct headline options" },
-              },
-              required: ["id", "title", "hook", "summary", "visualPrompt", "copyAngle", "overlayCtas"]
+      return this.retry(async () => {
+        const response = await ai.models.generateContent({
+          model: 'gemini-2.5-flash',
+          contents: { parts },
+          config: {
+            responseMimeType: "application/json",
+            responseSchema: {
+              type: Type.ARRAY,
+              items: {
+                type: Type.OBJECT,
+                properties: {
+                  id: { type: Type.STRING, description: "Unique identifier following pattern concept_N" },
+                  title: { type: Type.STRING, description: "Short internal concept name (2-4 words)" },
+                  hook: { type: Type.STRING, description: "Punchy tagline (3-7 words)" },
+                  summary: { type: Type.STRING, description: "Rationale explaining why this concept works" },
+                  visualPrompt: { type: Type.STRING, description: "Detailed prompt for Professional Advertising Poster including typography, background, color palette, logo placement" },
+                  copyAngle: { type: Type.STRING, description: "Instructions for copywriter on tone and messaging approach" },
+                  overlayCtas: { type: Type.ARRAY, items: { type: Type.STRING, description: "Punchy headline option (2-5 words)" }, description: "Exactly 3 distinct headline options" },
+                },
+                required: ["id", "title", "hook", "summary", "visualPrompt", "copyAngle", "overlayCtas"]
+              }
             }
           }
-        }
+        });
+      
+        return JSON.parse(response.text || "[]");
       });
-    
-      return JSON.parse(response.text || "[]");
   }
 
   static async generateEmailCampaign(brief: AdBrief): Promise<AdConcept[]> {
@@ -800,31 +808,33 @@ ${brandDnaContext}`,
       parts.push({ text: "REFERENCE IMAGE (LOGO): This is the brand logo. It MUST appear in the email header and optionally in the footer for brand consistency." });
     }
 
-    const response = await ai.models.generateContent({
-      model: 'gemini-2.5-flash',
-      contents: { parts },
-      config: {
-        responseMimeType: "application/json",
-        responseSchema: {
-          type: Type.ARRAY,
-          items: {
-            type: Type.OBJECT,
-            properties: {
-              id: { type: Type.STRING },
-              title: { type: Type.STRING },
-              hook: { type: Type.STRING },
-              summary: { type: Type.STRING },
-              visualPrompt: { type: Type.STRING },
-              copyAngle: { type: Type.STRING, description: "Email copy strategy" },
-              overlayCtas: { type: Type.ARRAY, items: { type: Type.STRING }, description: "Subject line options" },
-            },
-            required: ["id", "title", "hook", "summary", "visualPrompt", "copyAngle", "overlayCtas"]
+    return this.retry(async () => {
+      const response = await ai.models.generateContent({
+        model: 'gemini-2.5-flash',
+        contents: { parts },
+        config: {
+          responseMimeType: "application/json",
+          responseSchema: {
+            type: Type.ARRAY,
+            items: {
+              type: Type.OBJECT,
+              properties: {
+                id: { type: Type.STRING },
+                title: { type: Type.STRING },
+                hook: { type: Type.STRING },
+                summary: { type: Type.STRING },
+                visualPrompt: { type: Type.STRING },
+                copyAngle: { type: Type.STRING, description: "Email copy strategy" },
+                overlayCtas: { type: Type.ARRAY, items: { type: Type.STRING }, description: "Subject line options" },
+              },
+              required: ["id", "title", "hook", "summary", "visualPrompt", "copyAngle", "overlayCtas"]
+            }
           }
         }
-      }
+      });
+    
+      return JSON.parse(response.text || "[]");
     });
-  
-    return JSON.parse(response.text || "[]");
   }
 
   static async generateEmailContent(brief: AdBrief, concept: AdConcept): Promise<Scene[]> {
@@ -866,27 +876,29 @@ ${brandDnaContext}`,
     
     Output a JSON array of 4 sections.`;
 
-    const response = await ai.models.generateContent({
-      model: "gemini-3-pro-preview",
-      contents: prompt,
-      config: {
-        responseMimeType: "application/json",
-        responseSchema: {
-          type: Type.ARRAY,
-          items: {
-            type: Type.OBJECT,
-            properties: {
-              sceneNumber: { type: Type.NUMBER },
-              visualPrompt: { type: Type.STRING, description: "Visual description for the email section" },
-              audioScript: { type: Type.STRING, description: "Email copy/text content for this section" },
+    return this.retry(async () => {
+      const response = await ai.models.generateContent({
+        model: "gemini-3-pro-preview",
+        contents: prompt,
+        config: {
+          responseMimeType: "application/json",
+          responseSchema: {
+            type: Type.ARRAY,
+            items: {
+              type: Type.OBJECT,
+              properties: {
+                sceneNumber: { type: Type.NUMBER },
+                visualPrompt: { type: Type.STRING, description: "Visual description for the email section" },
+                audioScript: { type: Type.STRING, description: "Email copy/text content for this section" },
+              },
+              required: ["sceneNumber", "visualPrompt", "audioScript"],
             },
-            required: ["sceneNumber", "visualPrompt", "audioScript"],
           },
         },
-      },
-    });
+      });
 
-    return JSON.parse(response.text || "[]");
+      return JSON.parse(response.text || "[]");
+    });
   }
 
   static async generateEmailHTML(brief: AdBrief, concept: AdConcept, scenes: Scene[]): Promise<string> {
@@ -943,37 +955,39 @@ ${brandDnaContext}`,
     Output ONLY the complete HTML code, starting with <!DOCTYPE html> and ending with </html>.
     Do not include any explanation or markdown code blocks.`;
 
-    const response = await ai.models.generateContent({
-      model: "gemini-2.5-flash",
-      contents: prompt,
-    });
+    return this.retry(async () => {
+      const response = await ai.models.generateContent({
+        model: "gemini-2.5-flash",
+        contents: prompt,
+      });
 
-    let html = response.text || "";
-    
-    // Clean up any markdown code blocks if present
-    html = html.replace(/```html\n?/g, '').replace(/```\n?/g, '').trim();
-    
-    // Replace image placeholders with actual images if available
-    // scenes[0] = Hero, scenes[1] = Body, scenes[2] = Infographic, scenes[3] = Footer
-    if (scenes[0]?.imageUrl) {
-      html = html.replace(/\{\{IMAGE_HERO\}\}/g, scenes[0].imageUrl);
-    }
-    if (scenes[1]?.imageUrl) {
-      html = html.replace(/\{\{IMAGE_BODY\}\}/g, scenes[1].imageUrl);
-    }
-    if (scenes[2]?.imageUrl) {
-      html = html.replace(/\{\{IMAGE_INFOGRAPHIC\}\}/g, scenes[2].imageUrl);
-    }
-    if (scenes[3]?.imageUrl) {
-      html = html.replace(/\{\{IMAGE_FOOTER\}\}/g, scenes[3].imageUrl);
-    }
-    if (brief.logoImage) {
-      html = html.replace(/\{\{LOGO\}\}/g, brief.logoImage);
-    }
-    // Replace product URL placeholder
-    html = html.replace(/\{\{PRODUCT_URL\}\}/g, productUrl);
-    
-    return html;
+      let html = response.text || "";
+      
+      // Clean up any markdown code blocks if present
+      html = html.replace(/```html\n?/g, '').replace(/```\n?/g, '').trim();
+      
+      // Replace image placeholders with actual images if available
+      // scenes[0] = Hero, scenes[1] = Body, scenes[2] = Infographic, scenes[3] = Footer
+      if (scenes[0]?.imageUrl) {
+        html = html.replace(/\{\{IMAGE_HERO\}\}/g, scenes[0].imageUrl);
+      }
+      if (scenes[1]?.imageUrl) {
+        html = html.replace(/\{\{IMAGE_BODY\}\}/g, scenes[1].imageUrl);
+      }
+      if (scenes[2]?.imageUrl) {
+        html = html.replace(/\{\{IMAGE_INFOGRAPHIC\}\}/g, scenes[2].imageUrl);
+      }
+      if (scenes[3]?.imageUrl) {
+        html = html.replace(/\{\{IMAGE_FOOTER\}\}/g, scenes[3].imageUrl);
+      }
+      if (brief.logoImage) {
+        html = html.replace(/\{\{LOGO\}\}/g, brief.logoImage);
+      }
+      // Replace product URL placeholder
+      html = html.replace(/\{\{PRODUCT_URL\}\}/g, productUrl);
+      
+      return html;
+    });
   }
 
   private static stripBase64FromHtml(html: string): { strippedHtml: string; placeholders: Map<string, string> } {
@@ -1024,17 +1038,19 @@ ${brandDnaContext}`,
     Do not include any explanation or markdown code blocks.`;
 
     try {
-      const response = await ai.models.generateContent({
-        model: "gemini-2.5-flash",
-        contents: prompt,
-      });
+      return await this.retry(async () => {
+        const response = await ai.models.generateContent({
+          model: "gemini-2.5-flash",
+          contents: prompt,
+        });
 
-      let html = response.text || "";
-      html = html.replace(/```html\n?/g, '').replace(/```\n?/g, '').trim();
-      
-      html = this.restoreBase64ToHtml(html, placeholders);
-      
-      return html;
+        let html = response.text || "";
+        html = html.replace(/```html\n?/g, '').replace(/```\n?/g, '').trim();
+        
+        html = this.restoreBase64ToHtml(html, placeholders);
+        
+        return html;
+      });
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : String(error);
       
@@ -1084,27 +1100,29 @@ ${brandContext}${brandDnaContext}`,
       ]
     });
 
-    const response = await ai.models.generateContent({
-      model: "gemini-3-pro-preview",
-      contents: prompt,
-      config: {
-        responseMimeType: "application/json",
-        responseSchema: {
-          type: Type.ARRAY,
-          items: {
-            type: Type.OBJECT,
-            properties: {
-              sceneNumber: { type: Type.NUMBER, description: "Sequential scene number (1-5)" },
-              visualPrompt: { type: Type.STRING, description: "Single continuous motion prompt for 5-8s video generation" },
-              audioScript: { type: Type.STRING, description: "Voiceover script line for this scene" },
+    return this.retry(async () => {
+      const response = await ai.models.generateContent({
+        model: "gemini-3-pro-preview",
+        contents: prompt,
+        config: {
+          responseMimeType: "application/json",
+          responseSchema: {
+            type: Type.ARRAY,
+            items: {
+              type: Type.OBJECT,
+              properties: {
+                sceneNumber: { type: Type.NUMBER, description: "Sequential scene number (1-5)" },
+                visualPrompt: { type: Type.STRING, description: "Single continuous motion prompt for 5-8s video generation" },
+                audioScript: { type: Type.STRING, description: "Voiceover script line for this scene" },
+              },
+              required: ["sceneNumber", "visualPrompt", "audioScript"],
             },
-            required: ["sceneNumber", "visualPrompt", "audioScript"],
           },
         },
-      },
-    });
+      });
 
-    return JSON.parse(response.text || "[]");
+      return JSON.parse(response.text || "[]");
+    });
   }
 
   static async generateSocialCampaign(brief: AdBrief, concept: AdConcept): Promise<Scene[]> {
@@ -1127,27 +1145,29 @@ ${brandContext}${brandDnaContext}`,
     
     Output JSON array of scenes (mapping sceneNumber to postNumber).`;
 
-    const response = await ai.models.generateContent({
-      model: "gemini-3-pro-preview",
-      contents: prompt,
-      config: {
-        responseMimeType: "application/json",
-        responseSchema: {
-          type: Type.ARRAY,
-          items: {
-            type: Type.OBJECT,
-            properties: {
-              sceneNumber: { type: Type.NUMBER },
-              visualPrompt: { type: Type.STRING },
-              audioScript: { type: Type.STRING, description: "The Facebook/Instagram caption" },
+    return this.retry(async () => {
+      const response = await ai.models.generateContent({
+        model: "gemini-3-pro-preview",
+        contents: prompt,
+        config: {
+          responseMimeType: "application/json",
+          responseSchema: {
+            type: Type.ARRAY,
+            items: {
+              type: Type.OBJECT,
+              properties: {
+                sceneNumber: { type: Type.NUMBER },
+                visualPrompt: { type: Type.STRING },
+                audioScript: { type: Type.STRING, description: "The Facebook/Instagram caption" },
+              },
+              required: ["sceneNumber", "visualPrompt", "audioScript"],
             },
-            required: ["sceneNumber", "visualPrompt", "audioScript"],
           },
         },
-      },
-    });
+      });
 
-    return JSON.parse(response.text || "[]");
+      return JSON.parse(response.text || "[]");
+    });
   }
   
   // Specialized method for generating the caption for Food Socials
@@ -1171,12 +1191,14 @@ ${brandContext}${brandDnaContext}`,
       - Hashtags
       `;
     
-      const response = await ai.models.generateContent({
-        model: 'gemini-2.5-flash',
-        contents: { parts: [{ text: prompt }] }
+      return this.retry(async () => {
+        const response = await ai.models.generateContent({
+          model: 'gemini-2.5-flash',
+          contents: { parts: [{ text: prompt }] }
+        });
+      
+        return response.text?.trim() || "Could not generate caption.";
       });
-    
-      return response.text?.trim() || "Could not generate caption.";
   }
 
   // New method to polish/rewrite script
@@ -1186,12 +1208,14 @@ ${brandContext}${brandDnaContext}`,
     
     Original Script: "${script}"`;
 
-    const response = await ai.models.generateContent({
-      model: "gemini-3-flash-preview",
-      contents: prompt,
-    });
+    return this.retry(async () => {
+      const response = await ai.models.generateContent({
+        model: "gemini-3-flash-preview",
+        contents: prompt,
+      });
 
-    return response.text?.trim() || script;
+      return response.text?.trim() || script;
+    });
   }
 
   static async generateStoryboardImage(visualPrompt: string, productImage?: string, styleReferenceImage?: string, aspectRatio: string = "16:9", logoImage?: string, version: string = PROMPT_VERSIONS.STORYBOARD_IMAGE, brandDna?: BrandDna): Promise<string> {
