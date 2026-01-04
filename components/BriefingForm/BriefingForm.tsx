@@ -142,62 +142,54 @@ const BriefingForm: React.FC<BriefingFormProps> = ({
           {productionType === 'video' ? ' cinematic experience' : productionType === 'email' ? ' engaging email campaign' : ' high-impact campaign'}.
         </p>
         
-        <div className="flex flex-wrap gap-3 mb-8">
+        <div className="flex bg-white/5 rounded-full p-1.5 border border-yellow-500/30 w-fit mb-8">
           <button 
             onClick={() => setProductionType('video')}
             title="Cinematic Video"
-            className={`flex items-center gap-3 px-4 py-2 rounded-xl transition-all ${
+            className={`px-4 py-2 rounded-full text-sm font-bold transition-all flex items-center gap-2 ${
               productionType === 'video' 
-              ? 'bg-yellow-500/20 ring-2 ring-yellow-400 shadow-lg shadow-yellow-500/30' 
-              : 'bg-white/5 opacity-60 hover:opacity-100 hover:bg-white/10'
+              ? 'bg-white text-black shadow-lg' 
+              : 'text-white/40 hover:text-white hover:bg-white/5'
             }`}
           >
-            <div className="w-10 h-10 rounded-lg overflow-hidden flex-shrink-0">
-              <img src={cinematicVideoIcon} alt="Cinematic Video" className="w-full h-full object-cover" />
-            </div>
-            <span className={`text-sm font-medium whitespace-nowrap ${productionType === 'video' ? 'text-yellow-400' : 'text-white/80'}`}>Cinematic Video</span>
+            <img src={cinematicVideoIcon} alt="" className="w-6 h-6 rounded object-cover" />
+            <span>Cinematic Video</span>
           </button>
           <button 
             onClick={() => setProductionType('social')}
             title="Social Posters"
-            className={`flex items-center gap-3 px-4 py-2 rounded-xl transition-all ${
+            className={`px-4 py-2 rounded-full text-sm font-bold transition-all flex items-center gap-2 ${
               productionType === 'social' 
-              ? 'bg-purple-500/20 ring-2 ring-purple-400 shadow-lg shadow-purple-500/30' 
-              : 'bg-white/5 opacity-60 hover:opacity-100 hover:bg-white/10'
+              ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg' 
+              : 'text-white/40 hover:text-white hover:bg-white/5'
             }`}
           >
-            <div className="w-10 h-10 rounded-lg overflow-hidden flex-shrink-0">
-              <img src={socialPostersIcon} alt="Social Posters" className="w-full h-full object-cover" />
-            </div>
-            <span className={`text-sm font-medium whitespace-nowrap ${productionType === 'social' ? 'text-purple-400' : 'text-white/80'}`}>Social Posters</span>
+            <img src={socialPostersIcon} alt="" className="w-6 h-6 rounded object-cover" />
+            <span>Social Posters</span>
           </button>
           <button 
             onClick={() => setProductionType('food-social')}
             title="Food Socials"
-            className={`flex items-center gap-3 px-4 py-2 rounded-xl transition-all ${
+            className={`px-4 py-2 rounded-full text-sm font-bold transition-all flex items-center gap-2 ${
               productionType === 'food-social' 
-              ? 'bg-orange-500/20 ring-2 ring-orange-400 shadow-lg shadow-orange-500/30' 
-              : 'bg-white/5 opacity-60 hover:opacity-100 hover:bg-white/10'
+              ? 'bg-gradient-to-r from-orange-400 to-red-500 text-white shadow-lg' 
+              : 'text-white/40 hover:text-white hover:bg-white/5'
             }`}
           >
-            <div className="w-10 h-10 rounded-lg overflow-hidden flex-shrink-0">
-              <img src={foodSocialsIcon} alt="Food Socials" className="w-full h-full object-cover" />
-            </div>
-            <span className={`text-sm font-medium whitespace-nowrap ${productionType === 'food-social' ? 'text-orange-400' : 'text-white/80'}`}>Food Socials</span>
+            <img src={foodSocialsIcon} alt="" className="w-6 h-6 rounded object-cover" />
+            <span>Food Socials</span>
           </button>
           <button 
             onClick={() => setProductionType('email')}
             title="Email Campaign"
-            className={`flex items-center gap-3 px-4 py-2 rounded-xl transition-all ${
+            className={`px-4 py-2 rounded-full text-sm font-bold transition-all flex items-center gap-2 ${
               productionType === 'email' 
-              ? 'bg-blue-500/20 ring-2 ring-blue-400 shadow-lg shadow-blue-500/30' 
-              : 'bg-white/5 opacity-60 hover:opacity-100 hover:bg-white/10'
+              ? 'bg-gradient-to-r from-blue-500 to-cyan-500 text-white shadow-lg' 
+              : 'text-white/40 hover:text-white hover:bg-white/5'
             }`}
           >
-            <div className="w-10 h-10 rounded-lg overflow-hidden flex-shrink-0">
-              <img src={emailCampaignIcon} alt="Email Campaign" className="w-full h-full object-cover" />
-            </div>
-            <span className={`text-sm font-medium whitespace-nowrap ${productionType === 'email' ? 'text-blue-400' : 'text-white/80'}`}>Email Campaign</span>
+            <img src={emailCampaignIcon} alt="" className="w-6 h-6 rounded object-cover" />
+            <span>Email Campaign</span>
           </button>
         </div>
         
