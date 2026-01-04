@@ -142,50 +142,78 @@ const BriefingForm: React.FC<BriefingFormProps> = ({
           {productionType === 'video' ? ' cinematic experience' : productionType === 'email' ? ' engaging email campaign' : ' high-impact campaign'}.
         </p>
         
-        <div className="flex gap-3 mb-8">
+        <div className="flex gap-4 mb-8">
           <button 
             onClick={() => setProductionType('video')}
             title="Cinematic Video"
-            className={`w-16 h-16 rounded-xl overflow-hidden transition-all ${
+            className={`flex flex-col items-center gap-2 transition-all ${
               productionType === 'video' 
-              ? 'ring-2 ring-yellow-400 ring-offset-2 ring-offset-black scale-110 shadow-lg shadow-yellow-500/30' 
+              ? 'scale-105' 
               : 'opacity-50 hover:opacity-80 hover:scale-105'
             }`}
           >
-            <img src={cinematicVideoIcon} alt="Cinematic Video" className="w-full h-full object-cover" />
+            <div className={`w-16 h-16 rounded-xl overflow-hidden ${
+              productionType === 'video' 
+              ? 'ring-2 ring-yellow-400 ring-offset-2 ring-offset-black shadow-lg shadow-yellow-500/30' 
+              : ''
+            }`}>
+              <img src={cinematicVideoIcon} alt="Cinematic Video" className="w-full h-full object-cover" />
+            </div>
+            <span className={`text-xs font-medium ${productionType === 'video' ? 'text-yellow-400' : 'text-white/60'}`}>Cinematic Video</span>
           </button>
           <button 
             onClick={() => setProductionType('social')}
             title="Social Posters"
-            className={`w-16 h-16 rounded-xl overflow-hidden transition-all ${
+            className={`flex flex-col items-center gap-2 transition-all ${
               productionType === 'social' 
-              ? 'ring-2 ring-purple-400 ring-offset-2 ring-offset-black scale-110 shadow-lg shadow-purple-500/30' 
+              ? 'scale-105' 
               : 'opacity-50 hover:opacity-80 hover:scale-105'
             }`}
           >
-            <img src={socialPostersIcon} alt="Social Posters" className="w-full h-full object-cover" />
+            <div className={`w-16 h-16 rounded-xl overflow-hidden ${
+              productionType === 'social' 
+              ? 'ring-2 ring-purple-400 ring-offset-2 ring-offset-black shadow-lg shadow-purple-500/30' 
+              : ''
+            }`}>
+              <img src={socialPostersIcon} alt="Social Posters" className="w-full h-full object-cover" />
+            </div>
+            <span className={`text-xs font-medium ${productionType === 'social' ? 'text-purple-400' : 'text-white/60'}`}>Social Posters</span>
           </button>
           <button 
             onClick={() => setProductionType('food-social')}
             title="Food Socials"
-            className={`w-16 h-16 rounded-xl overflow-hidden transition-all ${
+            className={`flex flex-col items-center gap-2 transition-all ${
               productionType === 'food-social' 
-              ? 'ring-2 ring-orange-400 ring-offset-2 ring-offset-black scale-110 shadow-lg shadow-orange-500/30' 
+              ? 'scale-105' 
               : 'opacity-50 hover:opacity-80 hover:scale-105'
             }`}
           >
-            <img src={foodSocialsIcon} alt="Food Socials" className="w-full h-full object-cover" />
+            <div className={`w-16 h-16 rounded-xl overflow-hidden ${
+              productionType === 'food-social' 
+              ? 'ring-2 ring-orange-400 ring-offset-2 ring-offset-black shadow-lg shadow-orange-500/30' 
+              : ''
+            }`}>
+              <img src={foodSocialsIcon} alt="Food Socials" className="w-full h-full object-cover" />
+            </div>
+            <span className={`text-xs font-medium ${productionType === 'food-social' ? 'text-orange-400' : 'text-white/60'}`}>Food Socials</span>
           </button>
           <button 
             onClick={() => setProductionType('email')}
             title="Email Campaign"
-            className={`w-16 h-16 rounded-xl overflow-hidden transition-all ${
+            className={`flex flex-col items-center gap-2 transition-all ${
               productionType === 'email' 
-              ? 'ring-2 ring-blue-400 ring-offset-2 ring-offset-black scale-110 shadow-lg shadow-blue-500/30' 
+              ? 'scale-105' 
               : 'opacity-50 hover:opacity-80 hover:scale-105'
             }`}
           >
-            <img src={emailCampaignIcon} alt="Email Campaign" className="w-full h-full object-cover" />
+            <div className={`w-16 h-16 rounded-xl overflow-hidden ${
+              productionType === 'email' 
+              ? 'ring-2 ring-blue-400 ring-offset-2 ring-offset-black shadow-lg shadow-blue-500/30' 
+              : ''
+            }`}>
+              <img src={emailCampaignIcon} alt="Email Campaign" className="w-full h-full object-cover" />
+            </div>
+            <span className={`text-xs font-medium ${productionType === 'email' ? 'text-blue-400' : 'text-white/60'}`}>Email Campaign</span>
           </button>
         </div>
         
