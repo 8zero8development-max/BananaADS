@@ -275,7 +275,12 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
                   alt="Brand Brief - Tell us about your brand"
                   className="rounded-xl w-full"
                 />
-                <p className="text-center text-sm text-white/60 mt-2">Brand Brief</p>
+                <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 z-10">
+                  <div className="bg-black/80 border-2 border-yellow-500 rounded-lg px-4 py-2 flex items-center gap-2">
+                    <span className="text-white text-sm font-medium">Brand Brief</span>
+                    <span>🍌</span>
+                  </div>
+                </div>
                 <div className="hidden md:block absolute top-1/2 -right-6 transform -translate-y-1/2 z-10">
                   <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path d="M5 12H19M19 12L12 5M19 12L12 19" stroke="#FFD700" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
@@ -289,7 +294,12 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
                   alt="Creative Concepts - Select your vision"
                   className="rounded-xl w-full"
                 />
-                <p className="text-center text-sm text-white/60 mt-2">Creative Concepts</p>
+                <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 z-10">
+                  <div className="bg-black/80 border-2 border-yellow-500 rounded-lg px-4 py-2 flex items-center gap-2">
+                    <span className="text-white text-sm font-medium">Creative Concepts</span>
+                    <span>🍌</span>
+                  </div>
+                </div>
                 <div className="hidden md:block absolute top-1/2 -right-6 transform -translate-y-1/2 z-10">
                   <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path d="M5 12H19M19 12L12 5M19 12L12 19" stroke="#FFD700" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
@@ -303,7 +313,12 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
                   alt="Production - Storyboard and video generation"
                   className="rounded-xl w-full"
                 />
-                <p className="text-center text-sm text-white/60 mt-2">Production</p>
+                <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 z-10">
+                  <div className="bg-black/80 border-2 border-yellow-500 rounded-lg px-4 py-2 flex items-center gap-2">
+                    <span className="text-white text-sm font-medium">Production</span>
+                    <span>🍌</span>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
