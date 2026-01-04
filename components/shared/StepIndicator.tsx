@@ -115,20 +115,20 @@ const StepIndicator: React.FC<StepIndicatorProps> = ({
                   isCompleted 
                     ? 'bg-gradient-to-br from-green-400 to-green-600 animate-success-pop' 
                     : isCurrentStep 
-                      ? 'bg-gradient-to-br from-yellow-400 to-orange-500 animate-glow-pulse' 
+                      ? 'bg-black/80 border-2 border-yellow-400/50 ring-2 ring-yellow-400/30 animate-glow-pulse' 
                       : 'bg-white/10 border border-white/20'
                 } ${isClickable ? 'group-hover:scale-110' : ''}`}>
                   {isCompleted ? (
                     <i className={`fa-solid ${config.completedIcon} text-white text-lg`}></i>
                   ) : isCurrentStep ? (
                     <div className="flex items-center justify-center">
-                      <span className="text-2xl animate-banana-wiggle">🍌</span>
+                      <span className="text-2xl animate-banana-wiggle drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">🍌</span>
                     </div>
                   ) : (
                     <i className={`fa-solid ${config.icon} text-white/50 text-lg`}></i>
                   )}
                   {isCurrentStep && (
-                    <div className="absolute inset-0 animate-shimmer"></div>
+                    <div className="absolute inset-0 bg-gradient-to-br from-yellow-400/10 to-orange-500/10"></div>
                   )}
                 </div>
                 <div className={`absolute -bottom-1 -right-1 w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold border-2 border-black transition-all ${
