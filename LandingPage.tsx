@@ -222,7 +222,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
               Launch Scroll-Stopping Ads
             </span>
             <br />
-            <span style={{ color: '#FFD700' }}>In Minutes, Not Weeks</span>
+            <span style={{ color: '#C0C0C0' }}>In Minutes, Not Weeks</span>
           </h1>
           
           <div className="w-64 h-px bg-gradient-to-r from-transparent via-yellow-500/50 to-transparent mx-auto mb-6"></div>
@@ -238,16 +238,16 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
           </p>
 
           <div className="flex flex-wrap justify-center gap-6 mb-10 text-sm">
-            <div className="flex items-center gap-2 text-white/70">
-              <span className="text-green-400">&#10003;</span>
+            <div className="flex items-center gap-2 text-white">
+              <span className="text-green-500 text-lg font-bold">✓</span>
               <span>Your actual product in every scene</span>
             </div>
-            <div className="flex items-center gap-2 text-white/70">
-              <span className="text-green-400">&#10003;</span>
+            <div className="flex items-center gap-2 text-white">
+              <span className="text-green-500 text-lg font-bold">✓</span>
               <span>3 creative directions per brief</span>
             </div>
-            <div className="flex items-center gap-2 text-white/70">
-              <span className="text-green-400">&#10003;</span>
+            <div className="flex items-center gap-2 text-white">
+              <span className="text-green-500 text-lg font-bold">✓</span>
               <span>Export-ready in minutes</span>
             </div>
           </div>
