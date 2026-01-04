@@ -480,11 +480,31 @@ const BriefingForm: React.FC<BriefingFormProps> = ({
                         <p className="text-white/40 text-xs">Identity Profile</p>
                       </div>
                     </div>
-                    {brief.logoImage && (
-                      <div className="w-14 h-14 rounded-xl bg-white/10 backdrop-blur-sm border border-white/20 p-1.5 shadow-lg">
-                        <img src={brief.logoImage} className="w-full h-full object-contain" alt="Brand Logo" />
-                      </div>
-                    )}
+                    <div className="flex flex-col items-end gap-2">
+                      {brief.logoImage && (
+                        <div className="w-14 h-14 rounded-xl bg-white/10 backdrop-blur-sm border border-white/20 p-1.5 shadow-lg">
+                          <img src={brief.logoImage} className="w-full h-full object-contain" alt="Brand Logo" />
+                        </div>
+                      )}
+                      {brief.brandDna?.colorPalette && brief.brandDna.colorPalette.length > 0 && (
+                        <div className="flex gap-1">
+                          {brief.brandDna.colorPalette.slice(0, 5).map((color, i) => {
+                            const isValidCssColor = color.startsWith('#') || 
+                              color.startsWith('rgb') || 
+                              color.startsWith('hsl') ||
+                              /^[a-z]+$/i.test(color.trim());
+                            return (
+                              <div 
+                                key={i} 
+                                className="w-6 h-6 shadow-sm border border-white/20"
+                                style={{ backgroundColor: isValidCssColor ? color : '#333' }}
+                                title={color}
+                              />
+                            );
+                          })}
+                        </div>
+                      )}
+                    </div>
                   </div>
 
                   <div className="mb-6">
