@@ -330,20 +330,20 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
           <p className="text-white/40 text-sm uppercase tracking-widest mb-8 text-center">Built for the AI-first creative workflow</p>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
             <div className="bg-white/[0.02] border border-white/10 rounded-xl p-4 text-center">
-              <div className="text-2xl mb-2">&#128247;</div>
-              <p className="text-white/70 text-sm font-medium">Meta & Instagram Ads</p>
+              <div className="text-2xl mb-2">🎬</div>
+              <p className="text-white/70 text-sm font-medium">Cinematic Video</p>
             </div>
             <div className="bg-white/[0.02] border border-white/10 rounded-xl p-4 text-center">
-              <div className="text-2xl mb-2">&#127916;</div>
-              <p className="text-white/70 text-sm font-medium">TikTok & Reels</p>
+              <div className="text-2xl mb-2">🖼️</div>
+              <p className="text-white/70 text-sm font-medium">Social Posters</p>
             </div>
             <div className="bg-white/[0.02] border border-white/10 rounded-xl p-4 text-center">
-              <div className="text-2xl mb-2">&#9889;</div>
-              <p className="text-white/70 text-sm font-medium">YouTube Shorts</p>
+              <div className="text-2xl mb-2">🍽️</div>
+              <p className="text-white/70 text-sm font-medium">Food Socials</p>
             </div>
             <div className="bg-white/[0.02] border border-white/10 rounded-xl p-4 text-center">
-              <div className="text-2xl mb-2">&#128640;</div>
-              <p className="text-white/70 text-sm font-medium">Product Launches</p>
+              <div className="text-2xl mb-2">📧</div>
+              <p className="text-white/70 text-sm font-medium">Email Campaign</p>
             </div>
           </div>
           <div className="mt-8 flex flex-wrap justify-center gap-8 text-sm text-white/50">
