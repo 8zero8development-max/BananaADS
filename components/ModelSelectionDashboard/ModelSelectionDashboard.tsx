@@ -279,103 +279,107 @@ const ModelSelectionDashboard: React.FC<ModelSelectionDashboardProps> = ({ isOpe
           </button>
         </div>
 
-        <div className="flex-1 overflow-y-auto p-6">
-          {activeTab === 'models' && (
-            <div className="space-y-6">
-              {/* Tier Selection */}
-              <div className="flex items-center gap-4 p-4 bg-black/30 rounded-xl border border-white/10">
-                <span className="text-sm text-white/70">Tier:</span>
-                <div className="flex gap-2">
+        {/* Sticky Filter Section for Models Tab */}
+        {activeTab === 'models' && (
+          <div className="px-6 pt-4 pb-2 border-b border-white/10 bg-black/20 space-y-4 flex-shrink-0">
+            {/* Tier Selection */}
+            <div className="flex items-center gap-4 p-4 bg-black/30 rounded-xl border border-white/10">
+              <span className="text-sm text-white/70">Tier:</span>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => handleTierChange('free')}
+                  className={`px-4 py-2 rounded-lg text-sm font-medium transition ${
+                    tier === 'free'
+                      ? 'bg-green-500/20 text-green-400 border border-green-500/30'
+                      : 'bg-white/5 text-white/50 hover:bg-white/10'
+                  }`}
+                >
+                  Free Tier
+                </button>
+                <button
+                  onClick={() => handleTierChange('paid')}
+                  className={`px-4 py-2 rounded-lg text-sm font-medium transition ${
+                    tier === 'paid'
+                      ? 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/30'
+                      : 'bg-white/5 text-white/50 hover:bg-white/10'
+                  }`}
+                >
+                  Paid Tier
+                </button>
+              </div>
+              <span className="text-xs text-white/40 ml-auto">
+                {tier === 'free' ? 'Cost-effective models' : 'Premium models for best quality'}
+              </span>
+            </div>
+
+            {/* Provider Filter and Search */}
+            <div className="flex flex-col sm:flex-row gap-4 p-4 bg-black/30 rounded-xl border border-white/10">
+              <div className="flex-1">
+                <label className="text-xs text-white/50 mb-2 block">Filter by Provider</label>
+                <div className="flex flex-wrap gap-2">
                   <button
-                    onClick={() => handleTierChange('free')}
-                    className={`px-4 py-2 rounded-lg text-sm font-medium transition ${
-                      tier === 'free'
-                        ? 'bg-green-500/20 text-green-400 border border-green-500/30'
-                        : 'bg-white/5 text-white/50 hover:bg-white/10'
-                    }`}
-                  >
-                    Free Tier
-                  </button>
-                  <button
-                    onClick={() => handleTierChange('paid')}
-                    className={`px-4 py-2 rounded-lg text-sm font-medium transition ${
-                      tier === 'paid'
+                    onClick={() => setSelectedProviderFilter('all')}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-medium transition ${
+                      selectedProviderFilter === 'all'
                         ? 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/30'
                         : 'bg-white/5 text-white/50 hover:bg-white/10'
                     }`}
                   >
-                    Paid Tier
+                    All Providers
                   </button>
-                </div>
-                <span className="text-xs text-white/40 ml-auto">
-                  {tier === 'free' ? 'Cost-effective models' : 'Premium models for best quality'}
-                </span>
-              </div>
-
-              {/* Provider Filter and Search */}
-              <div className="flex flex-col sm:flex-row gap-4 p-4 bg-black/30 rounded-xl border border-white/10">
-                <div className="flex-1">
-                  <label className="text-xs text-white/50 mb-2 block">Filter by Provider</label>
-                  <div className="flex flex-wrap gap-2">
+                  {getConfiguredProviders().map(provider => (
                     <button
-                      onClick={() => setSelectedProviderFilter('all')}
-                      className={`px-3 py-1.5 rounded-lg text-xs font-medium transition ${
-                        selectedProviderFilter === 'all'
+                      key={provider}
+                      onClick={() => setSelectedProviderFilter(provider)}
+                      className={`px-3 py-1.5 rounded-lg text-xs font-medium transition flex items-center gap-1 ${
+                        selectedProviderFilter === provider
                           ? 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/30'
                           : 'bg-white/5 text-white/50 hover:bg-white/10'
                       }`}
                     >
-                      All Providers
+                      {PROVIDER_INFO[provider].name}
+                      {loadingModels[provider] && (
+                        <span className="animate-spin">...</span>
+                      )}
+                      {!loadingModels[provider] && dynamicModels[provider].length > 0 && (
+                        <span className="text-white/30">({dynamicModels[provider].length})</span>
+                      )}
                     </button>
-                    {getConfiguredProviders().map(provider => (
-                      <button
-                        key={provider}
-                        onClick={() => setSelectedProviderFilter(provider)}
-                        className={`px-3 py-1.5 rounded-lg text-xs font-medium transition flex items-center gap-1 ${
-                          selectedProviderFilter === provider
-                            ? 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/30'
-                            : 'bg-white/5 text-white/50 hover:bg-white/10'
-                        }`}
-                      >
-                        {PROVIDER_INFO[provider].name}
-                        {loadingModels[provider] && (
-                          <span className="animate-spin">...</span>
-                        )}
-                        {!loadingModels[provider] && dynamicModels[provider].length > 0 && (
-                          <span className="text-white/30">({dynamicModels[provider].length})</span>
-                        )}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-                <div className="sm:w-64">
-                  <label className="text-xs text-white/50 mb-2 block">Search Models</label>
-                  <input
-                    type="text"
-                    value={modelSearchQuery}
-                    onChange={(e) => setModelSearchQuery(e.target.value)}
-                    placeholder="Search by name..."
-                    className="w-full bg-black/50 border border-white/10 rounded-lg px-3 py-2 text-sm text-white placeholder-white/30 focus:border-yellow-500/50 focus:outline-none"
-                  />
+                  ))}
                 </div>
               </div>
+              <div className="sm:w-64">
+                <label className="text-xs text-white/50 mb-2 block">Search Models</label>
+                <input
+                  type="text"
+                  value={modelSearchQuery}
+                  onChange={(e) => setModelSearchQuery(e.target.value)}
+                  placeholder="Search by name..."
+                  className="w-full bg-black/50 border border-white/10 rounded-lg px-3 py-2 text-sm text-white placeholder-white/30 focus:border-yellow-500/50 focus:outline-none"
+                />
+              </div>
+            </div>
 
-              {/* Loading indicator */}
-              {isLoadingAnyModels() && (
-                <div className="text-center py-2 text-sm text-white/50">
-                  Loading models from providers...
-                </div>
-              )}
+            {/* Loading indicator */}
+            {isLoadingAnyModels() && (
+              <div className="text-center py-2 text-sm text-white/50">
+                Loading models from providers...
+              </div>
+            )}
 
-              {/* Model count summary */}
-              {!isLoadingAnyModels() && getTotalModelCount() > 0 && (
-                <div className="text-xs text-white/40 px-1">
-                  {getTotalModelCount()} models available from {getConfiguredProviders().length} provider(s)
-                </div>
-              )}
+            {/* Model count summary */}
+            {!isLoadingAnyModels() && getTotalModelCount() > 0 && (
+              <div className="text-xs text-white/40 px-1">
+                {getTotalModelCount()} models available from {getConfiguredProviders().length} provider(s)
+              </div>
+            )}
+          </div>
+        )}
 
-              <div className="grid gap-4">
-                {(Object.keys(TASK_LABELS) as TaskType[]).map(task => {
+        <div className="flex-1 overflow-y-auto p-6">
+          {activeTab === 'models' && (
+            <div className="grid gap-4">
+              {(Object.keys(TASK_LABELS) as TaskType[]).map(task => {
                   const models = getAvailableModels(task);
                   const selectedModel = selections[task] || '';
                   const selectedModelInfo = getModelInfo(selectedModel);
@@ -426,7 +430,6 @@ const ModelSelectionDashboard: React.FC<ModelSelectionDashboardProps> = ({ isOpe
                     </div>
                   );
                 })}
-              </div>
             </div>
           )}
 
