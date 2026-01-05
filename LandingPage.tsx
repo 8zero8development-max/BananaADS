@@ -17,6 +17,8 @@ import iconFoodSocial from '@assets/icons/food-socials.png';
 import iconEmail from '@assets/icons/email-campaign.png';
 import iconSocialPosters from '@assets/icons/social-posters.png';
 import bananaDumbbells from '@assets/image_1767568037797.png';
+import bananaAiHero from '@assets/banana-ai-hero.png';
+import bananaDnaIcon from '@assets/banana-dna-icon.png';
 
 // New workflow screenshots - Getting Started
 import screenshotApiKey from '@/bananascreenshots/Input API .png';
@@ -223,7 +225,9 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
               Stop Paying Agencies
             </span>
             <br />
-            <span style={{ color: '#C0C0C0' }}>To Do What AI Can Do</span>
+            <span style={{ color: '#C0C0C0' }}>To Do What </span>
+            <img src={bananaAiHero} alt="AI Banana" className="inline-block h-20 md:h-24 w-auto align-middle mx-1" />
+            <span style={{ color: '#C0C0C0' }}> AI Can Do</span>
             <br />
             <span style={{ color: '#FFD700' }}>In Minutes</span>
           </h1>
@@ -429,8 +433,8 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
           {/* Brand DNA Research Workflow */}
           <div className="mb-12">
             <div className="flex flex-col items-center text-center gap-2 mb-6">
-              <div className="w-14 h-14 flex items-center justify-center text-4xl drop-shadow-lg">
-                🧬
+              <div className="w-14 h-14 flex items-center justify-center drop-shadow-lg">
+                <img src={bananaDnaIcon} alt="Brand DNA" className="w-14 h-14 object-contain" />
               </div>
               <div>
                 <h3 className="text-2xl font-bold text-white mb-1">Your Brand Has DNA — We Decode It</h3>
