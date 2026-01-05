@@ -48,6 +48,25 @@ function isDataUrl(str: string | undefined): boolean {
   return typeof str === 'string' && str.startsWith('data:');
 }
 
+export function ensureStringArray(value: unknown): string[] {
+  if (Array.isArray(value)) {
+    return value.filter(Boolean).map(String).map(s => s.trim()).filter(Boolean);
+  }
+  if (typeof value === 'string' && value.trim()) {
+    return value.split(/[,\n]/).map(s => s.trim()).filter(Boolean);
+  }
+  return [];
+}
+
+function normalizeBriefArrays(brief: AdBrief): AdBrief {
+  return {
+    ...brief,
+    tone: ensureStringArray(brief.tone),
+    keyFeatures: ensureStringArray(brief.keyFeatures),
+    researchSources: ensureStringArray(brief.researchSources),
+  };
+}
+
 function stripLargeBinaryData<T extends Record<string, any>>(obj: T, keysToStrip: string[]): T {
   const result = { ...obj } as any;
   for (const key of keysToStrip) {
@@ -158,7 +177,7 @@ export function loadState(): SavedState | null {
 
     return {
       step,
-      brief,
+      brief: normalizeBriefArrays(brief),
       concepts,
       project,
       productionType,
