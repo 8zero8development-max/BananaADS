@@ -369,14 +369,9 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
       <section className="py-10 px-8 border-t border-white/5">
         <div className="max-w-5xl mx-auto">
           <div className="flex items-center justify-center gap-4 mb-6">
-            <img 
-              src={bananaDumbbells} 
-              alt="Banana with dumbbells" 
-              className="h-20 md:h-24 w-auto object-contain"
-            />
             <h2 className="text-3xl md:text-4xl font-serif leading-tight">
               <span className="text-yellow-400">Four Production Pipelines.</span>
-              <br />
+              {' '}
               <span className="bg-gradient-to-r from-white to-gray-400 bg-clip-text text-transparent">
                 One Input.
               </span>
@@ -394,20 +389,20 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
             </svg>
           </div>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 relative">
-            <div className="bg-white/[0.02] border-2 border-yellow-500 rounded-xl p-3 text-center md:-translate-y-4">
-              <img src={iconCinematic} alt="Cinematic Video" className="w-16 h-16 mx-auto mb-1.5 rounded-lg object-cover" />
+            <div className="bg-white/[0.02] border border-white/10 rounded-xl p-3 text-center md:-translate-y-4">
+              <img src={iconCinematic} alt="Cinematic Video" className="w-32 h-32 mx-auto mb-1.5 rounded-lg object-cover" />
               <p className="text-white/70 text-xs font-medium">Cinematic Video</p>
             </div>
-            <div className="bg-white/[0.02] border-2 border-yellow-500 rounded-xl p-3 text-center md:translate-y-4">
-              <img src={iconSocialPosters} alt="Social Posters" className="w-16 h-16 mx-auto mb-1.5 rounded-lg object-cover" />
+            <div className="bg-white/[0.02] border border-white/10 rounded-xl p-3 text-center md:translate-y-4">
+              <img src={iconSocialPosters} alt="Social Posters" className="w-32 h-32 mx-auto mb-1.5 rounded-lg object-cover" />
               <p className="text-white/70 text-xs font-medium">Social Posters</p>
             </div>
-            <div className="bg-white/[0.02] border-2 border-yellow-500 rounded-xl p-3 text-center md:-translate-y-4">
-              <img src={iconFoodSocial} alt="Food Socials" className="w-16 h-16 mx-auto mb-1.5 rounded-lg object-cover" />
+            <div className="bg-white/[0.02] border border-white/10 rounded-xl p-3 text-center md:-translate-y-4">
+              <img src={iconFoodSocial} alt="Food Socials" className="w-32 h-32 mx-auto mb-1.5 rounded-lg object-cover" />
               <p className="text-white/70 text-xs font-medium">Food Socials</p>
             </div>
-            <div className="bg-white/[0.02] border-2 border-yellow-500 rounded-xl p-3 text-center md:translate-y-4">
-              <img src={iconEmail} alt="Email Campaign" className="w-16 h-16 mx-auto mb-1.5 rounded-lg object-cover" />
+            <div className="bg-white/[0.02] border border-white/10 rounded-xl p-3 text-center md:translate-y-4">
+              <img src={iconEmail} alt="Email Campaign" className="w-32 h-32 mx-auto mb-1.5 rounded-lg object-cover" />
               <p className="text-white/70 text-xs font-medium">Email Campaign</p>
             </div>
           </div>
