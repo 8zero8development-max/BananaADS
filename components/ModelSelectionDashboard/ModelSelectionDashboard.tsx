@@ -1,5 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { providerManager, geminiProvider } from '../../services/providers';
+import { 
+  providerManager, 
+  geminiProvider, 
+  openAIProvider, 
+  anthropicProvider, 
+  openRouterProvider 
+} from '../../services/providers';
 import {
   ProviderType,
   TaskType,
@@ -57,8 +63,20 @@ const ModelSelectionDashboard: React.FC<ModelSelectionDashboardProps> = ({ isOpe
     openrouter: false
   });
   const [savingProvider, setSavingProvider] = useState<ProviderType | null>(null);
-  const [dynamicModels, setDynamicModels] = useState<DynamicModelInfo[]>([]);
-  const [loadingModels, setLoadingModels] = useState(false);
+  const [dynamicModels, setDynamicModels] = useState<Record<ProviderType, DynamicModelInfo[]>>({
+    gemini: [],
+    openai: [],
+    anthropic: [],
+    openrouter: []
+  });
+  const [loadingModels, setLoadingModels] = useState<Record<ProviderType, boolean>>({
+    gemini: false,
+    openai: false,
+    anthropic: false,
+    openrouter: false
+  });
+  const [selectedProviderFilter, setSelectedProviderFilter] = useState<ProviderType | 'all'>('all');
+  const [modelSearchQuery, setModelSearchQuery] = useState('');
 
   useEffect(() => {
     const state = providerManager.getState();
@@ -66,20 +84,41 @@ const ModelSelectionDashboard: React.FC<ModelSelectionDashboardProps> = ({ isOpe
     setSelections(state.selections);
   }, [isOpen]);
 
+  // Fetch models from all providers with configured API keys
   useEffect(() => {
-    if (isOpen && providerManager.hasApiKeyForProvider('gemini')) {
-      setLoadingModels(true);
-      geminiProvider.listModels()
-        .then(models => {
-          setDynamicModels(models);
-        })
-        .catch(err => {
-          console.error('Failed to load dynamic models:', err);
-        })
-        .finally(() => {
-          setLoadingModels(false);
-        });
-    }
+    if (!isOpen) return;
+
+    const fetchModelsFromProvider = async (provider: ProviderType) => {
+      if (!providerManager.hasApiKeyForProvider(provider)) return;
+
+      setLoadingModels(prev => ({ ...prev, [provider]: true }));
+      try {
+        let models: DynamicModelInfo[] = [];
+        switch (provider) {
+          case 'gemini':
+            models = await geminiProvider.listModels();
+            break;
+          case 'openai':
+            models = await openAIProvider.listModels();
+            break;
+          case 'anthropic':
+            models = await anthropicProvider.listModels();
+            break;
+          case 'openrouter':
+            models = await openRouterProvider.listModels();
+            break;
+        }
+        setDynamicModels(prev => ({ ...prev, [provider]: models }));
+      } catch (err) {
+        console.error(`Failed to load models from ${provider}:`, err);
+      } finally {
+        setLoadingModels(prev => ({ ...prev, [provider]: false }));
+      }
+    };
+
+    // Fetch from all providers in parallel
+    const providers: ProviderType[] = ['gemini', 'openai', 'anthropic', 'openrouter'];
+    providers.forEach(provider => fetchModelsFromProvider(provider));
   }, [isOpen]);
 
   const handleTierChange = (newTier: TierType) => {
@@ -112,9 +151,19 @@ const ModelSelectionDashboard: React.FC<ModelSelectionDashboardProps> = ({ isOpe
   };
 
   const getAvailableModels = (task: TaskType): ModelInfo[] => {
+    // Combine all dynamic models from all providers
+    const allDynamicModels: DynamicModelInfo[] = [];
+    const providers: ProviderType[] = ['gemini', 'openai', 'anthropic', 'openrouter'];
+    
+    for (const provider of providers) {
+      if (providerManager.hasApiKeyForProvider(provider)) {
+        allDynamicModels.push(...dynamicModels[provider]);
+      }
+    }
+
     // If we have dynamically loaded models, use those filtered by task capability
-    if (dynamicModels.length > 0) {
-      const filteredDynamic = dynamicModels
+    if (allDynamicModels.length > 0) {
+      let filteredDynamic = allDynamicModels
         .filter(model => model.capabilities?.includes(task))
         .map(model => ({
           id: model.id,
@@ -122,8 +171,23 @@ const ModelSelectionDashboard: React.FC<ModelSelectionDashboardProps> = ({ isOpe
           provider: model.provider,
           capabilities: model.capabilities || [],
           description: model.description,
-          maxTokens: model.maxOutputTokens
+          maxTokens: model.maxOutputTokens,
+          costPer1kTokens: model.inputCostPer1kTokens
         }));
+      
+      // Apply provider filter
+      if (selectedProviderFilter !== 'all') {
+        filteredDynamic = filteredDynamic.filter(model => model.provider === selectedProviderFilter);
+      }
+      
+      // Apply search filter
+      if (modelSearchQuery.trim()) {
+        const query = modelSearchQuery.toLowerCase();
+        filteredDynamic = filteredDynamic.filter(model => 
+          model.name.toLowerCase().includes(query) || 
+          model.id.toLowerCase().includes(query)
+        );
+      }
       
       if (filteredDynamic.length > 0) {
         return filteredDynamic;
@@ -131,11 +195,47 @@ const ModelSelectionDashboard: React.FC<ModelSelectionDashboardProps> = ({ isOpe
     }
 
     // Fall back to static model config, filtered by providers with API keys
-    const models = getModelsForTask(task, tier);
-    return models.filter(model => {
+    let models = getModelsForTask(task, tier);
+    models = models.filter(model => {
       const provider = model.provider;
       return providerManager.hasApiKeyForProvider(provider);
     });
+    
+    // Apply provider filter
+    if (selectedProviderFilter !== 'all') {
+      models = models.filter(model => model.provider === selectedProviderFilter);
+    }
+    
+    // Apply search filter
+    if (modelSearchQuery.trim()) {
+      const query = modelSearchQuery.toLowerCase();
+      models = models.filter(model => 
+        model.name.toLowerCase().includes(query) || 
+        model.id.toLowerCase().includes(query)
+      );
+    }
+    
+    return models;
+  };
+
+  const getConfiguredProviders = (): ProviderType[] => {
+    const providers: ProviderType[] = ['gemini', 'openai', 'anthropic', 'openrouter'];
+    return providers.filter(p => providerManager.hasApiKeyForProvider(p));
+  };
+
+  const getTotalModelCount = (): number => {
+    let count = 0;
+    const providers: ProviderType[] = ['gemini', 'openai', 'anthropic', 'openrouter'];
+    for (const provider of providers) {
+      if (providerManager.hasApiKeyForProvider(provider)) {
+        count += dynamicModels[provider].length;
+      }
+    }
+    return count;
+  };
+
+  const isLoadingAnyModels = (): boolean => {
+    return Object.values(loadingModels).some(loading => loading);
   };
 
   if (!isOpen) return null;
@@ -182,6 +282,7 @@ const ModelSelectionDashboard: React.FC<ModelSelectionDashboardProps> = ({ isOpe
         <div className="flex-1 overflow-y-auto p-6">
           {activeTab === 'models' && (
             <div className="space-y-6">
+              {/* Tier Selection */}
               <div className="flex items-center gap-4 p-4 bg-black/30 rounded-xl border border-white/10">
                 <span className="text-sm text-white/70">Tier:</span>
                 <div className="flex gap-2">
@@ -210,6 +311,68 @@ const ModelSelectionDashboard: React.FC<ModelSelectionDashboardProps> = ({ isOpe
                   {tier === 'free' ? 'Cost-effective models' : 'Premium models for best quality'}
                 </span>
               </div>
+
+              {/* Provider Filter and Search */}
+              <div className="flex flex-col sm:flex-row gap-4 p-4 bg-black/30 rounded-xl border border-white/10">
+                <div className="flex-1">
+                  <label className="text-xs text-white/50 mb-2 block">Filter by Provider</label>
+                  <div className="flex flex-wrap gap-2">
+                    <button
+                      onClick={() => setSelectedProviderFilter('all')}
+                      className={`px-3 py-1.5 rounded-lg text-xs font-medium transition ${
+                        selectedProviderFilter === 'all'
+                          ? 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/30'
+                          : 'bg-white/5 text-white/50 hover:bg-white/10'
+                      }`}
+                    >
+                      All Providers
+                    </button>
+                    {getConfiguredProviders().map(provider => (
+                      <button
+                        key={provider}
+                        onClick={() => setSelectedProviderFilter(provider)}
+                        className={`px-3 py-1.5 rounded-lg text-xs font-medium transition flex items-center gap-1 ${
+                          selectedProviderFilter === provider
+                            ? 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/30'
+                            : 'bg-white/5 text-white/50 hover:bg-white/10'
+                        }`}
+                      >
+                        {PROVIDER_INFO[provider].name}
+                        {loadingModels[provider] && (
+                          <span className="animate-spin">...</span>
+                        )}
+                        {!loadingModels[provider] && dynamicModels[provider].length > 0 && (
+                          <span className="text-white/30">({dynamicModels[provider].length})</span>
+                        )}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                <div className="sm:w-64">
+                  <label className="text-xs text-white/50 mb-2 block">Search Models</label>
+                  <input
+                    type="text"
+                    value={modelSearchQuery}
+                    onChange={(e) => setModelSearchQuery(e.target.value)}
+                    placeholder="Search by name..."
+                    className="w-full bg-black/50 border border-white/10 rounded-lg px-3 py-2 text-sm text-white placeholder-white/30 focus:border-yellow-500/50 focus:outline-none"
+                  />
+                </div>
+              </div>
+
+              {/* Loading indicator */}
+              {isLoadingAnyModels() && (
+                <div className="text-center py-2 text-sm text-white/50">
+                  Loading models from providers...
+                </div>
+              )}
+
+              {/* Model count summary */}
+              {!isLoadingAnyModels() && getTotalModelCount() > 0 && (
+                <div className="text-xs text-white/40 px-1">
+                  {getTotalModelCount()} models available from {getConfiguredProviders().length} provider(s)
+                </div>
+              )}
 
               <div className="grid gap-4">
                 {(Object.keys(TASK_LABELS) as TaskType[]).map(task => {
