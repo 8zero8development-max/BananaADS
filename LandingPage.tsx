@@ -158,7 +158,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
 
   const pricingPlans = [
     {
-      name: 'Starter',
+      name: 'Monthly',
       price: '£11.99',
       period: '/month',
       description: 'For creators and small brands',
@@ -178,7 +178,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
       originalPrice: '£299'
     },
     {
-      name: 'Professional',
+      name: 'Yearly',
       price: '£24.99',
       period: '/month',
       description: 'For businesses that run ads properly',
@@ -1121,7 +1121,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
             {pricingPlans.map((plan, idx) => (
               <div
                 key={idx}
-                className={`relative rounded-xl p-5 transition-all ${
+                className={`relative rounded-xl p-5 transition-all text-center ${
                   plan.popular
                     ? 'bg-gradient-to-b from-yellow-500/10 to-orange-500/10 border-2 border-yellow-500/50 scale-105'
                     : 'bg-white/[0.02] border border-white/10 hover:border-yellow-500/30'
@@ -1144,7 +1144,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
                   <span className="text-white/40 text-sm">{plan.period}</span>
                 </div>
 
-                <ul className="space-y-2 mb-5">
+                <ul className="space-y-2 mb-5 inline-block text-left">
                   {plan.features.map((feature, fidx) => (
                     <li key={fidx} className="flex items-center gap-2 text-xs text-white/70">
                       <span className="text-yellow-400">✓</span>
