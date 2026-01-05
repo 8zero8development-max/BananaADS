@@ -1,6 +1,5 @@
 import React, { useState, useCallback } from 'react';
 import { AdBrief, AdConcept, Scene, AppStep, AdProject } from './types';
-import { GeminiService } from './services/geminiService';
 import { decodeBase64, decodeAudioData } from './utils/audioUtils';
 import { validateBrief, validateResearchInput } from './utils/validation';
 import { compressImageFile } from './utils/imageOptimization';
@@ -83,19 +82,19 @@ const AppContent: React.FC<AppProps> = ({ onBackToLanding }) => {
           let generatedConcepts;
       
           if (productionType === 'food-social') {
-            setActiveModel({ isActive: true, modelName: 'Gemini Flash', provider: 'gemini', operation: 'Analyzing brand DNA...' });
-            const dna = await GeminiService.researchBrandDna(brief);
+            setActiveModel({ isActive: true, modelName: 'AI Model', provider: 'gemini', operation: 'Analyzing brand DNA...' });
+            const dna = await providerManager.researchBrandDna(brief);
             setBrief(prev => ({ ...prev, brandDna: dna, visualStyle: dna.visualStyle }));
-            setActiveModel({ isActive: true, modelName: 'Gemini Flash', provider: 'gemini', operation: 'Generating food social concepts...' });
-            generatedConcepts = await GeminiService.generateFoodSocialConcepts({ ...brief, brandDna: dna, visualStyle: dna.visualStyle });
+            setActiveModel({ isActive: true, modelName: 'AI Model', provider: 'gemini', operation: 'Generating food social concepts...' });
+            generatedConcepts = await providerManager.generateFoodSocialConcepts({ ...brief, brandDna: dna, visualStyle: dna.visualStyle });
           } else if (productionType === 'email') {
-            setActiveModel({ isActive: true, modelName: 'Gemini Flash', provider: 'gemini', operation: 'Analyzing brand DNA...' });
-            const dna = await GeminiService.researchBrandDna(brief);
+            setActiveModel({ isActive: true, modelName: 'AI Model', provider: 'gemini', operation: 'Analyzing brand DNA...' });
+            const dna = await providerManager.researchBrandDna(brief);
             setBrief(prev => ({ ...prev, brandDna: dna, visualStyle: dna.visualStyle }));
-            setActiveModel({ isActive: true, modelName: 'Gemini Flash', provider: 'gemini', operation: 'Generating email campaign...' });
-            generatedConcepts = await GeminiService.generateEmailCampaign({ ...brief, brandDna: dna, visualStyle: dna.visualStyle });
+            setActiveModel({ isActive: true, modelName: 'AI Model', provider: 'gemini', operation: 'Generating email campaign...' });
+            generatedConcepts = await providerManager.generateEmailCampaign({ ...brief, brandDna: dna, visualStyle: dna.visualStyle });
           } else {
-            generatedConcepts = await GeminiService.generateConcepts(brief);
+            generatedConcepts = await providerManager.generateConcepts(brief);
           }
       
       setConcepts(generatedConcepts);
@@ -105,7 +104,7 @@ const AppContent: React.FC<AppProps> = ({ onBackToLanding }) => {
       setGeneratingPreviews(true);
       const previewPromises = generatedConcepts.map(async (concept) => {
         try {
-          const url = await GeminiService.generateConceptPreview(concept, brief.productImage);
+          const url = await providerManager.generateConceptPreview(concept, brief.productImage);
           setConcepts(prev => prev.map(c => c.id === concept.id ? { ...c, thumbnailUrl: url } : c));
         } catch (e) {
           console.error("Failed to generate preview for concept", concept.id);
@@ -144,7 +143,7 @@ const AppContent: React.FC<AppProps> = ({ onBackToLanding }) => {
       
           if (productionType === 'food-social') {
         const desc = brief.keyFeatures.join(', ');
-        researchData = await GeminiService.autoFillFoodBrief(desc, brief.productUrl || '');
+        researchData = await providerManager.autoFillFoodBrief(desc, brief.productUrl || '');
         updatedBrief = {
           ...updatedBrief,
           brandName: researchData.brandName || updatedBrief.brandName,
@@ -155,7 +154,7 @@ const AppContent: React.FC<AppProps> = ({ onBackToLanding }) => {
           logoImage: researchData.logoImage || updatedBrief.logoImage,
         };
       } else {
-        researchData = await GeminiService.researchBrand(brief.brandName, brief.productName);
+        researchData = await providerManager.researchBrand(brief.brandName, brief.productName);
         updatedBrief = {
           ...updatedBrief,
           targetAudience: researchData.targetAudience || updatedBrief.targetAudience,
@@ -171,7 +170,7 @@ const AppContent: React.FC<AppProps> = ({ onBackToLanding }) => {
       
       // Generate Brand DNA profile (extracts colors, typography, etc.)
       try {
-        const brandDna = await GeminiService.researchBrandDna(updatedBrief);
+        const brandDna = await providerManager.researchBrandDna(updatedBrief);
         updatedBrief = { ...updatedBrief, brandDna, visualStyle: brandDna.visualStyle };
         setBrief(updatedBrief);
       } catch (dnaError) {
@@ -184,7 +183,7 @@ const AppContent: React.FC<AppProps> = ({ onBackToLanding }) => {
       // Automatically generate mood board after research completes
       setGeneratingMoodBoard(true);
       try {
-        const moodBoardImage = await GeminiService.generateMoodBoard(
+        const moodBoardImage = await providerManager.generateMoodBoard(
           updatedBrief, 
           updatedBrief.productImage, 
           updatedBrief.logoImage
@@ -210,7 +209,7 @@ const AppContent: React.FC<AppProps> = ({ onBackToLanding }) => {
   const handleGenerateMoodBoard = async () => {
     setGeneratingMoodBoard(true);
     try {
-      const image = await GeminiService.generateMoodBoard(brief, brief.productImage, brief.logoImage);
+      const image = await providerManager.generateMoodBoard(brief, brief.productImage, brief.logoImage);
       setBrief(prev => ({ ...prev, moodBoard: image }));
       showToast('Mood board generated successfully!', 'success');
     } catch (error) {
@@ -275,9 +274,9 @@ const AppContent: React.FC<AppProps> = ({ onBackToLanding }) => {
       let script: Scene[] = [];
       
       if (productionType === 'video') {
-        script = await GeminiService.generateScript(brief, concept);
+        script = await providerManager.generateScript(brief, concept);
       } else if (productionType === 'social') {
-        script = await GeminiService.generateSocialCampaign(brief, concept);
+        script = await providerManager.generateSocialCampaign(brief, concept);
       } else if (productionType === 'food-social') {
         const ctas = concept.overlayCtas || ['Check it out', 'Order Now', 'Try Today'];
         script = ctas.slice(0, 3).map((cta, idx) => ({
@@ -287,7 +286,7 @@ const AppContent: React.FC<AppProps> = ({ onBackToLanding }) => {
           selectedCta: cta
         }));
       } else if (productionType === 'email') {
-        script = await GeminiService.generateEmailContent(brief, concept);
+        script = await providerManager.generateEmailContent(brief, concept);
       }
 
       const newProject: AdProject = {
@@ -303,7 +302,7 @@ const AppContent: React.FC<AppProps> = ({ onBackToLanding }) => {
       
       if (productionType === 'food-social') {
         for (let i = 0; i < script.length; i++) {
-          const caption = await GeminiService.generateFoodSocialPost(brief, concept, script[i]);
+          const caption = await providerManager.generateFoodSocialPost(brief, concept, script[i]);
           newProject.scenes[i].audioScript = caption;
         }
         setProject({...newProject});
@@ -335,7 +334,7 @@ const AppContent: React.FC<AppProps> = ({ onBackToLanding }) => {
       let imageUrl;
 
       if (currentProject.projectType === 'food-social' && currentProject.selectedConcept) {
-        imageUrl = await GeminiService.generateFoodHeroImage(
+        imageUrl = await providerManager.generateFoodHeroImage(
           currentProject.brief, 
           currentProject.selectedConcept, 
           scene.selectedCta || ""
@@ -348,7 +347,7 @@ const AppContent: React.FC<AppProps> = ({ onBackToLanding }) => {
         // Pass logo image for email and social campaigns to ensure brand continuity
         const shouldIncludeLogo = currentProject.projectType === 'email' || currentProject.projectType === 'social';
         
-        imageUrl = await GeminiService.generateStoryboardImage(
+        imageUrl = await providerManager.generateStoryboardImage(
           scene.visualPrompt,
           currentProject.brief.productImage,
           previousSceneImage,
@@ -386,7 +385,7 @@ const AppContent: React.FC<AppProps> = ({ onBackToLanding }) => {
     });
 
     try {
-      const newUrl = await GeminiService.editHeroImage(project.scenes[idx].imageUrl!, editInstruction);
+      const newUrl = await providerManager.editHeroImage(project.scenes[idx].imageUrl!, editInstruction);
       setProject(prev => {
         if(!prev) return null;
         const newScenes = [...prev.scenes];
@@ -415,7 +414,7 @@ const AppContent: React.FC<AppProps> = ({ onBackToLanding }) => {
     });
 
     try {
-      const videoUrl = await GeminiService.generateCinematicVideo(
+      const videoUrl = await providerManager.generateCinematicVideo(
         project.scenes[idx].visualPrompt,
         project.scenes[idx].imageUrl
       );
@@ -462,7 +461,7 @@ const AppContent: React.FC<AppProps> = ({ onBackToLanding }) => {
     });
 
     try {
-      const videoUrl = await GeminiService.generateSocialVideo(
+      const videoUrl = await providerManager.generateSocialVideo(
         scene.visualPrompt,
         scene.motionPrompt || 'Subtle motion, gentle camera movement',
         scene.imageUrl,
@@ -509,7 +508,7 @@ const AppContent: React.FC<AppProps> = ({ onBackToLanding }) => {
     });
 
     try {
-      const base64Audio = await GeminiService.generateVoiceover(project.scenes[idx].audioScript, project.brief.voiceName);
+      const base64Audio = await providerManager.generateVoiceover(project.scenes[idx].audioScript, project.brief.voiceName);
       const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 24000 });
       const decodedData = decodeBase64(base64Audio);
       const audioBuffer = await decodeAudioData(decodedData, audioCtx, 24000, 1);
@@ -542,7 +541,7 @@ const AppContent: React.FC<AppProps> = ({ onBackToLanding }) => {
     });
 
     try {
-      const polished = await GeminiService.polishSceneScript(project.scenes[idx].audioScript, project.brief.tone);
+      const polished = await providerManager.polishSceneScript(project.scenes[idx].audioScript, project.brief.tone);
       setProject(prev => {
         if(!prev) return null;
         const scenes = [...prev.scenes];
@@ -723,7 +722,7 @@ const AppContent: React.FC<AppProps> = ({ onBackToLanding }) => {
   };
 
   const handleReconfigureKey = async () => {
-    GeminiService.clearApiKey();
+    providerManager.clearApiKey();
     setIsConfigured(false);
   };
 
