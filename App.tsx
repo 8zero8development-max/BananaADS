@@ -4,6 +4,7 @@ import { GeminiService } from './services/geminiService';
 import { decodeBase64, decodeAudioData } from './utils/audioUtils';
 import { validateBrief, validateResearchInput } from './utils/validation';
 import { compressImageFile } from './utils/imageOptimization';
+import { useAuth } from './hooks/useAuth';
 
 import ApiKeyConfig from './components/shared/ApiKeyConfig';
 import StepIndicator from './components/shared/StepIndicator';
@@ -26,6 +27,7 @@ interface AppProps {
 }
 
 const AppContent: React.FC<AppProps> = ({ onBackToLanding }) => {
+  const { user, logout } = useAuth();
   const [isConfigured, setIsConfigured] = useState(false);
   const [loading, setLoading] = useState(false);
   const [researching, setResearching] = useState(false);
@@ -761,6 +763,31 @@ const AppContent: React.FC<AppProps> = ({ onBackToLanding }) => {
           >
             <i className="fa-solid fa-question-circle"></i> <span className="hidden sm:inline">Help</span>
           </button>
+          {user && (
+            <div className="flex items-center gap-3 ml-2 pl-4 border-l border-white/20">
+              {user.profileImageUrl ? (
+                <img 
+                  src={user.profileImageUrl} 
+                  alt={user.firstName || 'User'} 
+                  className="w-8 h-8 rounded-full"
+                />
+              ) : (
+                <div className="w-8 h-8 rounded-full bg-yellow-500 flex items-center justify-center text-white font-semibold">
+                  {(user.firstName?.[0] || user.email?.[0] || 'U').toUpperCase()}
+                </div>
+              )}
+              <span className="hidden lg:inline text-white/80 text-sm">
+                {user.firstName || user.email?.split('@')[0]}
+              </span>
+              <button 
+                onClick={logout}
+                className="hover:text-red-400 transition flex items-center gap-1"
+                title="Sign out"
+              >
+                <i className="fa-solid fa-sign-out-alt"></i>
+              </button>
+            </div>
+          )}
           <div className="flex space-x-2">
             <button 
               onClick={() => handleExport('html')}

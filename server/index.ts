@@ -10,6 +10,7 @@ import { storage } from './storage';
 import { stripeService } from './stripeService';
 import { db } from './db';
 import { sql } from 'drizzle-orm';
+import { setupAuth, registerAuthRoutes } from './replit_integrations/auth';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -43,24 +44,27 @@ async function initDatabase() {
   console.log('Initializing database tables...');
   await db.execute(sql`
     CREATE TABLE IF NOT EXISTS users (
-      id TEXT PRIMARY KEY,
-      email TEXT,
-      first_name TEXT,
-      last_name TEXT,
-      profile_image_url TEXT,
-      stripe_customer_id TEXT,
-      stripe_subscription_id TEXT,
-      subscription_status TEXT,
+      id VARCHAR PRIMARY KEY DEFAULT gen_random_uuid(),
+      email VARCHAR UNIQUE,
+      first_name VARCHAR,
+      last_name VARCHAR,
+      profile_image_url VARCHAR,
+      stripe_customer_id VARCHAR,
+      stripe_subscription_id VARCHAR,
+      subscription_status VARCHAR,
       created_at TIMESTAMP DEFAULT NOW(),
       updated_at TIMESTAMP DEFAULT NOW()
     )
   `);
   await db.execute(sql`
     CREATE TABLE IF NOT EXISTS sessions (
-      sid TEXT PRIMARY KEY,
-      sess TEXT NOT NULL,
+      sid VARCHAR PRIMARY KEY,
+      sess JSONB NOT NULL,
       expire TIMESTAMP NOT NULL
     )
+  `);
+  await db.execute(sql`
+    CREATE INDEX IF NOT EXISTS "IDX_session_expire" ON sessions (expire)
   `);
   console.log('Database tables ready');
 }
@@ -914,6 +918,10 @@ if (isProd) {
 
 async function start() {
   await initDatabase();
+  
+  await setupAuth(app);
+  registerAuthRoutes(app);
+  
   await initStripe();
   
   app.listen(PORT, '0.0.0.0', () => {
