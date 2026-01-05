@@ -146,21 +146,22 @@ const Production: React.FC<ProductionProps> = ({
         />
       )}
 
-      {project.projectType === 'email' && (
-        <EmailLayout
-          project={project}
-          selectedEmailSectionIdx={selectedEmailSectionIdx}
-          setSelectedEmailSectionIdx={setSelectedEmailSectionIdx}
-          editInstruction={editInstruction}
-          setEditInstruction={setEditInstruction}
-          copiedId={copiedId}
-          generateSceneImage={generateSceneImage}
-          handlePolishScript={handlePolishScript}
-          handleEditImage={handleEditImage}
-          handleCopyPrompt={handleCopyPrompt}
-          handleDownload={handleDownload}
-        />
-      )}
+            {project.projectType === 'email' && (
+              <EmailLayout
+                project={project}
+                setProject={setProject}
+                selectedEmailSectionIdx={selectedEmailSectionIdx}
+                setSelectedEmailSectionIdx={setSelectedEmailSectionIdx}
+                editInstruction={editInstruction}
+                setEditInstruction={setEditInstruction}
+                copiedId={copiedId}
+                generateSceneImage={generateSceneImage}
+                handlePolishScript={handlePolishScript}
+                handleEditImage={handleEditImage}
+                handleCopyPrompt={handleCopyPrompt}
+                handleDownload={handleDownload}
+              />
+            )}
     </div>
   );
 };
@@ -1419,6 +1420,7 @@ VideoLayout.displayName = 'VideoLayout';
 
 interface EmailLayoutProps {
   project: AdProject;
+  setProject: React.Dispatch<React.SetStateAction<AdProject | null>>;
   selectedEmailSectionIdx: number;
   setSelectedEmailSectionIdx: React.Dispatch<React.SetStateAction<number>>;
   editInstruction: string;
@@ -1433,6 +1435,7 @@ interface EmailLayoutProps {
 
 const EmailLayout = memo<EmailLayoutProps>(({
   project,
+  setProject,
   selectedEmailSectionIdx,
   setSelectedEmailSectionIdx,
   editInstruction,
@@ -1446,6 +1449,7 @@ const EmailLayout = memo<EmailLayoutProps>(({
 }) => {
   const [showTemplateEditor, setShowTemplateEditor] = useState(false);
   const [savedEmailHTML, setSavedEmailHTML] = useState<string>('');
+  const [editedPrompts, setEditedPrompts] = useState<Record<number, string>>({});
   
   const scene = useMemo(() => project.scenes[selectedEmailSectionIdx], [project.scenes, selectedEmailSectionIdx]);
   const idx = selectedEmailSectionIdx;
@@ -1458,6 +1462,35 @@ const EmailLayout = memo<EmailLayoutProps>(({
     setSavedEmailHTML(html);
     setShowTemplateEditor(false);
   };
+
+  const handleVisualPromptChange = useCallback((sceneIdx: number, newPrompt: string) => {
+    setEditedPrompts(prev => ({ ...prev, [sceneIdx]: newPrompt }));
+  }, []);
+
+  const handleGenerateImageWithPrompt = useCallback(async (sceneIdx: number) => {
+    const editedPrompt = editedPrompts[sceneIdx];
+    if (editedPrompt && editedPrompt !== project.scenes[sceneIdx].visualPrompt) {
+      setProject(prev => {
+        if (!prev) return prev;
+        const newScenes = [...prev.scenes];
+        newScenes[sceneIdx] = { ...newScenes[sceneIdx], visualPrompt: editedPrompt };
+        return { ...prev, scenes: newScenes };
+      });
+      const updatedProject = {
+        ...project,
+        scenes: project.scenes.map((s, i) => 
+          i === sceneIdx ? { ...s, visualPrompt: editedPrompt } : s
+        )
+      };
+      await generateSceneImage(sceneIdx, updatedProject);
+    } else {
+      await generateSceneImage(sceneIdx);
+    }
+  }, [editedPrompts, project, setProject, generateSceneImage]);
+
+  const getCurrentPrompt = useCallback((sceneIdx: number) => {
+    return editedPrompts[sceneIdx] ?? project.scenes[sceneIdx]?.visualPrompt ?? '';
+  }, [editedPrompts, project.scenes]);
 
   return (
     <div className="space-y-8">
@@ -1660,26 +1693,69 @@ const EmailLayout = memo<EmailLayoutProps>(({
                 </div>
               </div>
 
-              <details className="group">
-                <summary className="text-[10px] uppercase tracking-widest text-white/30 font-bold cursor-pointer hover:text-white/50 transition flex items-center gap-2 mb-2">
-                  <i className="fa-solid fa-chevron-right text-[8px] transition-transform group-open:rotate-90"></i>
-                  Advanced Prompts
-                </summary>
-                <div className="space-y-3 pl-4 border-l border-white/10">
-                  <div>
-                    <div className="flex justify-between items-center mb-1">
-                      <span className="text-[9px] text-white/40">Visual Prompt</span>
-                      <button 
-                        onClick={() => handleCopyPrompt(scene.visualPrompt, `${idx}-vis`)}
-                        className="text-[9px] text-white/40 hover:text-white transition"
-                      >
-                        {copiedId === `${idx}-vis` ? <span className="text-green-400">Copied</span> : 'Copy'}
-                      </button>
-                    </div>
-                    <p className="text-white/60 text-[11px] leading-relaxed italic line-clamp-3">"{scene.visualPrompt}"</p>
-                  </div>
-                </div>
-              </details>
+                            <details className="group" open>
+                              <summary className="text-[10px] uppercase tracking-widest text-white/30 font-bold cursor-pointer hover:text-white/50 transition flex items-center gap-2 mb-2">
+                                <i className="fa-solid fa-chevron-right text-[8px] transition-transform group-open:rotate-90"></i>
+                                Visual Prompt (Editable)
+                              </summary>
+                              <div className="space-y-3 pl-4 border-l border-white/10">
+                                <div>
+                                  <div className="flex justify-between items-center mb-1">
+                                    <span className="text-[9px] text-white/40">Edit the prompt before generating</span>
+                                    <button 
+                                      onClick={() => handleCopyPrompt(getCurrentPrompt(idx), `${idx}-vis`)}
+                                      className="text-[9px] text-white/40 hover:text-white transition"
+                                    >
+                                      {copiedId === `${idx}-vis` ? <span className="text-green-400">Copied</span> : 'Copy'}
+                                    </button>
+                                  </div>
+                                  <textarea
+                                    value={getCurrentPrompt(idx)}
+                                    onChange={(e) => handleVisualPromptChange(idx, e.target.value)}
+                                    placeholder="Enter visual prompt for image generation..."
+                                    className="w-full bg-white/5 border border-blue-500/30 rounded-lg p-3 text-[11px] text-white/80 placeholder-white/30 resize-none h-24 focus:border-blue-500 outline-none transition leading-relaxed"
+                                  />
+                                  <div className="flex items-center gap-2 mt-2">
+                                    <button
+                                      onClick={() => handleGenerateImageWithPrompt(idx)}
+                                      disabled={scene.isGeneratingImage || !getCurrentPrompt(idx).trim()}
+                                      className="flex-1 bg-gradient-to-r from-blue-500 to-purple-500 text-white px-4 py-2 rounded-lg text-xs font-bold transition hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                                    >
+                                      {scene.isGeneratingImage ? (
+                                        <>
+                                          <BananaPro role="artist" size="sm" />
+                                          <span>Generating...</span>
+                                        </>
+                                      ) : (
+                                        <>
+                                          <i className="fa-solid fa-image"></i>
+                                          <span>{scene.imageUrl ? 'Regenerate Image' : 'Generate Image'}</span>
+                                        </>
+                                      )}
+                                    </button>
+                                    {editedPrompts[idx] && editedPrompts[idx] !== scene.visualPrompt && (
+                                      <button
+                                        onClick={() => setEditedPrompts(prev => {
+                                          const newPrompts = { ...prev };
+                                          delete newPrompts[idx];
+                                          return newPrompts;
+                                        })}
+                                        className="bg-white/10 hover:bg-white/20 text-white/60 hover:text-white px-3 py-2 rounded-lg text-xs transition"
+                                        title="Reset to original prompt"
+                                      >
+                                        <i className="fa-solid fa-undo"></i>
+                                      </button>
+                                    )}
+                                  </div>
+                                  {editedPrompts[idx] && editedPrompts[idx] !== scene.visualPrompt && (
+                                    <p className="text-[9px] text-yellow-400/70 mt-1">
+                                      <i className="fa-solid fa-info-circle mr-1"></i>
+                                      Prompt modified. Click "Generate Image" to apply changes.
+                                    </p>
+                                  )}
+                                </div>
+                              </div>
+                            </details>
 
               <div className="mt-auto pt-4 flex items-center space-x-3 border-t border-white/5">
                 <div className="flex -space-x-2">
