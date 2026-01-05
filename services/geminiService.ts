@@ -1,6 +1,8 @@
 
 import { GoogleGenAI, Type, Modality } from "@google/genai";
 import { AdBrief, AdConcept, Scene, BrandDna } from "../types";
+import { modelAnalyticsService } from './providers';
+import { TaskType } from '../types/providers';
 
 const API_KEY_STORAGE_KEY = 'banana_ads_gemini_api_key';
 
@@ -207,6 +209,24 @@ export class GeminiService {
     }
   }
 
+  // Analytics-wrapped execution helper
+  private static async withAnalytics<T>(
+    modelId: string,
+    taskType: TaskType,
+    operation: string,
+    fn: () => Promise<T>
+  ): Promise<T> {
+    const tracker = modelAnalyticsService.startOperation(modelId, taskType, operation);
+    try {
+      const result = await fn();
+      tracker.complete(true);
+      return result;
+    } catch (error: any) {
+      tracker.complete(false, error?.message || 'Unknown error');
+      throw error;
+    }
+  }
+
   // --- Helpers for Food Socials ---
 
   private static convertSvgToPng(base64Svg: string): Promise<string> {
@@ -260,118 +280,122 @@ export class GeminiService {
   // --- Existing Methods ---
 
   static async researchBrand(brandName: string, productName: string, version: string = PROMPT_VERSIONS.BRAND_RESEARCH): Promise<Partial<AdBrief>> {
-    const ai = this.getClient();
-    const prompt = PROMPT_TEMPLATE.build({
-      role: 'Brand Research Analyst and Marketing Strategist',
-      context: `Researching brand "${brandName}" and their product "${productName}" to create an advertising brief.`,
-      task: `Analyze the brand's current marketing, target audience, brand voice, and key selling propositions. Search for their official logo URL.`,
-      constraints: [
-        'Provide accurate, research-backed information',
-        'Target audience should be specific and actionable',
-        'Tone should include 3-5 descriptive adjectives',
-        'Key features should highlight unique selling points',
-        'Logo URL should be direct link to image file (PNG/JPG preferred)'
-      ],
-      outputFormat: `JSON object with fields: targetAudience (string), tone (array of 3-5 strings), keyFeatures (array of strings), logoImage (URL string or empty)`,
-      errorHandling: [
-        ...ERROR_HANDLING_INSTRUCTIONS.general,
-        ...ERROR_HANDLING_INSTRUCTIONS.jsonOutput,
-        'If brand is not found, respond with "ERROR: Brand not found - {brandName}"',
-        'If logo cannot be found, return empty string for logoImage field'
-      ]
-    });
-
-    return this.retry(async () => {
-      const response = await ai.models.generateContent({
-        model: "gemini-3-flash-preview",
-        contents: prompt,
-        config: {
-          tools: [{ googleSearch: {} }],
-          responseMimeType: "application/json",
-          responseSchema: {
-            type: Type.OBJECT,
-            properties: {
-              targetAudience: { type: Type.STRING },
-              tone: { type: Type.ARRAY, items: { type: Type.STRING } },
-              keyFeatures: { type: Type.ARRAY, items: { type: Type.STRING } },
-              logoImage: { type: Type.STRING, description: "URL to the brand logo if found on the web" },
-            },
-            required: ["targetAudience", "tone", "keyFeatures"],
-          },
-        },
+    return this.withAnalytics('gemini/gemini-3-flash-preview', 'brandResearch', `Researching brand: ${brandName}`, async () => {
+      const ai = this.getClient();
+      const prompt = PROMPT_TEMPLATE.build({
+        role: 'Brand Research Analyst and Marketing Strategist',
+        context: `Researching brand "${brandName}" and their product "${productName}" to create an advertising brief.`,
+        task: `Analyze the brand's current marketing, target audience, brand voice, and key selling propositions. Search for their official logo URL.`,
+        constraints: [
+          'Provide accurate, research-backed information',
+          'Target audience should be specific and actionable',
+          'Tone should include 3-5 descriptive adjectives',
+          'Key features should highlight unique selling points',
+          'Logo URL should be direct link to image file (PNG/JPG preferred)'
+        ],
+        outputFormat: `JSON object with fields: targetAudience (string), tone (array of 3-5 strings), keyFeatures (array of strings), logoImage (URL string or empty)`,
+        errorHandling: [
+          ...ERROR_HANDLING_INSTRUCTIONS.general,
+          ...ERROR_HANDLING_INSTRUCTIONS.jsonOutput,
+          'If brand is not found, respond with "ERROR: Brand not found - {brandName}"',
+          'If logo cannot be found, return empty string for logoImage field'
+        ]
       });
 
-      const data = JSON.parse(response.text || "{}");
-      
-      // Extract grounding sources
-      const sources: string[] = [];
-      if (response.candidates?.[0]?.groundingMetadata?.groundingChunks) {
-        response.candidates[0].groundingMetadata.groundingChunks.forEach((chunk: any) => {
-          if (chunk.web?.uri) {
-            sources.push(chunk.web.uri);
-          }
+      return this.retry(async () => {
+        const response = await ai.models.generateContent({
+          model: "gemini-3-flash-preview",
+          contents: prompt,
+          config: {
+            tools: [{ googleSearch: {} }],
+            responseMimeType: "application/json",
+            responseSchema: {
+              type: Type.OBJECT,
+              properties: {
+                targetAudience: { type: Type.STRING },
+                tone: { type: Type.ARRAY, items: { type: Type.STRING } },
+                keyFeatures: { type: Type.ARRAY, items: { type: Type.STRING } },
+                logoImage: { type: Type.STRING, description: "URL to the brand logo if found on the web" },
+              },
+              required: ["targetAudience", "tone", "keyFeatures"],
+            },
+          },
         });
-      }
 
-      return { ...data, researchSources: sources };
+        const data = JSON.parse(response.text || "{}");
+        
+        // Extract grounding sources
+        const sources: string[] = [];
+        if (response.candidates?.[0]?.groundingMetadata?.groundingChunks) {
+          response.candidates[0].groundingMetadata.groundingChunks.forEach((chunk: any) => {
+            if (chunk.web?.uri) {
+              sources.push(chunk.web.uri);
+            }
+          });
+        }
+
+        return { ...data, researchSources: sources };
+      });
     });
   }
   
   // Refactored to use manual parsing as requested for better Search tool compatibility
   static async autoFillFoodBrief(description: string, websiteUrl: string): Promise<Partial<AdBrief>> {
-      const ai = this.getClient();
-      const prompt = `Based on the brand description and URL provided, research the brand to infer details and find their official logo.
+      return this.withAnalytics('gemini/gemini-3-flash-preview', 'brandResearch', 'Auto-filling food brief', async () => {
+        const ai = this.getClient();
+        const prompt = `Based on the brand description and URL provided, research the brand to infer details and find their official logo.
+        
+        Description: "${description}"
+        URL: "${websiteUrl}"
+        
+        Task:
+        1. Infer a likely "Brand Name" and "Product Name" (if not obvious, create a catchy placeholder).
+        2. Return short, punchy summaries for Audience, Tone, and Key Features.
+        3. Search for a direct URL to the brand's logo (preferably PNG/JPG).
       
-      Description: "${description}"
-      URL: "${websiteUrl}"
+        IMPORTANT: Return the result strictly as a raw JSON object. Do not include markdown formatting (like \`\`\`json).
+        
+        Expected JSON Structure:
+        {
+          "brandName": "string",
+          "productName": "string",
+          "targetAudience": "string",
+          "tone": ["string"],
+          "keyFeatures": ["string"],
+          "logoImage": "string (url)"
+        }
+        `;
       
-      Task:
-      1. Infer a likely "Brand Name" and "Product Name" (if not obvious, create a catchy placeholder).
-      2. Return short, punchy summaries for Audience, Tone, and Key Features.
-      3. Search for a direct URL to the brand's logo (preferably PNG/JPG).
-    
-      IMPORTANT: Return the result strictly as a raw JSON object. Do not include markdown formatting (like \`\`\`json).
-      
-      Expected JSON Structure:
-      {
-        "brandName": "string",
-        "productName": "string",
-        "targetAudience": "string",
-        "tone": ["string"],
-        "keyFeatures": ["string"],
-        "logoImage": "string (url)"
-      }
-      `;
-    
-      return this.retry(async () => {
-        const response = await ai.models.generateContent({
-          model: 'gemini-3-flash-preview',
-          contents: { parts: [{ text: prompt }] },
-          config: {
-            tools: [{ googleSearch: {} }]
+        return this.retry(async () => {
+          const response = await ai.models.generateContent({
+            model: 'gemini-3-flash-preview',
+            contents: { parts: [{ text: prompt }] },
+            config: {
+              tools: [{ googleSearch: {} }]
+            }
+          });
+        
+          let text = response.text;
+          if (!text) throw new Error("No response from Gemini");
+
+          // Clean up potential markdown formatting from the model
+          text = text.replace(/```json/g, '').replace(/```/g, '').trim();
+
+          try {
+            const data = JSON.parse(text);
+            return {
+                 brandName: data.brandName,
+                 productName: data.productName,
+                 targetAudience: data.targetAudience,
+                 tone: Array.isArray(data.tone) ? data.tone : [data.tone],
+                 keyFeatures: Array.isArray(data.keyFeatures) ? data.keyFeatures : [data.keyFeatures],
+                 logoImage: data.logoImage
+            };
+          } catch (e) {
+            console.error("Failed to parse JSON from autoFillFoodBrief:", text);
+            throw new Error("AI returned invalid JSON format. Please try again.");
           }
         });
-      
-        let text = response.text;
-        if (!text) throw new Error("No response from Gemini");
-
-        // Clean up potential markdown formatting from the model
-        text = text.replace(/```json/g, '').replace(/```/g, '').trim();
-
-        try {
-          const data = JSON.parse(text);
-          return {
-               brandName: data.brandName,
-               productName: data.productName,
-               targetAudience: data.targetAudience,
-               tone: Array.isArray(data.tone) ? data.tone : [data.tone],
-               keyFeatures: Array.isArray(data.keyFeatures) ? data.keyFeatures : [data.keyFeatures],
-               logoImage: data.logoImage
-          };
-        } catch (e) {
-          console.error("Failed to parse JSON from autoFillFoodBrief:", text);
-          throw new Error("AI returned invalid JSON format. Please try again.");
-        }
       });
   }
 
@@ -406,25 +430,26 @@ export class GeminiService {
 
   // Brand DNA Research - Enhanced to extract comprehensive structured brand profile
   static async researchBrandDna(brief: AdBrief, version: string = PROMPT_VERSIONS.BRAND_DNA): Promise<BrandDna> {
-      const ai = this.getClient();
-      
-      // Analyze website for colors and typography if URL is provided
-      let websiteAnalysis: { colors: string[]; fonts: string[]; typography: string; typographyStyle: string } | null = null;
-      if (brief.productUrl) {
-        websiteAnalysis = await this.analyzeWebsite(brief.productUrl);
-      }
+      return this.withAnalytics('gemini/gemini-2.5-flash', 'brandResearch', `Analyzing brand DNA: ${brief.brandName}`, async () => {
+        const ai = this.getClient();
+        
+        // Analyze website for colors and typography if URL is provided
+        let websiteAnalysis: { colors: string[]; fonts: string[]; typography: string; typographyStyle: string } | null = null;
+        if (brief.productUrl) {
+          websiteAnalysis = await this.analyzeWebsite(brief.productUrl);
+        }
 
-      // Build website analysis context for the prompt
-      const websiteContext = websiteAnalysis ? `
+        // Build website analysis context for the prompt
+        const websiteContext = websiteAnalysis ? `
 WEBSITE ANALYSIS RESULTS:
 - Extracted Colors: ${websiteAnalysis.colors.slice(0, 10).join(', ') || 'None found'}
 - Extracted Fonts: ${websiteAnalysis.fonts.join(', ') || 'None found'}
 - Typography Style: ${websiteAnalysis.typography || 'Not determined'}
 IMPORTANT: Incorporate these website colors and typography into the Brand DNA profile. The typography field should reflect the website's font choices.` : '';
 
-      const prompt = PROMPT_TEMPLATE.build({
-        role: 'Brand Strategist and Visual Identity Expert',
-        context: `Analyzing brand assets to extract a comprehensive Brand DNA profile.
+        const prompt = PROMPT_TEMPLATE.build({
+          role: 'Brand Strategist and Visual Identity Expert',
+          context: `Analyzing brand assets to extract a comprehensive Brand DNA profile.
 
 Inputs:
 - Brand Name: "${brief.brandName}"
@@ -436,203 +461,209 @@ Inputs:
 ${brief.creativeDirection ? `- Creative Direction: "${brief.creativeDirection}"` : ""}
 ${brief.logoImage ? "- Brand logo image is attached for visual analysis." : ""}
 ${brief.productImage ? "- Product/food photo is attached for visual analysis." : ""}${websiteContext}`,
-        task: `Extract a comprehensive Brand DNA profile by analyzing all provided inputs and images. Identify the brand's visual identity, emotional resonance, and strategic positioning.${websiteAnalysis ? ' Pay special attention to the website analysis results for accurate typography and color information.' : ''}`,
-        constraints: [
-          'Visual style must describe colors, shapes, textures, and overall aesthetic',
-          'Color palette must include 3-5 specific colors (hex codes or descriptive names)',
-          websiteAnalysis ? `Typography MUST incorporate the website fonts: ${websiteAnalysis.typography}` : 'Typography must describe font style characteristics (serif/sans-serif, weight, personality)',
-          'Composition must describe layout preferences and visual hierarchy',
-          'Mood must capture the emotional tone and atmosphere',
-          'Target psychographics must include 3-5 lifestyle/value descriptors',
-          'Brand archetype must be one of the 12 Jungian archetypes (e.g., Hero, Creator, Caregiver, Explorer)'
-        ],
-        outputFormat: 'JSON object with fields: visualStyle, colorPalette (array), typography, composition, mood, targetPsychographics (array), brandArchetype',
-        errorHandling: [
-          ...ERROR_HANDLING_INSTRUCTIONS.general,
-          ...ERROR_HANDLING_INSTRUCTIONS.jsonOutput,
-          'If images are not provided, infer visual style from text descriptions',
-          'If brand archetype is unclear, select the most likely based on tone and audience'
-        ]
-      });
-    
-      const parts: any[] = [{ text: prompt }];
-      
-      if (brief.logoImage && brief.logoImage.startsWith('data:')) {
-        const { mimeType, data } = await this.resolveImage(brief.logoImage);
-        parts.push({ inlineData: { mimeType, data } });
-        parts.push({ text: "REFERENCE IMAGE (LOGO): Analyze this brand logo for colors, typography style, and visual identity cues." });
-      }
-    
-      if (brief.productImage && brief.productImage.startsWith('data:')) {
-        const { mimeType, data } = await this.resolveImage(brief.productImage);
-        parts.push({ inlineData: { mimeType, data } });
-        parts.push({ text: "REFERENCE IMAGE (PRODUCT): Analyze this product image for visual style, lighting, composition, and mood." });
-      }
-    
-      return this.retry(async () => {
-        const response = await ai.models.generateContent({
-          model: 'gemini-2.5-flash',
-          contents: { parts },
-          config: {
-            responseMimeType: "application/json",
-            responseSchema: {
-              type: Type.OBJECT,
-              properties: {
-                visualStyle: { type: Type.STRING, description: "Description of colors, shapes, textures, and overall visual aesthetic" },
-                colorPalette: { type: Type.ARRAY, items: { type: Type.STRING }, description: "3-5 specific colors as hex codes (e.g., #FF5733, #000000, #FFFFFF). Always use hex format, never descriptive names." },
-                typography: { type: Type.STRING, description: "Font style characteristics (serif/sans-serif, weight, personality)" },
-                composition: { type: Type.STRING, description: "Layout preferences and visual hierarchy approach" },
-                mood: { type: Type.STRING, description: "Emotional tone and atmosphere of the brand" },
-                targetPsychographics: { type: Type.ARRAY, items: { type: Type.STRING }, description: "3-5 lifestyle/value descriptors of target audience" },
-                brandArchetype: { type: Type.STRING, description: "One of 12 Jungian archetypes (Hero, Creator, Caregiver, Explorer, etc.)" }
-              },
-              required: ["visualStyle", "colorPalette", "typography", "composition", "mood", "targetPsychographics", "brandArchetype"]
-            }
-          }
+          task: `Extract a comprehensive Brand DNA profile by analyzing all provided inputs and images. Identify the brand's visual identity, emotional resonance, and strategic positioning.${websiteAnalysis ? ' Pay special attention to the website analysis results for accurate typography and color information.' : ''}`,
+          constraints: [
+            'Visual style must describe colors, shapes, textures, and overall aesthetic',
+            'Color palette must include 3-5 specific colors (hex codes or descriptive names)',
+            websiteAnalysis ? `Typography MUST incorporate the website fonts: ${websiteAnalysis.typography}` : 'Typography must describe font style characteristics (serif/sans-serif, weight, personality)',
+            'Composition must describe layout preferences and visual hierarchy',
+            'Mood must capture the emotional tone and atmosphere',
+            'Target psychographics must include 3-5 lifestyle/value descriptors',
+            'Brand archetype must be one of the 12 Jungian archetypes (e.g., Hero, Creator, Caregiver, Explorer)'
+          ],
+          outputFormat: 'JSON object with fields: visualStyle, colorPalette (array), typography, composition, mood, targetPsychographics (array), brandArchetype',
+          errorHandling: [
+            ...ERROR_HANDLING_INSTRUCTIONS.general,
+            ...ERROR_HANDLING_INSTRUCTIONS.jsonOutput,
+            'If images are not provided, infer visual style from text descriptions',
+            'If brand archetype is unclear, select the most likely based on tone and audience'
+          ]
         });
       
-        const text = response.text;
-        if (!text) throw new Error("No response from Gemini");
-        const data = JSON.parse(text);
+        const parts: any[] = [{ text: prompt }];
         
-        // Use website analysis as fallback if Gemini returns empty
-        const typographyValue = (data.typography?.trim() || '') || 
-          (websiteAnalysis?.typography?.trim() || '') || 
-          (websiteAnalysis?.typographyStyle || '');
+        if (brief.logoImage && brief.logoImage.startsWith('data:')) {
+          const { mimeType, data } = await this.resolveImage(brief.logoImage);
+          parts.push({ inlineData: { mimeType, data } });
+          parts.push({ text: "REFERENCE IMAGE (LOGO): Analyze this brand logo for colors, typography style, and visual identity cues." });
+        }
+      
+        if (brief.productImage && brief.productImage.startsWith('data:')) {
+          const { mimeType, data } = await this.resolveImage(brief.productImage);
+          parts.push({ inlineData: { mimeType, data } });
+          parts.push({ text: "REFERENCE IMAGE (PRODUCT): Analyze this product image for visual style, lighting, composition, and mood." });
+        }
+      
+        return this.retry(async () => {
+          const response = await ai.models.generateContent({
+            model: 'gemini-2.5-flash',
+            contents: { parts },
+            config: {
+              responseMimeType: "application/json",
+              responseSchema: {
+                type: Type.OBJECT,
+                properties: {
+                  visualStyle: { type: Type.STRING, description: "Description of colors, shapes, textures, and overall visual aesthetic" },
+                  colorPalette: { type: Type.ARRAY, items: { type: Type.STRING }, description: "3-5 specific colors as hex codes (e.g., #FF5733, #000000, #FFFFFF). Always use hex format, never descriptive names." },
+                  typography: { type: Type.STRING, description: "Font style characteristics (serif/sans-serif, weight, personality)" },
+                  composition: { type: Type.STRING, description: "Layout preferences and visual hierarchy approach" },
+                  mood: { type: Type.STRING, description: "Emotional tone and atmosphere of the brand" },
+                  targetPsychographics: { type: Type.ARRAY, items: { type: Type.STRING }, description: "3-5 lifestyle/value descriptors of target audience" },
+                  brandArchetype: { type: Type.STRING, description: "One of 12 Jungian archetypes (Hero, Creator, Caregiver, Explorer, etc.)" }
+                },
+                required: ["visualStyle", "colorPalette", "typography", "composition", "mood", "targetPsychographics", "brandArchetype"]
+              }
+            }
+          });
+        
+          const text = response.text;
+          if (!text) throw new Error("No response from Gemini");
+          const data = JSON.parse(text);
+          
+          // Use website analysis as fallback if Gemini returns empty
+          const typographyValue = (data.typography?.trim() || '') || 
+            (websiteAnalysis?.typography?.trim() || '') || 
+            (websiteAnalysis?.typographyStyle || '');
 
-        // Use website-extracted colors as fallback if Gemini returns empty palette
-        const aiColors = Array.isArray(data.colorPalette) ? data.colorPalette.filter((c: string) => c?.trim()) : [];
-        const websiteColors = websiteAnalysis?.colors || [];
-        const colorPaletteValue = aiColors.length > 0 ? aiColors : websiteColors.slice(0, 5);
+          // Use website-extracted colors as fallback if Gemini returns empty palette
+          const aiColors = Array.isArray(data.colorPalette) ? data.colorPalette.filter((c: string) => c?.trim()) : [];
+          const websiteColors = websiteAnalysis?.colors || [];
+          const colorPaletteValue = aiColors.length > 0 ? aiColors : websiteColors.slice(0, 5);
 
-        return {
-          visualStyle: data.visualStyle || '',
-          colorPalette: colorPaletteValue,
-          typography: typographyValue,
-          composition: data.composition || '',
-          mood: data.mood || '',
-          targetPsychographics: data.targetPsychographics || [],
-          brandArchetype: data.brandArchetype || ''
-        };
+          return {
+            visualStyle: data.visualStyle || '',
+            colorPalette: colorPaletteValue,
+            typography: typographyValue,
+            composition: data.composition || '',
+            mood: data.mood || '',
+            targetPsychographics: data.targetPsychographics || [],
+            brandArchetype: data.brandArchetype || ''
+          };
+        });
       });
   }
 
   static async generateMoodBoard(brief: AdBrief, referenceImage?: string, logoImage?: string): Promise<string> {
-    const ai = this.getClient();
-    
-    // Prompt for a single collage image
-    const prompt = `Create a professional single-page fashion/brand mood board collage for the brand "${brief.brandName}" and product "${brief.productName}".
-    
-    Composition Requirements:
-    - Create a cohesive graphic design layout on a textured background (paper or digital noise).
-    - FEATURE 1: A prominent color palette strip with 5 distinct color swatches extracted from the brand vibe.
-    - FEATURE 2: High-end lifestyle imagery representing the audience: ${brief.targetAudience}.
-    - FEATURE 3: Visual textures (e.g. concrete, silk, film grain) that match the tone: ${brief.tone.join(', ')}.
-    - FEATURE 4: Large, stylish typography displaying the brand name "${brief.brandName}".
-    - FEATURE 5: The product itself, integrated artistically into the collage.
-    ${logoImage ? '- FEATURE 6: Include the provided Brand Logo in the corner or as a design element.' : ''}
-    
-    Style: Organized, aesthetic, "Urban Pulse" vibe, cinematic lighting, graphic design portfolio quality. 16:9 aspect ratio.`;
+    return this.withAnalytics('gemini/gemini-2.5-flash-image', 'imageGeneration', `Generating mood board: ${brief.brandName}`, async () => {
+      const ai = this.getClient();
+      
+      // Prompt for a single collage image
+      const prompt = `Create a professional single-page fashion/brand mood board collage for the brand "${brief.brandName}" and product "${brief.productName}".
+      
+      Composition Requirements:
+      - Create a cohesive graphic design layout on a textured background (paper or digital noise).
+      - FEATURE 1: A prominent color palette strip with 5 distinct color swatches extracted from the brand vibe.
+      - FEATURE 2: High-end lifestyle imagery representing the audience: ${brief.targetAudience}.
+      - FEATURE 3: Visual textures (e.g. concrete, silk, film grain) that match the tone: ${brief.tone.join(', ')}.
+      - FEATURE 4: Large, stylish typography displaying the brand name "${brief.brandName}".
+      - FEATURE 5: The product itself, integrated artistically into the collage.
+      ${logoImage ? '- FEATURE 6: Include the provided Brand Logo in the corner or as a design element.' : ''}
+      
+      Style: Organized, aesthetic, "Urban Pulse" vibe, cinematic lighting, graphic design portfolio quality. 16:9 aspect ratio.`;
 
-    const parts: any[] = [];
+      const parts: any[] = [];
 
-    // 1. Add Product Image
-    if (referenceImage) {
-      parts.push({
-        inlineData: { 
-            mimeType: referenceImage.split(';')[0].split(':')[1], 
-            data: referenceImage.split(',')[1] 
-        }
-      });
-      parts.push({ text: "Use this product image as the key reference in the collage." });
-    }
-
-    // 2. Add Logo Image
-    if (logoImage && logoImage.startsWith('data:')) {
-       parts.push({
-        inlineData: { 
-            mimeType: logoImage.split(';')[0].split(':')[1], 
-            data: logoImage.split(',')[1] 
-        }
-      });
-      parts.push({ text: "Use this image as the Brand Logo in the collage." });
-    }
-
-    parts.push({ text: prompt });
-
-    return this.retry(async () => {
-        const response = await ai.models.generateContent({
-          model: "gemini-2.5-flash-image",
-          contents: { parts },
-          config: {
-            imageConfig: {
-              aspectRatio: "16:9",
-            },
-          },
-        });
-
-        for (const part of response.candidates[0].content.parts) {
-          if (part.inlineData) {
-            return `data:image/png;base64,${part.inlineData.data}`;
+      // 1. Add Product Image
+      if (referenceImage) {
+        parts.push({
+          inlineData: { 
+              mimeType: referenceImage.split(';')[0].split(':')[1], 
+              data: referenceImage.split(',')[1] 
           }
-        }
-        throw new Error("Failed to generate mood board image");
+        });
+        parts.push({ text: "Use this product image as the key reference in the collage." });
+      }
+
+      // 2. Add Logo Image
+      if (logoImage && logoImage.startsWith('data:')) {
+         parts.push({
+          inlineData: { 
+              mimeType: logoImage.split(';')[0].split(':')[1], 
+              data: logoImage.split(',')[1] 
+          }
+        });
+        parts.push({ text: "Use this image as the Brand Logo in the collage." });
+      }
+
+      parts.push({ text: prompt });
+
+      return this.retry(async () => {
+          const response = await ai.models.generateContent({
+            model: "gemini-2.5-flash-image",
+            contents: { parts },
+            config: {
+              imageConfig: {
+                aspectRatio: "16:9",
+              },
+            },
+          });
+
+          for (const part of response.candidates[0].content.parts) {
+            if (part.inlineData) {
+              return `data:image/png;base64,${part.inlineData.data}`;
+            }
+          }
+          throw new Error("Failed to generate mood board image");
+      });
     });
   }
 
   static async generateConceptPreview(concept: AdConcept, productImage?: string): Promise<string> {
-    const ai = this.getClient();
-    const parts: any[] = [];
-    
-    // 1. Add Product Reference
-    if (productImage) {
-      parts.push({
-        inlineData: {
-          mimeType: productImage.split(';')[0].split(':')[1],
-          data: productImage.split(',')[1]
-        }
-      });
-      parts.push({ text: "REFERENCE PRODUCT: The image must feature this exact product. It is the hero of the shot." });
-    }
-
-    // 2. Add Prompt
-    parts.push({ text: `Create a cinematic concept art visual for an advertisement.
-    Title: ${concept.title}.
-    Summary: ${concept.summary}.
-    
-    Directives:
-    - REALISM: The product must be placed realistically in the scene defined by the summary.
-    - NO FLUFF: No abstract backgrounds or generic graphics.
-    - FOCUS: High-end product photography style.` });
-
-    return this.retry(async () => {
-        const response = await ai.models.generateContent({
-            model: "gemini-2.5-flash-image",
-            contents: { parts },
-            config: {
-                imageConfig: {
-                    aspectRatio: "16:9",
-                },
-            },
+    return this.withAnalytics('gemini/gemini-2.5-flash-image', 'imageGeneration', `Generating concept preview: ${concept.title}`, async () => {
+      const ai = this.getClient();
+      const parts: any[] = [];
+      
+      // 1. Add Product Reference
+      if (productImage) {
+        parts.push({
+          inlineData: {
+            mimeType: productImage.split(';')[0].split(':')[1],
+            data: productImage.split(',')[1]
+          }
         });
+        parts.push({ text: "REFERENCE PRODUCT: The image must feature this exact product. It is the hero of the shot." });
+      }
 
-        for (const part of response.candidates[0].content.parts) {
-            if (part.inlineData) {
-                return `data:image/png;base64,${part.inlineData.data}`;
-            }
-        }
-        throw new Error("No image data found");
+      // 2. Add Prompt
+      parts.push({ text: `Create a cinematic concept art visual for an advertisement.
+      Title: ${concept.title}.
+      Summary: ${concept.summary}.
+      
+      Directives:
+      - REALISM: The product must be placed realistically in the scene defined by the summary.
+      - NO FLUFF: No abstract backgrounds or generic graphics.
+      - FOCUS: High-end product photography style.` });
+
+      return this.retry(async () => {
+          const response = await ai.models.generateContent({
+              model: "gemini-2.5-flash-image",
+              contents: { parts },
+              config: {
+                  imageConfig: {
+                      aspectRatio: "16:9",
+                  },
+              },
+          });
+
+          for (const part of response.candidates[0].content.parts) {
+              if (part.inlineData) {
+                  return `data:image/png;base64,${part.inlineData.data}`;
+              }
+          }
+          throw new Error("No image data found");
+      });
     });
   }
 
   static async generateConcepts(brief: AdBrief, version: string = PROMPT_VERSIONS.CONCEPTS): Promise<AdConcept[]> {
-    const ai = this.getClient();
-    const brandContext = buildBrandContext(brief);
-    const brandDnaContext = brief.brandDna ? buildBrandDnaContext(brief.brandDna) : '';
-    
-    const prompt = PROMPT_TEMPLATE.build({
-      role: 'Creative Director and Advertising Strategist',
-      context: `Creating cinematic advertisement concepts for a brand campaign.
+    return this.withAnalytics('gemini/gemini-3-flash-preview', 'conceptGeneration', `Generating concepts: ${brief.brandName}`, async () => {
+      const ai = this.getClient();
+      const brandContext = buildBrandContext(brief);
+      const brandDnaContext = brief.brandDna ? buildBrandDnaContext(brief.brandDna) : '';
+      
+      const prompt = PROMPT_TEMPLATE.build({
+        role: 'Creative Director and Advertising Strategist',
+        context: `Creating cinematic advertisement concepts for a brand campaign.
 
 ${brandContext}${brandDnaContext}${brief.creativeDirection ? `
 
@@ -640,57 +671,59 @@ CAMPAIGN STRATEGY PIVOT:
 The user has specified a specific Creative Direction that may differ from standard brand DNA.
 Creative Direction: "${brief.creativeDirection}"
 Ensure concepts align strictly with this direction, even if it contradicts the standard audience.` : ''}`,
-      task: 'Generate 3 distinct, compelling cinematic advertisement concepts that capture the brand essence and resonate with the target audience.',
-      constraints: [
-        'Each concept must have a unique creative angle',
-        'Titles should be memorable and evocative (2-4 words)',
-        'Hooks should be punchy taglines (3-7 words)',
-        'Summaries should explain the creative rationale (1-2 sentences)',
-        'Concepts should be feasible for video production',
-        'IDs must follow pattern: concept_1, concept_2, concept_3'
-      ],
-      outputFormat: 'JSON array of 3 concept objects with fields: id, title, hook, summary',
-      errorHandling: [
-        ...ERROR_HANDLING_INSTRUCTIONS.general,
-        ...ERROR_HANDLING_INSTRUCTIONS.jsonOutput
-      ],
-      examples: CONCEPT_EXAMPLES
-    });
-
-    return this.retry(async () => {
-      const response = await ai.models.generateContent({
-        model: "gemini-3-flash-preview",
-        contents: prompt,
-        config: {
-          responseMimeType: "application/json",
-          responseSchema: {
-            type: Type.ARRAY,
-            items: {
-              type: Type.OBJECT,
-              properties: {
-                id: { type: Type.STRING, description: "Unique identifier following pattern concept_N" },
-                title: { type: Type.STRING, description: "Memorable concept title (2-4 words)" },
-                hook: { type: Type.STRING, description: "Punchy tagline (3-7 words)" },
-                summary: { type: Type.STRING, description: "Creative rationale (1-2 sentences)" },
-              },
-              required: ["id", "title", "hook", "summary"],
-            },
-          },
-        },
+        task: 'Generate 3 distinct, compelling cinematic advertisement concepts that capture the brand essence and resonate with the target audience.',
+        constraints: [
+          'Each concept must have a unique creative angle',
+          'Titles should be memorable and evocative (2-4 words)',
+          'Hooks should be punchy taglines (3-7 words)',
+          'Summaries should explain the creative rationale (1-2 sentences)',
+          'Concepts should be feasible for video production',
+          'IDs must follow pattern: concept_1, concept_2, concept_3'
+        ],
+        outputFormat: 'JSON array of 3 concept objects with fields: id, title, hook, summary',
+        errorHandling: [
+          ...ERROR_HANDLING_INSTRUCTIONS.general,
+          ...ERROR_HANDLING_INSTRUCTIONS.jsonOutput
+        ],
+        examples: CONCEPT_EXAMPLES
       });
 
-      return JSON.parse(response.text || "[]");
+      return this.retry(async () => {
+        const response = await ai.models.generateContent({
+          model: "gemini-3-flash-preview",
+          contents: prompt,
+          config: {
+            responseMimeType: "application/json",
+            responseSchema: {
+              type: Type.ARRAY,
+              items: {
+                type: Type.OBJECT,
+                properties: {
+                  id: { type: Type.STRING, description: "Unique identifier following pattern concept_N" },
+                  title: { type: Type.STRING, description: "Memorable concept title (2-4 words)" },
+                  hook: { type: Type.STRING, description: "Punchy tagline (3-7 words)" },
+                  summary: { type: Type.STRING, description: "Creative rationale (1-2 sentences)" },
+                },
+                required: ["id", "title", "hook", "summary"],
+              },
+            },
+          },
+        });
+
+        return JSON.parse(response.text || "[]");
+      });
     });
   }
 
   // Specialized Concept Generation for Food Socials
   static async generateFoodSocialConcepts(brief: AdBrief, version: string = PROMPT_VERSIONS.FOOD_SOCIAL_CONCEPTS): Promise<AdConcept[]> {
-      const ai = this.getClient();
-      const brandDnaContext = brief.brandDna ? buildBrandDnaContext(brief.brandDna) : '';
-      
-      const prompt = PROMPT_TEMPLATE.build({
-        role: 'World-class Art Director & Graphic Designer specializing in food advertising',
-        context: `Designing professional Advertising Posters for "${brief.brandName}" featuring "${brief.productName}".
+      return this.withAnalytics('gemini/gemini-2.5-flash', 'conceptGeneration', `Generating food social concepts: ${brief.brandName}`, async () => {
+        const ai = this.getClient();
+        const brandDnaContext = brief.brandDna ? buildBrandDnaContext(brief.brandDna) : '';
+        
+        const prompt = PROMPT_TEMPLATE.build({
+          role: 'World-class Art Director & Graphic Designer specializing in food advertising',
+          context: `Designing professional Advertising Posters for "${brief.brandName}" featuring "${brief.productName}".
 
 Brand DNA:
 - Tone: ${brief.tone.join(', ')}
@@ -699,37 +732,115 @@ Brand DNA:
 ${brief.logoImage ? '- Brand logo is attached for reference - incorporate it into the designs.' : ''}
 ${brief.productImage ? '- Product image is attached for reference.' : ''}
 ${brandDnaContext}`,
-        task: 'Generate 3 DISTINCT Art Direction concepts for Social Media Ads focusing on LAYOUT, TYPOGRAPHY, and COMPOSITION. Think: Magazine Ads, Billboards, Pop-Art, Modern Minimalist, 90s Retro.',
-        constraints: [
-          'Each concept MUST incorporate the brand logo for brand consistency',
-          'IDs must follow pattern: concept_1, concept_2, concept_3',
-          'Titles should be short internal names (2-4 words)',
-          'Hooks should be punchy taglines (3-7 words)',
-          'visualPrompt must describe a "Professional Advertising Poster" with typography style, background graphics, color palette, and logo placement',
-          'copyAngle should provide clear instructions for copywriters',
-          'overlayCtas must contain exactly 3 distinct, punchy headline options (2-5 words each)'
-        ],
-        outputFormat: 'JSON array of 3 concept objects with fields: id, title, hook, summary, visualPrompt, copyAngle, overlayCtas',
-        errorHandling: [
-          ...ERROR_HANDLING_INSTRUCTIONS.general,
-          ...ERROR_HANDLING_INSTRUCTIONS.jsonOutput,
-          'If product image is unclear, describe a generic appetizing food presentation',
-          'If logo is not provided, suggest placeholder positioning for brand mark'
-        ]
+          task: 'Generate 3 DISTINCT Art Direction concepts for Social Media Ads focusing on LAYOUT, TYPOGRAPHY, and COMPOSITION. Think: Magazine Ads, Billboards, Pop-Art, Modern Minimalist, 90s Retro.',
+          constraints: [
+            'Each concept MUST incorporate the brand logo for brand consistency',
+            'IDs must follow pattern: concept_1, concept_2, concept_3',
+            'Titles should be short internal names (2-4 words)',
+            'Hooks should be punchy taglines (3-7 words)',
+            'visualPrompt must describe a "Professional Advertising Poster" with typography style, background graphics, color palette, and logo placement',
+            'copyAngle should provide clear instructions for copywriters',
+            'overlayCtas must contain exactly 3 distinct, punchy headline options (2-5 words each)'
+          ],
+          outputFormat: 'JSON array of 3 concept objects with fields: id, title, hook, summary, visualPrompt, copyAngle, overlayCtas',
+          errorHandling: [
+            ...ERROR_HANDLING_INSTRUCTIONS.general,
+            ...ERROR_HANDLING_INSTRUCTIONS.jsonOutput,
+            'If product image is unclear, describe a generic appetizing food presentation',
+            'If logo is not provided, suggest placeholder positioning for brand mark'
+          ]
+        });
+      
+        const parts: any[] = [{ text: prompt }];
+
+        if (brief.productImage && brief.productImage.startsWith('data:')) {
+          const { mimeType, data } = await this.resolveImage(brief.productImage);
+          parts.push({ inlineData: { mimeType, data } });
+          parts.push({ text: "REFERENCE IMAGE (PRODUCT): Use this product image as the hero subject in the poster designs." });
+        }
+
+        if (brief.logoImage && brief.logoImage.startsWith('data:')) {
+          const { mimeType, data } = await this.resolveImage(brief.logoImage);
+          parts.push({ inlineData: { mimeType, data } });
+          parts.push({ text: "REFERENCE IMAGE (LOGO): This is the brand logo. It MUST be incorporated into each poster design for brand consistency." });
+        }
+
+        return this.retry(async () => {
+          const response = await ai.models.generateContent({
+            model: 'gemini-2.5-flash',
+            contents: { parts },
+            config: {
+              responseMimeType: "application/json",
+              responseSchema: {
+                type: Type.ARRAY,
+                items: {
+                  type: Type.OBJECT,
+                  properties: {
+                    id: { type: Type.STRING, description: "Unique identifier following pattern concept_N" },
+                    title: { type: Type.STRING, description: "Short internal concept name (2-4 words)" },
+                    hook: { type: Type.STRING, description: "Punchy tagline (3-7 words)" },
+                    summary: { type: Type.STRING, description: "Rationale explaining why this concept works" },
+                    visualPrompt: { type: Type.STRING, description: "Detailed prompt for Professional Advertising Poster including typography, background, color palette, logo placement" },
+                    copyAngle: { type: Type.STRING, description: "Instructions for copywriter on tone and messaging approach" },
+                    overlayCtas: { type: Type.ARRAY, items: { type: Type.STRING, description: "Punchy headline option (2-5 words)" }, description: "Exactly 3 distinct headline options" },
+                  },
+                  required: ["id", "title", "hook", "summary", "visualPrompt", "copyAngle", "overlayCtas"]
+                }
+              }
+            }
+          });
+        
+          return JSON.parse(response.text || "[]");
+        });
       });
+  }
+
+  static async generateEmailCampaign(brief: AdBrief): Promise<AdConcept[]> {
+    return this.withAnalytics('gemini/gemini-2.5-flash', 'emailGeneration', `Generating email campaign: ${brief.brandName}`, async () => {
+      const ai = this.getClient();
+      
+      const prompt = `You are a world-class Email Marketing Designer.
+      
+      Context: Create engaging marketing emails for "${brief.brandName}" featuring "${brief.productName}".
+      
+      Brand DNA:
+      - Tone: ${brief.tone.join(', ')}
+      - Visual Style: ${brief.visualStyle || 'Professional and engaging'}
+      - Keywords: ${brief.keyFeatures.join(', ')}
+      - Target Audience: ${brief.targetAudience}
+      ${brief.creativeDirection ? `- Creative Direction: "${brief.creativeDirection}"` : ''}
+      ${brief.logoImage ? '- Brand logo is attached for reference.' : ''}
+      ${brief.productImage ? '- Product image is attached for reference.' : ''}
+      
+      Task: Generate 3 DISTINCT email campaign concepts focusing on:
+      1. Subject lines and preview text
+      2. Visual layout and composition
+      3. Call-to-action placement
+      4. Brand consistency - ensure the brand logo is prominently featured in the header
+      
+      For each concept, provide:
+      - id: A unique identifier
+      - title: Campaign name
+      - hook: A compelling subject line
+      - summary: Campaign strategy rationale
+      - visualPrompt: Detailed email template description (header with brand logo, hero image featuring the product, body layout, footer with logo)
+      - subjectLines: 3 compelling subject line options
+      - ctaText: Primary call-to-action text
+      - layoutStyle: Email layout approach (newsletter, promotional, announcement, etc.)
+      `;
     
       const parts: any[] = [{ text: prompt }];
 
       if (brief.productImage && brief.productImage.startsWith('data:')) {
         const { mimeType, data } = await this.resolveImage(brief.productImage);
         parts.push({ inlineData: { mimeType, data } });
-        parts.push({ text: "REFERENCE IMAGE (PRODUCT): Use this product image as the hero subject in the poster designs." });
+        parts.push({ text: "REFERENCE IMAGE (PRODUCT): Use this product image as the hero product in the email designs." });
       }
 
       if (brief.logoImage && brief.logoImage.startsWith('data:')) {
         const { mimeType, data } = await this.resolveImage(brief.logoImage);
         parts.push({ inlineData: { mimeType, data } });
-        parts.push({ text: "REFERENCE IMAGE (LOGO): This is the brand logo. It MUST be incorporated into each poster design for brand consistency." });
+        parts.push({ text: "REFERENCE IMAGE (LOGO): This is the brand logo. It MUST appear in the email header and optionally in the footer for brand consistency." });
       }
 
       return this.retry(async () => {
@@ -743,13 +854,13 @@ ${brandDnaContext}`,
               items: {
                 type: Type.OBJECT,
                 properties: {
-                  id: { type: Type.STRING, description: "Unique identifier following pattern concept_N" },
-                  title: { type: Type.STRING, description: "Short internal concept name (2-4 words)" },
-                  hook: { type: Type.STRING, description: "Punchy tagline (3-7 words)" },
-                  summary: { type: Type.STRING, description: "Rationale explaining why this concept works" },
-                  visualPrompt: { type: Type.STRING, description: "Detailed prompt for Professional Advertising Poster including typography, background, color palette, logo placement" },
-                  copyAngle: { type: Type.STRING, description: "Instructions for copywriter on tone and messaging approach" },
-                  overlayCtas: { type: Type.ARRAY, items: { type: Type.STRING, description: "Punchy headline option (2-5 words)" }, description: "Exactly 3 distinct headline options" },
+                  id: { type: Type.STRING },
+                  title: { type: Type.STRING },
+                  hook: { type: Type.STRING },
+                  summary: { type: Type.STRING },
+                  visualPrompt: { type: Type.STRING },
+                  copyAngle: { type: Type.STRING, description: "Email copy strategy" },
+                  overlayCtas: { type: Type.ARRAY, items: { type: Type.STRING }, description: "Subject line options" },
                 },
                 required: ["id", "title", "hook", "summary", "visualPrompt", "copyAngle", "overlayCtas"]
               }
@@ -759,95 +870,21 @@ ${brandDnaContext}`,
       
         return JSON.parse(response.text || "[]");
       });
-  }
-
-  static async generateEmailCampaign(brief: AdBrief): Promise<AdConcept[]> {
-    const ai = this.getClient();
-    
-    const prompt = `You are a world-class Email Marketing Designer.
-    
-    Context: Create engaging marketing emails for "${brief.brandName}" featuring "${brief.productName}".
-    
-    Brand DNA:
-    - Tone: ${brief.tone.join(', ')}
-    - Visual Style: ${brief.visualStyle || 'Professional and engaging'}
-    - Keywords: ${brief.keyFeatures.join(', ')}
-    - Target Audience: ${brief.targetAudience}
-    ${brief.creativeDirection ? `- Creative Direction: "${brief.creativeDirection}"` : ''}
-    ${brief.logoImage ? '- Brand logo is attached for reference.' : ''}
-    ${brief.productImage ? '- Product image is attached for reference.' : ''}
-    
-    Task: Generate 3 DISTINCT email campaign concepts focusing on:
-    1. Subject lines and preview text
-    2. Visual layout and composition
-    3. Call-to-action placement
-    4. Brand consistency - ensure the brand logo is prominently featured in the header
-    
-    For each concept, provide:
-    - id: A unique identifier
-    - title: Campaign name
-    - hook: A compelling subject line
-    - summary: Campaign strategy rationale
-    - visualPrompt: Detailed email template description (header with brand logo, hero image featuring the product, body layout, footer with logo)
-    - subjectLines: 3 compelling subject line options
-    - ctaText: Primary call-to-action text
-    - layoutStyle: Email layout approach (newsletter, promotional, announcement, etc.)
-    `;
-  
-    const parts: any[] = [{ text: prompt }];
-
-    if (brief.productImage && brief.productImage.startsWith('data:')) {
-      const { mimeType, data } = await this.resolveImage(brief.productImage);
-      parts.push({ inlineData: { mimeType, data } });
-      parts.push({ text: "REFERENCE IMAGE (PRODUCT): Use this product image as the hero product in the email designs." });
-    }
-
-    if (brief.logoImage && brief.logoImage.startsWith('data:')) {
-      const { mimeType, data } = await this.resolveImage(brief.logoImage);
-      parts.push({ inlineData: { mimeType, data } });
-      parts.push({ text: "REFERENCE IMAGE (LOGO): This is the brand logo. It MUST appear in the email header and optionally in the footer for brand consistency." });
-    }
-
-    return this.retry(async () => {
-      const response = await ai.models.generateContent({
-        model: 'gemini-2.5-flash',
-        contents: { parts },
-        config: {
-          responseMimeType: "application/json",
-          responseSchema: {
-            type: Type.ARRAY,
-            items: {
-              type: Type.OBJECT,
-              properties: {
-                id: { type: Type.STRING },
-                title: { type: Type.STRING },
-                hook: { type: Type.STRING },
-                summary: { type: Type.STRING },
-                visualPrompt: { type: Type.STRING },
-                copyAngle: { type: Type.STRING, description: "Email copy strategy" },
-                overlayCtas: { type: Type.ARRAY, items: { type: Type.STRING }, description: "Subject line options" },
-              },
-              required: ["id", "title", "hook", "summary", "visualPrompt", "copyAngle", "overlayCtas"]
-            }
-          }
-        }
-      });
-    
-      return JSON.parse(response.text || "[]");
     });
   }
 
   static async generateEmailContent(brief: AdBrief, concept: AdConcept): Promise<Scene[]> {
-    const ai = this.getClient();
-    
-    const contactInfo = {
-      phone: brief.contactPhone || '',
-      email: brief.contactEmail || '',
-      address: brief.contactAddress || '',
-      website: brief.productUrl || ''
-    };
-    
-    const prompt = `Create email content sections for this email campaign concept:
+    return this.withAnalytics('gemini/gemini-3-flash-preview', 'emailGeneration', `Generating email content: ${concept.title}`, async () => {
+      const ai = this.getClient();
+      
+      const contactInfo = {
+        phone: brief.contactPhone || '',
+        email: brief.contactEmail || '',
+        address: brief.contactAddress || '',
+        website: brief.productUrl || ''
+      };
+      
+      const prompt = `Create email content sections for this email campaign concept:
     
     Campaign: ${concept.title}
     Subject Line: ${concept.hook}
@@ -876,117 +913,120 @@ ${brandDnaContext}`,
     
     Output a JSON array of 4 sections.`;
 
-    return this.retry(async () => {
-      const response = await ai.models.generateContent({
-        model: "gemini-3-flash-preview",
-        contents: prompt,
-        config: {
-          responseMimeType: "application/json",
-          responseSchema: {
-            type: Type.ARRAY,
-            items: {
-              type: Type.OBJECT,
-              properties: {
-                sceneNumber: { type: Type.NUMBER },
-                visualPrompt: { type: Type.STRING, description: "Visual description for the email section" },
-                audioScript: { type: Type.STRING, description: "Email copy/text content for this section" },
+      return this.retry(async () => {
+        const response = await ai.models.generateContent({
+          model: "gemini-3-flash-preview",
+          contents: prompt,
+          config: {
+            responseMimeType: "application/json",
+            responseSchema: {
+              type: Type.ARRAY,
+              items: {
+                type: Type.OBJECT,
+                properties: {
+                  sceneNumber: { type: Type.NUMBER },
+                  visualPrompt: { type: Type.STRING, description: "Visual description for the email section" },
+                  audioScript: { type: Type.STRING, description: "Email copy/text content for this section" },
+                },
+                required: ["sceneNumber", "visualPrompt", "audioScript"],
               },
-              required: ["sceneNumber", "visualPrompt", "audioScript"],
             },
           },
-        },
-      });
+        });
 
-      return JSON.parse(response.text || "[]");
+        return JSON.parse(response.text || "[]");
+      });
     });
   }
 
   static async generateEmailHTML(brief: AdBrief, concept: AdConcept, scenes: Scene[]): Promise<string> {
-    const ai = this.getClient();
-    
-    const sectionLabels = ['Hero', 'Body', 'Infographic', 'Footer'];
-    const sectionsData = scenes.map((scene, idx) => ({
-      section: sectionLabels[idx] || `Section ${idx + 1}`,
-      content: scene.audioScript,
-      hasImage: !!scene.imageUrl
-    }));
+    return this.withAnalytics('gemini/gemini-2.5-flash', 'emailGeneration', `Generating email HTML: ${concept.title}`, async () => {
+      const ai = this.getClient();
+      
+      const sectionLabels = ['Hero', 'Body', 'Infographic', 'Footer'];
+      const sectionsData = scenes.map((scene, idx) => ({
+        section: sectionLabels[idx] || `Section ${idx + 1}`,
+        content: scene.audioScript,
+        hasImage: !!scene.imageUrl
+      }));
 
-    const productUrl = brief.productUrl || '#';
+      const productUrl = brief.productUrl || '#';
 
-    const prompt = `You are an expert HTML email developer. Create a complete, production-ready HTML email template.
+      const prompt = `You are an expert HTML email developer. Create a complete, production-ready HTML email template.
 
-    Brand Information:
-    - Brand Name: ${brief.brandName}
-    - Product: ${brief.productName}
-    - Target Audience: ${brief.targetAudience}
-    - Tone: ${brief.tone.join(', ')}
-    - Visual Style: ${brief.visualStyle || 'Professional and modern'}
-    - Product URL: ${productUrl}
-    
-    Campaign Details:
-    - Campaign Title: ${concept.title}
-    - Subject Line: ${concept.hook}
-    - Strategy: ${concept.summary}
-    
-    Email Sections Content:
-    ${sectionsData.map(s => `${s.section}: ${s.content}`).join('\n    ')}
-    
-    Requirements:
-    1. Create a COMPLETE HTML email with inline CSS (email clients don't support external stylesheets)
-    2. Use a responsive design that works on mobile and desktop
-    3. Include proper email DOCTYPE and meta tags
-    4. Use table-based layout for maximum email client compatibility
-    5. HEADER: Use the logo placeholder src="{{LOGO}}" centered at the top, wrapped in a clickable link to {{PRODUCT_URL}}
-    6. HERO SECTION: Include placeholder image src="{{IMAGE_HERO}}" for the main hero visual
-    7. BODY SECTION: Include placeholder image src="{{IMAGE_BODY}}" for product details
-    8. INFOGRAPHIC SECTION: Include placeholder image src="{{IMAGE_INFOGRAPHIC}}" for the infographic visual
-    9. FOOTER: Include placeholder image src="{{IMAGE_FOOTER}}" as the footer graphic, wrapped in a clickable link to {{PRODUCT_URL}}
-    10. Style the email to match the brand tone (colors, fonts, spacing)
-    11. Include a prominent CTA button styled to match the brand
-    12. Use web-safe fonts with fallbacks
-    
-    Color Scheme Guidelines based on tone:
-    - If tone includes "Premium/Luxury": Use dark backgrounds (#1a1a1a), gold accents (#d4af37)
-    - If tone includes "Fresh/Modern": Use white backgrounds, bright accent colors
-    - If tone includes "Professional": Use navy (#1e3a5f), white, subtle grays
-    - If tone includes "Energetic": Use bold colors, high contrast
-    - Default: Use brand-appropriate professional colors
-    
-    Output ONLY the complete HTML code, starting with <!DOCTYPE html> and ending with </html>.
-    Do not include any explanation or markdown code blocks.`;
+      Brand Information:
+      - Brand Name: ${brief.brandName}
+      - Product: ${brief.productName}
+      - Target Audience: ${brief.targetAudience}
+      - Tone: ${brief.tone.join(', ')}
+      - Visual Style: ${brief.visualStyle || 'Professional and modern'}
+      - Product URL: ${productUrl}
+      
+      Campaign Details:
+      - Campaign Title: ${concept.title}
+      - Subject Line: ${concept.hook}
+      - Strategy: ${concept.summary}
+      
+      Email Sections Content:
+      ${sectionsData.map(s => `${s.section}: ${s.content}`).join('\n      ')}
+      
+      Requirements:
+      1. Create a COMPLETE HTML email with inline CSS (email clients don't support external stylesheets)
+      2. Use a responsive design that works on mobile and desktop
+      3. Include proper email DOCTYPE and meta tags
+      4. Use table-based layout for maximum email client compatibility
+      5. HEADER: Use the logo placeholder src="{{LOGO}}" centered at the top, wrapped in a clickable link to {{PRODUCT_URL}}
+      6. HERO SECTION: Include placeholder image src="{{IMAGE_HERO}}" for the main hero visual
+      7. BODY SECTION: Include placeholder image src="{{IMAGE_BODY}}" for product details
+      8. INFOGRAPHIC SECTION: Include placeholder image src="{{IMAGE_INFOGRAPHIC}}" for the infographic visual
+      9. FOOTER: Include placeholder image src="{{IMAGE_FOOTER}}" as the footer graphic, wrapped in a clickable link to {{PRODUCT_URL}}
+      10. Style the email to match the brand tone (colors, fonts, spacing)
+      11. Include a prominent CTA button styled to match the brand
+      12. Use web-safe fonts with fallbacks
+      
+      Color Scheme Guidelines based on tone:
+      - If tone includes "Premium/Luxury": Use dark backgrounds (#1a1a1a), gold accents (#d4af37)
+      - If tone includes "Fresh/Modern": Use white backgrounds, bright accent colors
+      - If tone includes "Professional": Use navy (#1e3a5f), white, subtle grays
+      - If tone includes "Energetic": Use bold colors, high contrast
+      - Default: Use brand-appropriate professional colors
+      
+      Output ONLY the complete HTML code, starting with <!DOCTYPE html> and ending with </html>.
+      Do not include any explanation or markdown code blocks.`;
 
-    return this.retry(async () => {
-      const response = await ai.models.generateContent({
-        model: "gemini-2.5-flash",
-        contents: prompt,
+      return this.retry(async () => {
+        const response = await ai.models.generateContent({
+          model: "gemini-2.5-flash",
+          contents: prompt,
+        });
+
+        let html = response.text || "";
+        
+        // Clean up any markdown code blocks if present
+        html = html.replace(/```html\n?/g, '').replace(/```\n?/g, '').trim();
+        
+        // Replace image placeholders with actual images if available
+        // scenes[0] = Hero, scenes[1] = Body, scenes[2] = Infographic, scenes[3] = Footer
+        if (scenes[0]?.imageUrl) {
+          html = html.replace(/\{\{IMAGE_HERO\}\}/g, scenes[0].imageUrl);
+        }
+        if (scenes[1]?.imageUrl) {
+          html = html.replace(/\{\{IMAGE_BODY\}\}/g, scenes[1].imageUrl);
+        }
+        if (scenes[2]?.imageUrl) {
+          html = html.replace(/\{\{IMAGE_INFOGRAPHIC\}\}/g, scenes[2].imageUrl);
+        }
+        if (scenes[3]?.imageUrl) {
+          html = html.replace(/\{\{IMAGE_FOOTER\}\}/g, scenes[3].imageUrl);
+        }
+        if (brief.logoImage) {
+          html = html.replace(/\{\{LOGO\}\}/g, brief.logoImage);
+        }
+        // Replace product URL placeholder
+        html = html.replace(/\{\{PRODUCT_URL\}\}/g, productUrl);
+        
+        return html;
       });
-
-      let html = response.text || "";
-      
-      // Clean up any markdown code blocks if present
-      html = html.replace(/```html\n?/g, '').replace(/```\n?/g, '').trim();
-      
-      // Replace image placeholders with actual images if available
-      // scenes[0] = Hero, scenes[1] = Body, scenes[2] = Infographic, scenes[3] = Footer
-      if (scenes[0]?.imageUrl) {
-        html = html.replace(/\{\{IMAGE_HERO\}\}/g, scenes[0].imageUrl);
-      }
-      if (scenes[1]?.imageUrl) {
-        html = html.replace(/\{\{IMAGE_BODY\}\}/g, scenes[1].imageUrl);
-      }
-      if (scenes[2]?.imageUrl) {
-        html = html.replace(/\{\{IMAGE_INFOGRAPHIC\}\}/g, scenes[2].imageUrl);
-      }
-      if (scenes[3]?.imageUrl) {
-        html = html.replace(/\{\{IMAGE_FOOTER\}\}/g, scenes[3].imageUrl);
-      }
-      if (brief.logoImage) {
-        html = html.replace(/\{\{LOGO\}\}/g, brief.logoImage);
-      }
-      // Replace product URL placeholder
-      html = html.replace(/\{\{PRODUCT_URL\}\}/g, productUrl);
-      
-      return html;
     });
   }
 
@@ -1012,68 +1052,71 @@ ${brandDnaContext}`,
   }
 
   static async editEmailHTML(currentHTML: string, editInstruction: string, brief: AdBrief): Promise<string> {
-    const ai = this.getClient();
-    
-    const { strippedHtml, placeholders } = this.stripBase64FromHtml(currentHTML);
-    
-    const prompt = `You are an expert HTML email developer. Edit the following HTML email template based on the user's instruction.
+    return this.withAnalytics('gemini/gemini-2.5-flash', 'emailGeneration', 'Editing email HTML', async () => {
+      const ai = this.getClient();
+      
+      const { strippedHtml, placeholders } = this.stripBase64FromHtml(currentHTML);
+      
+      const prompt = `You are an expert HTML email developer. Edit the following HTML email template based on the user's instruction.
 
-    Current HTML:
-    ${strippedHtml}
-    
-    User's Edit Instruction: "${editInstruction}"
-    
-    Brand Context:
-    - Brand Name: ${brief.brandName}
-    - Tone: ${brief.tone.join(', ')}
-    
-    Requirements:
-    1. Make ONLY the changes requested by the user
-    2. Maintain email client compatibility (inline CSS, table layout)
-    3. Keep the overall structure intact unless specifically asked to change it
-    4. Preserve all image placeholders (like {{BASE64_IMAGE_0}}, {{BASE64_IMAGE_1}}, etc.) exactly as they appear
-    5. Preserve all other image URLs
-    
-    Output ONLY the complete modified HTML code, starting with <!DOCTYPE html> and ending with </html>.
-    Do not include any explanation or markdown code blocks.`;
+      Current HTML:
+      ${strippedHtml}
+      
+      User's Edit Instruction: "${editInstruction}"
+      
+      Brand Context:
+      - Brand Name: ${brief.brandName}
+      - Tone: ${brief.tone.join(', ')}
+      
+      Requirements:
+      1. Make ONLY the changes requested by the user
+      2. Maintain email client compatibility (inline CSS, table layout)
+      3. Keep the overall structure intact unless specifically asked to change it
+      4. Preserve all image placeholders (like {{BASE64_IMAGE_0}}, {{BASE64_IMAGE_1}}, etc.) exactly as they appear
+      5. Preserve all other image URLs
+      
+      Output ONLY the complete modified HTML code, starting with <!DOCTYPE html> and ending with </html>.
+      Do not include any explanation or markdown code blocks.`;
 
-    try {
-      return await this.retry(async () => {
-        const response = await ai.models.generateContent({
-          model: "gemini-2.5-flash",
-          contents: prompt,
+      try {
+        return await this.retry(async () => {
+          const response = await ai.models.generateContent({
+            model: "gemini-2.5-flash",
+            contents: prompt,
+          });
+
+          let html = response.text || "";
+          html = html.replace(/```html\n?/g, '').replace(/```\n?/g, '').trim();
+          
+          html = this.restoreBase64ToHtml(html, placeholders);
+          
+          return html;
         });
-
-        let html = response.text || "";
-        html = html.replace(/```html\n?/g, '').replace(/```\n?/g, '').trim();
+      } catch (error: unknown) {
+        const errorMessage = error instanceof Error ? error.message : String(error);
         
-        html = this.restoreBase64ToHtml(html, placeholders);
+        if (errorMessage.includes('token count exceeds') || errorMessage.includes('INVALID_ARGUMENT')) {
+          throw new Error('The email content is too large to edit. Please try a simpler edit or reduce the email size.');
+        }
         
-        return html;
-      });
-    } catch (error: unknown) {
-      const errorMessage = error instanceof Error ? error.message : String(error);
-      
-      if (errorMessage.includes('token count exceeds') || errorMessage.includes('INVALID_ARGUMENT')) {
-        throw new Error('The email content is too large to edit. Please try a simpler edit or reduce the email size.');
+        if (errorMessage.includes('RESOURCE_EXHAUSTED') || errorMessage.includes('429')) {
+          throw new Error('API rate limit reached. Please wait a moment and try again.');
+        }
+        
+        throw error;
       }
-      
-      if (errorMessage.includes('RESOURCE_EXHAUSTED') || errorMessage.includes('429')) {
-        throw new Error('API rate limit reached. Please wait a moment and try again.');
-      }
-      
-      throw error;
-    }
+    });
   }
 
   static async generateScript(brief: AdBrief, concept: AdConcept, version: string = PROMPT_VERSIONS.SCRIPT): Promise<Scene[]> {
-    const ai = this.getClient();
-    const brandContext = buildBrandContext(brief);
-    const brandDnaContext = brief.brandDna ? buildBrandDnaContext(brief.brandDna) : '';
-    
-    const prompt = PROMPT_TEMPLATE.build({
-      role: 'Cinematic Scriptwriter and Video Production Director',
-      context: `Writing a detailed cinematic script for an advertisement concept.
+    return this.withAnalytics('gemini/gemini-3-flash-preview', 'scriptGeneration', `Generating script: ${concept.title}`, async () => {
+      const ai = this.getClient();
+      const brandContext = buildBrandContext(brief);
+      const brandDnaContext = brief.brandDna ? buildBrandDnaContext(brief.brandDna) : '';
+      
+      const prompt = PROMPT_TEMPLATE.build({
+        role: 'Cinematic Scriptwriter and Video Production Director',
+        context: `Writing a detailed cinematic script for an advertisement concept.
 
 Concept Details:
 - Title: ${concept.title}
@@ -1081,97 +1124,100 @@ Concept Details:
 - Summary: ${concept.summary}
 
 ${brandContext}${brandDnaContext}`,
-      task: 'Write a 5-scene cinematic script optimized for Image-to-Video generation. Each scene must describe a single, continuous motion lasting 5-8 seconds.',
-      constraints: [
-        'Script must have exactly 5 scenes',
-        'Each visualPrompt must describe a SINGLE continuous motion (5-8 seconds)',
-        'Good examples: "Slow pan right across the product", "Water droplets splash in slow motion", "Camera pushes in on the dial"',
-        'Bad examples: "The man walks in, sits down, and drinks coffee" (too complex for 5s)',
-        'Visual prompts must align with static product images - focus on lighting changes, camera movement, or particle effects',
-        'Audio scripts should be concise voiceover lines matching the visual',
-        'Scene numbers must be sequential: 1, 2, 3, 4, 5'
-      ],
-      outputFormat: 'JSON array of 5 scene objects with fields: sceneNumber (number), visualPrompt (string), audioScript (string)',
-      errorHandling: [
-        ...ERROR_HANDLING_INSTRUCTIONS.general,
-        ...ERROR_HANDLING_INSTRUCTIONS.jsonOutput,
-        'If concept is unclear, create generic cinematic scenes that showcase the product',
-        'If brand context is missing, focus on universal product appeal'
-      ]
-    });
-
-    return this.retry(async () => {
-      const response = await ai.models.generateContent({
-        model: "gemini-3-flash-preview",
-        contents: prompt,
-        config: {
-          responseMimeType: "application/json",
-          responseSchema: {
-            type: Type.ARRAY,
-            items: {
-              type: Type.OBJECT,
-              properties: {
-                sceneNumber: { type: Type.NUMBER, description: "Sequential scene number (1-5)" },
-                visualPrompt: { type: Type.STRING, description: "Single continuous motion prompt for 5-8s video generation" },
-                audioScript: { type: Type.STRING, description: "Voiceover script line for this scene" },
-              },
-              required: ["sceneNumber", "visualPrompt", "audioScript"],
-            },
-          },
-        },
+        task: 'Write a 5-scene cinematic script optimized for Image-to-Video generation. Each scene must describe a single, continuous motion lasting 5-8 seconds.',
+        constraints: [
+          'Script must have exactly 5 scenes',
+          'Each visualPrompt must describe a SINGLE continuous motion (5-8 seconds)',
+          'Good examples: "Slow pan right across the product", "Water droplets splash in slow motion", "Camera pushes in on the dial"',
+          'Bad examples: "The man walks in, sits down, and drinks coffee" (too complex for 5s)',
+          'Visual prompts must align with static product images - focus on lighting changes, camera movement, or particle effects',
+          'Audio scripts should be concise voiceover lines matching the visual',
+          'Scene numbers must be sequential: 1, 2, 3, 4, 5'
+        ],
+        outputFormat: 'JSON array of 5 scene objects with fields: sceneNumber (number), visualPrompt (string), audioScript (string)',
+        errorHandling: [
+          ...ERROR_HANDLING_INSTRUCTIONS.general,
+          ...ERROR_HANDLING_INSTRUCTIONS.jsonOutput,
+          'If concept is unclear, create generic cinematic scenes that showcase the product',
+          'If brand context is missing, focus on universal product appeal'
+        ]
       });
 
-      return JSON.parse(response.text || "[]");
+      return this.retry(async () => {
+        const response = await ai.models.generateContent({
+          model: "gemini-3-flash-preview",
+          contents: prompt,
+          config: {
+            responseMimeType: "application/json",
+            responseSchema: {
+              type: Type.ARRAY,
+              items: {
+                type: Type.OBJECT,
+                properties: {
+                  sceneNumber: { type: Type.NUMBER, description: "Sequential scene number (1-5)" },
+                  visualPrompt: { type: Type.STRING, description: "Single continuous motion prompt for 5-8s video generation" },
+                  audioScript: { type: Type.STRING, description: "Voiceover script line for this scene" },
+                },
+                required: ["sceneNumber", "visualPrompt", "audioScript"],
+              },
+            },
+          },
+        });
+
+        return JSON.parse(response.text || "[]");
+      });
     });
   }
 
   static async generateSocialCampaign(brief: AdBrief, concept: AdConcept): Promise<Scene[]> {
-    const ai = this.getClient();
-    const prompt = `Act as a Senior Graphic Designer & Ad Strategist. Create 3 High-Impact Social Media Posters for this concept.
-    
-    Brand: ${brief.brandName}
-    Product: ${brief.productName}
-    Concept: ${concept.title} - ${concept.summary}
-    Tone: ${brief.tone.join(', ')}
+    return this.withAnalytics('gemini/gemini-3-flash-preview', 'conceptGeneration', `Generating social campaign: ${concept.title}`, async () => {
+      const ai = this.getClient();
+      const prompt = `Act as a Senior Graphic Designer & Ad Strategist. Create 3 High-Impact Social Media Posters for this concept.
+      
+      Brand: ${brief.brandName}
+      Product: ${brief.productName}
+      Concept: ${concept.title} - ${concept.summary}
+      Tone: ${brief.tone.join(', ')}
 
-    Create 3 unique advertising poster designs.
-    
-    DESIGN RULES:
-    1. 'visualPrompt': Describe a "Graphic Advertising Composition". 
-       - DO NOT ask for simple photography. 
-       - Ask for "Bold Typography integration", "Color Blocking", "Surrealist Product Placement", "Collage elements", or "Magazine Editorial Layouts".
-       - Example: "Graphic design poster, product floating in center with bold yellow sans-serif typography overlay reading 'FASTER', diagonal geometric shadows, high contrast."
-    2. 'audioScript': This will be the POST CAPTION. Write a snappy hook + benefit + CTA. Include hashtags.
-    
-    Output JSON array of scenes (mapping sceneNumber to postNumber).`;
+      Create 3 unique advertising poster designs.
+      
+      DESIGN RULES:
+      1. 'visualPrompt': Describe a "Graphic Advertising Composition". 
+         - DO NOT ask for simple photography. 
+         - Ask for "Bold Typography integration", "Color Blocking", "Surrealist Product Placement", "Collage elements", or "Magazine Editorial Layouts".
+         - Example: "Graphic design poster, product floating in center with bold yellow sans-serif typography overlay reading 'FASTER', diagonal geometric shadows, high contrast."
+      2. 'audioScript': This will be the POST CAPTION. Write a snappy hook + benefit + CTA. Include hashtags.
+      
+      Output JSON array of scenes (mapping sceneNumber to postNumber).`;
 
-    return this.retry(async () => {
-      const response = await ai.models.generateContent({
-        model: "gemini-3-flash-preview",
-        contents: prompt,
-        config: {
-          responseMimeType: "application/json",
-          responseSchema: {
-            type: Type.ARRAY,
-            items: {
-              type: Type.OBJECT,
-              properties: {
-                sceneNumber: { type: Type.NUMBER },
-                visualPrompt: { type: Type.STRING },
-                audioScript: { type: Type.STRING, description: "The Facebook/Instagram caption" },
+      return this.retry(async () => {
+        const response = await ai.models.generateContent({
+          model: "gemini-3-flash-preview",
+          contents: prompt,
+          config: {
+            responseMimeType: "application/json",
+            responseSchema: {
+              type: Type.ARRAY,
+              items: {
+                type: Type.OBJECT,
+                properties: {
+                  sceneNumber: { type: Type.NUMBER },
+                  visualPrompt: { type: Type.STRING },
+                  audioScript: { type: Type.STRING, description: "The Facebook/Instagram caption" },
+                },
+                required: ["sceneNumber", "visualPrompt", "audioScript"],
               },
-              required: ["sceneNumber", "visualPrompt", "audioScript"],
             },
           },
-        },
-      });
+        });
 
-      return JSON.parse(response.text || "[]");
+        return JSON.parse(response.text || "[]");
+      });
     });
   }
   
-  // Specialized method for generating the caption for Food Socials
   static async generateFoodSocialPost(brief: AdBrief, concept: AdConcept, scene: Scene): Promise<string> {
+    return this.withAnalytics('gemini/gemini-2.5-flash', 'textGeneration', `Generating food social post: ${brief.brandName}`, async () => {
       const ai = this.getClient();
       const prompt = `Write a Facebook/Instagram post for "${brief.brandName}" promoting the "${brief.productName}".
       
@@ -1199,106 +1245,104 @@ ${brandContext}${brandDnaContext}`,
       
         return response.text?.trim() || "Could not generate caption.";
       });
+    });
   }
 
-  // New method to polish/rewrite script
   static async polishSceneScript(script: string, tone: string[]): Promise<string> {
-    const ai = this.getClient();
-    const prompt = `Rewrite the following advertisement script line to be more ${tone.join(', ')}, punchy, and professional for a commercial voiceover. Keep it concise.
-    
-    Original Script: "${script}"`;
+    return this.withAnalytics('gemini/gemini-3-flash-preview', 'textGeneration', 'Polishing scene script', async () => {
+      const ai = this.getClient();
+      const prompt = `Rewrite the following advertisement script line to be more ${tone.join(', ')}, punchy, and professional for a commercial voiceover. Keep it concise.
+      
+      Original Script: "${script}"`;
 
-    return this.retry(async () => {
-      const response = await ai.models.generateContent({
-        model: "gemini-3-flash-preview",
-        contents: prompt,
+      return this.retry(async () => {
+        const response = await ai.models.generateContent({
+          model: "gemini-3-flash-preview",
+          contents: prompt,
+        });
+
+        return response.text?.trim() || script;
       });
-
-      return response.text?.trim() || script;
     });
   }
 
   static async generateStoryboardImage(visualPrompt: string, productImage?: string, styleReferenceImage?: string, aspectRatio: string = "16:9", logoImage?: string, version: string = PROMPT_VERSIONS.STORYBOARD_IMAGE, brandDna?: BrandDna): Promise<string> {
-    const ai = this.getClient();
-    const parts: any[] = [];
-    const brandDnaContext = brandDna ? buildBrandDnaContext(brandDna) : '';
+    return this.withAnalytics('gemini/gemini-2.5-flash-image', 'imageGeneration', 'Generating storyboard image', async () => {
+      const ai = this.getClient();
+      const parts: any[] = [];
+      const brandDnaContext = brandDna ? buildBrandDnaContext(brandDna) : '';
 
-    // 1. Add Product Reference if available
-    if (productImage) {
-      parts.push({
-        inlineData: {
-          mimeType: productImage.split(';')[0].split(':')[1],
-          data: productImage.split(',')[1]
-        }
-      });
-      parts.push({ text: "REFERENCE IMAGE 1 (PRODUCT): This is the product that MUST appear in the scene." });
-    }
-
-    // 2. Add Style/Continuity Reference if available
-    if (styleReferenceImage) {
-      parts.push({
-        inlineData: {
-          mimeType: styleReferenceImage.split(';')[0].split(':')[1],
-          data: styleReferenceImage.split(',')[1]
-        }
-      });
-      parts.push({ text: "REFERENCE IMAGE 2 (STYLE/CONTINUITY): Maintain the visual style, lighting, color grading, and character consistency of this previous scene." });
-    }
-
-    // 3. Add Logo Reference if available
-    if (logoImage && logoImage.startsWith('data:')) {
-      parts.push({
-        inlineData: {
-          mimeType: logoImage.split(';')[0].split(':')[1],
-          data: logoImage.split(',')[1]
-        }
-      });
-      parts.push({ text: "REFERENCE IMAGE 3 (LOGO): This is the brand logo. Incorporate it naturally into the scene where appropriate (e.g., header, corner, or as part of the product branding)." });
-    }
-
-    // 4. Main Prompt using standardized template
-    const logoInstruction = logoImage ? " Include the brand logo naturally in the composition." : "";
-    const mainPrompt = PROMPT_TEMPLATE.build({
-      role: 'Commercial Photography Director and Visual Artist',
-      context: `Generating a high-end commercial storyboard visual for an advertisement scene.${brandDnaContext}`,
-      task: `Create a photorealistic commercial image based on the following description: ${visualPrompt}`,
-      constraints: [
-        'Product from reference image MUST appear prominently in the scene',
-        'Maintain visual consistency with style reference if provided',
-        logoImage ? 'Incorporate brand logo naturally in the composition' : 'No logo required',
-        brandDna ? `Follow brand visual style: ${brandDna.visualStyle}` : '',
-        brandDna?.colorPalette?.length ? `Use brand color palette: ${brandDna.colorPalette.join(', ')}` : '',
-        brandDna?.typography ? `Use typography style: ${brandDna.typography} for any text elements` : '',
-        ...VISUAL_STYLE_GUIDE.split('\n').map(line => line.trim()).filter(line => line.startsWith('-')).map(line => line.substring(2))
-      ].filter(c => c !== ''),
-      outputFormat: 'High-resolution photorealistic image',
-      errorHandling: ERROR_HANDLING_INSTRUCTIONS.imageGeneration
-    });
-    parts.push({ text: mainPrompt });
-
-    // WRAP IN RETRY LOGIC for free tier
-    return this.retry(async () => {
-        const response = await ai.models.generateContent({
-          model: "gemini-2.5-flash-image",
-          contents: { parts },
-          config: {
-            imageConfig: {
-              aspectRatio: aspectRatio, // Dynamic aspect ratio
-            },
-          },
-        });
-
-        for (const part of response.candidates[0].content.parts) {
-          if (part.inlineData) {
-            return `data:image/png;base64,${part.inlineData.data}`;
+      if (productImage) {
+        parts.push({
+          inlineData: {
+            mimeType: productImage.split(';')[0].split(':')[1],
+            data: productImage.split(',')[1]
           }
-        }
-        throw new Error("No image data found in response");
+        });
+        parts.push({ text: "REFERENCE IMAGE 1 (PRODUCT): This is the product that MUST appear in the scene." });
+      }
+
+      if (styleReferenceImage) {
+        parts.push({
+          inlineData: {
+            mimeType: styleReferenceImage.split(';')[0].split(':')[1],
+            data: styleReferenceImage.split(',')[1]
+          }
+        });
+        parts.push({ text: "REFERENCE IMAGE 2 (STYLE/CONTINUITY): Maintain the visual style, lighting, color grading, and character consistency of this previous scene." });
+      }
+
+      if (logoImage && logoImage.startsWith('data:')) {
+        parts.push({
+          inlineData: {
+            mimeType: logoImage.split(';')[0].split(':')[1],
+            data: logoImage.split(',')[1]
+          }
+        });
+        parts.push({ text: "REFERENCE IMAGE 3 (LOGO): This is the brand logo. Incorporate it naturally into the scene where appropriate (e.g., header, corner, or as part of the product branding)." });
+      }
+
+      const mainPrompt = PROMPT_TEMPLATE.build({
+        role: 'Commercial Photography Director and Visual Artist',
+        context: `Generating a high-end commercial storyboard visual for an advertisement scene.${brandDnaContext}`,
+        task: `Create a photorealistic commercial image based on the following description: ${visualPrompt}`,
+        constraints: [
+          'Product from reference image MUST appear prominently in the scene',
+          'Maintain visual consistency with style reference if provided',
+          logoImage ? 'Incorporate brand logo naturally in the composition' : 'No logo required',
+          brandDna ? `Follow brand visual style: ${brandDna.visualStyle}` : '',
+          brandDna?.colorPalette?.length ? `Use brand color palette: ${brandDna.colorPalette.join(', ')}` : '',
+          brandDna?.typography ? `Use typography style: ${brandDna.typography} for any text elements` : '',
+          ...VISUAL_STYLE_GUIDE.split('\n').map(line => line.trim()).filter(line => line.startsWith('-')).map(line => line.substring(2))
+        ].filter(c => c !== ''),
+        outputFormat: 'High-resolution photorealistic image',
+        errorHandling: ERROR_HANDLING_INSTRUCTIONS.imageGeneration
+      });
+      parts.push({ text: mainPrompt });
+
+      return this.retry(async () => {
+          const response = await ai.models.generateContent({
+            model: "gemini-2.5-flash-image",
+            contents: { parts },
+            config: {
+              imageConfig: {
+                aspectRatio: aspectRatio,
+              },
+            },
+          });
+
+          for (const part of response.candidates[0].content.parts) {
+            if (part.inlineData) {
+              return `data:image/png;base64,${part.inlineData.data}`;
+            }
+          }
+          throw new Error("No image data found in response");
+      });
     });
   }
 
-  // Specialized Image Gen for Food Socials with Text Overlay logic support (via prompt)
   static async generateFoodHeroImage(brief: AdBrief, concept: AdConcept, ctaText: string, version: string = PROMPT_VERSIONS.FOOD_HERO_IMAGE): Promise<string> {
+    return this.withAnalytics('gemini/gemini-2.5-flash-image', 'imageGeneration', `Generating food hero image: ${brief.brandName}`, async () => {
       const ai = this.getClient();
       const brandDnaContext = brief.brandDna ? buildBrandDnaContext(brief.brandDna) : '';
       
@@ -1335,21 +1379,18 @@ Art Direction:
     
       const parts: any[] = [{ text: prompt }];
     
-      // 1. Pass source food image
       if (brief.productImage && brief.productImage.startsWith('data:')) {
         const { mimeType, data } = await this.resolveImage(brief.productImage);
         parts.push({ inlineData: { mimeType, data } });
         parts.push({ text: `REFERENCE IMAGE 1 (Product): Use this as the main subject.` });
       }
     
-      // 2. Pass logo as reference
       if (brief.logoImage && brief.logoImage.startsWith('data:')) {
         const { mimeType, data } = await this.resolveImage(brief.logoImage);
         parts.push({ inlineData: { mimeType, data } });
         parts.push({ text: "REFERENCE IMAGE 2 (Logo): Place this logo in the design or redraw it to match the style." });
       }
     
-      // Wrap in retry logic for rate limit handling
       return this.retry(async () => {
         const response = await ai.models.generateContent({
           model: 'gemini-2.5-flash-image',
@@ -1369,15 +1410,16 @@ Art Direction:
       
         throw new Error("No image generated.");
       });
+    });
   }
 
   static async editHeroImage(currentImageBase64: string, editInstruction: string): Promise<string> {
+    return this.withAnalytics('gemini/gemini-2.5-flash-image', 'imageGeneration', 'Editing hero image', async () => {
       const ai = this.getClient();
       const { mimeType, data } = await this.resolveImage(currentImageBase64);
     
       const prompt = `Edit this image. Instruction: ${editInstruction}. Maintain the high-quality professional advertising aesthetic, the layout, and the aspect ratio.`;
     
-      // Wrap in retry logic for rate limit handling
       return this.retry(async () => {
         const response = await ai.models.generateContent({
           model: 'gemini-2.5-flash-image',
@@ -1402,88 +1444,84 @@ Art Direction:
       
         throw new Error("No image generated.");
       });
+    });
   }
 
   static async generateVoiceover(text: string, voiceName: string = 'Kore'): Promise<string> {
-    const ai = this.getClient();
-    // Wrap in retry logic
-    return this.retry(async () => {
-        const response = await ai.models.generateContent({
-          model: "gemini-2.5-flash-preview-tts",
-          contents: [{ parts: [{ text: text }] }],
-          config: {
-            responseModalities: [Modality.AUDIO],
-            speechConfig: {
-              voiceConfig: {
-                prebuiltVoiceConfig: { voiceName: voiceName },
+    return this.withAnalytics('gemini/gemini-2.5-flash-preview-tts', 'speechGeneration', 'Generating voiceover', async () => {
+      const ai = this.getClient();
+      return this.retry(async () => {
+          const response = await ai.models.generateContent({
+            model: "gemini-2.5-flash-preview-tts",
+            contents: [{ parts: [{ text: text }] }],
+            config: {
+              responseModalities: [Modality.AUDIO],
+              speechConfig: {
+                voiceConfig: {
+                  prebuiltVoiceConfig: { voiceName: voiceName },
+                },
               },
             },
-          },
-        });
+          });
 
-        const base64Data = response.candidates?.[0]?.content?.parts?.[0]?.inlineData?.data;
-        if (!base64Data) throw new Error("No audio generated");
-        return base64Data;
+          const base64Data = response.candidates?.[0]?.content?.parts?.[0]?.inlineData?.data;
+          if (!base64Data) throw new Error("No audio generated");
+          return base64Data;
+      });
     });
   }
 
   static async generateCinematicVideo(prompt: string, initialImage?: string): Promise<string> {
-    const ai = this.getClient();
-    
-    // Explicitly optimize prompt for Image-to-Video
-    const veoPrompt = `Cinematic commercial shot. ${prompt}. High consistency with input image. Photorealistic 8k.`;
-    
-    // Determine mimeType if image exists, default to 'image/png' if unclear but safer to parse
-    const mimeType = initialImage ? initialImage.split(';')[0].split(':')[1] : undefined;
+    return this.withAnalytics('gemini/veo-3.1-fast-generate-preview', 'videoGeneration', 'Generating cinematic video', async () => {
+      const ai = this.getClient();
+      
+      const veoPrompt = `Cinematic commercial shot. ${prompt}. High consistency with input image. Photorealistic 8k.`;
+      
+      const mimeType = initialImage ? initialImage.split(';')[0].split(':')[1] : undefined;
 
-    // Wrap initial generation request in retry
-    let operation = await this.retry(async () => {
-        return await ai.models.generateVideos({
-            model: 'veo-3.1-fast-generate-preview',
-            prompt: veoPrompt,
-            image: initialImage && mimeType ? {
-                imageBytes: initialImage.split(',')[1],
-                mimeType: mimeType
-            } : undefined,
-            config: {
-                numberOfVideos: 1,
-                resolution: '720p',
-                aspectRatio: '16:9'
-            }
-        });
-    });
+      let operation = await this.retry(async () => {
+          return await ai.models.generateVideos({
+              model: 'veo-3.1-fast-generate-preview',
+              prompt: veoPrompt,
+              image: initialImage && mimeType ? {
+                  imageBytes: initialImage.split(',')[1],
+                  mimeType: mimeType
+              } : undefined,
+              config: {
+                  numberOfVideos: 1,
+                  resolution: '720p',
+                  aspectRatio: '16:9'
+              }
+          });
+      });
 
-    // Polling with Timeout and Retry
-    const startTime = Date.now();
-    const TIMEOUT_MS = 300000; // 5 minutes timeout
+      const startTime = Date.now();
+      const TIMEOUT_MS = 300000;
 
-    while (!operation.done) {
-      if (Date.now() - startTime > TIMEOUT_MS) {
-        throw new Error("Video generation timed out after 5 minutes");
+      while (!operation.done) {
+        if (Date.now() - startTime > TIMEOUT_MS) {
+          throw new Error("Video generation timed out after 5 minutes");
+        }
+        await new Promise(resolve => setTimeout(resolve, 5000));
+        operation = await this.retry(async () => await ai.operations.getVideosOperation({ operation: operation }));
       }
-      await new Promise(resolve => setTimeout(resolve, 5000));
-      // Wrap polling in retry to handle transient API errors during check
-      operation = await this.retry(async () => await ai.operations.getVideosOperation({ operation: operation }));
-    }
 
-    const downloadLink = operation.response?.generatedVideos?.[0]?.video?.uri;
-    if (!downloadLink) throw new Error("Video generation failed");
+      const downloadLink = operation.response?.generatedVideos?.[0]?.video?.uri;
+      if (!downloadLink) throw new Error("Video generation failed");
 
-    // Client-side download using the stored API key from sessionStorage
-    // Note: Server-side proxy is recommended for production to hide keys and handle CORS
-    const apiKey = this.getStoredApiKey();
-    if (!apiKey) {
-      throw new Error("API key not configured. Please add your Gemini API key in settings.");
-    }
-    
-    // Append API key to download URL (the URI may already have query params)
-    const separator = downloadLink.includes('?') ? '&' : '?';
-    const videoResponse = await fetch(`${downloadLink}${separator}key=${apiKey}`);
-    if (!videoResponse.ok) {
-        throw new Error(`Failed to download video: ${videoResponse.statusText}`);
-    }
-    const videoBlob = await videoResponse.blob();
-    return URL.createObjectURL(videoBlob);
+      const apiKey = this.getStoredApiKey();
+      if (!apiKey) {
+        throw new Error("API key not configured. Please add your Gemini API key in settings.");
+      }
+      
+      const separator = downloadLink.includes('?') ? '&' : '?';
+      const videoResponse = await fetch(`${downloadLink}${separator}key=${apiKey}`);
+      if (!videoResponse.ok) {
+          throw new Error(`Failed to download video: ${videoResponse.statusText}`);
+      }
+      const videoBlob = await videoResponse.blob();
+      return URL.createObjectURL(videoBlob);
+    });
   }
 
   static async generateSocialVideo(
@@ -1492,60 +1530,55 @@ Art Direction:
     initialImage?: string,
     aspectRatio: string = '16:9'
   ): Promise<string> {
-    const ai = this.getClient();
-    
-    // Combine visual and motion prompts into a single VeO prompt
-    const veoPrompt = `${prompt}. Motion: ${motionPrompt}. High consistency with input image. Photorealistic 8k.`;
-    
-    // Determine mimeType if image exists
-    const mimeType = initialImage ? initialImage.split(';')[0].split(':')[1] : undefined;
+    return this.withAnalytics('gemini/veo-3.1-fast-generate-preview', 'videoGeneration', 'Generating social video', async () => {
+      const ai = this.getClient();
+      
+      const veoPrompt = `${prompt}. Motion: ${motionPrompt}. High consistency with input image. Photorealistic 8k.`;
+      
+      const mimeType = initialImage ? initialImage.split(';')[0].split(':')[1] : undefined;
 
-    // Wrap initial generation request in retry
-    let operation = await this.retry(async () => {
-        return await ai.models.generateVideos({
-            model: 'veo-3.1-fast-generate-preview',
-            prompt: veoPrompt,
-            image: initialImage && mimeType ? {
-                imageBytes: initialImage.split(',')[1],
-                mimeType: mimeType
-            } : undefined,
-            config: {
-                numberOfVideos: 1,
-                resolution: '720p',
-                aspectRatio: aspectRatio as '16:9' | '9:16'
-            }
-        });
-    });
+      let operation = await this.retry(async () => {
+          return await ai.models.generateVideos({
+              model: 'veo-3.1-fast-generate-preview',
+              prompt: veoPrompt,
+              image: initialImage && mimeType ? {
+                  imageBytes: initialImage.split(',')[1],
+                  mimeType: mimeType
+              } : undefined,
+              config: {
+                  numberOfVideos: 1,
+                  resolution: '720p',
+                  aspectRatio: aspectRatio as '16:9' | '9:16'
+              }
+          });
+      });
 
-    // Polling with Timeout and Retry
-    const startTime = Date.now();
-    const TIMEOUT_MS = 300000; // 5 minutes timeout
+      const startTime = Date.now();
+      const TIMEOUT_MS = 300000;
 
-    while (!operation.done) {
-      if (Date.now() - startTime > TIMEOUT_MS) {
-        throw new Error("Video generation timed out after 5 minutes");
+      while (!operation.done) {
+        if (Date.now() - startTime > TIMEOUT_MS) {
+          throw new Error("Video generation timed out after 5 minutes");
+        }
+        await new Promise(resolve => setTimeout(resolve, 5000));
+        operation = await this.retry(async () => await ai.operations.getVideosOperation({ operation: operation }));
       }
-      await new Promise(resolve => setTimeout(resolve, 5000));
-      // Wrap polling in retry to handle transient API errors during check
-      operation = await this.retry(async () => await ai.operations.getVideosOperation({ operation: operation }));
-    }
 
-    const downloadLink = operation.response?.generatedVideos?.[0]?.video?.uri;
-    if (!downloadLink) throw new Error("Video generation failed");
+      const downloadLink = operation.response?.generatedVideos?.[0]?.video?.uri;
+      if (!downloadLink) throw new Error("Video generation failed");
 
-    // Client-side download using the stored API key from sessionStorage
-    const apiKey = this.getStoredApiKey();
-    if (!apiKey) {
-      throw new Error("API key not configured. Please add your Gemini API key in settings.");
-    }
-    
-    // Append API key to download URL (the URI may already have query params)
-    const separator = downloadLink.includes('?') ? '&' : '?';
-    const videoResponse = await fetch(`${downloadLink}${separator}key=${apiKey}`);
-    if (!videoResponse.ok) {
-        throw new Error(`Failed to download video: ${videoResponse.statusText}`);
-    }
-    const videoBlob = await videoResponse.blob();
-    return URL.createObjectURL(videoBlob);
+      const apiKey = this.getStoredApiKey();
+      if (!apiKey) {
+        throw new Error("API key not configured. Please add your Gemini API key in settings.");
+      }
+      
+      const separator = downloadLink.includes('?') ? '&' : '?';
+      const videoResponse = await fetch(`${downloadLink}${separator}key=${apiKey}`);
+      if (!videoResponse.ok) {
+          throw new Error(`Failed to download video: ${videoResponse.statusText}`);
+      }
+      const videoBlob = await videoResponse.blob();
+      return URL.createObjectURL(videoBlob);
+    });
   }
 }
