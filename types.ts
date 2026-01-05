@@ -45,6 +45,14 @@ export interface AdConcept {
   overlayCtas?: string[];
 }
 
+export interface FacebookScheduleMetadata {
+  facebookPageId: string;
+  scheduledTime?: string; // ISO date string
+  postId?: string; // Returned from Facebook after scheduling
+  status: 'pending' | 'scheduled' | 'published' | 'failed';
+  errorMessage?: string;
+}
+
 export interface Scene {
   sceneNumber: number;
   visualPrompt: string;
@@ -59,6 +67,8 @@ export interface Scene {
   selectedCta?: string; // For Food Socials overlay text
   motionPrompt?: string; // For animated social videos - describes desired motion/animation
   aspectRatio?: string; // For animated social videos - '16:9' or '9:16'
+  facebookSchedule?: FacebookScheduleMetadata; // Facebook scheduling metadata
+  isSchedulingFacebook?: boolean; // Loading state for Facebook scheduling
 }
 
 export interface AdProject {
