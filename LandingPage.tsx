@@ -905,11 +905,10 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
               <div
                 key={idx}
                 className="group flex items-start gap-4 p-4 rounded-xl bg-white/[0.02] hover:bg-white/[0.05] border border-white/5 hover:border-yellow-500/30 transition-all duration-300"
-                style={{ animationDelay: `${idx * 150}ms` }}
               >
-                <div className="flex-shrink-0 w-8 h-8 rounded-lg bg-gradient-to-br from-yellow-400 to-orange-500 flex items-center justify-center shadow-lg shadow-yellow-500/20 group-hover:scale-110 transition-transform duration-300">
+                <div className="flex-shrink-0 w-10 h-10 rounded-full bg-green-500 flex items-center justify-center shadow-lg shadow-green-500/30">
                   <svg 
-                    className="w-5 h-5 text-black" 
+                    className="w-6 h-6 text-white" 
                     fill="none" 
                     viewBox="0 0 24 24" 
                     stroke="currentColor"
@@ -919,12 +918,6 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
                       strokeLinecap="round" 
                       strokeLinejoin="round" 
                       d="M5 13l4 4L19 7"
-                      className="animate-[checkmark_0.4s_ease-in-out_forwards]"
-                      style={{ 
-                        strokeDasharray: 24,
-                        strokeDashoffset: 24,
-                        animation: `checkmark 0.4s ease-in-out ${idx * 150 + 300}ms forwards`
-                      }}
                     />
                   </svg>
                 </div>
