@@ -432,9 +432,9 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
 
           {/* Brand DNA Research Workflow */}
           <div className="mb-12">
-            <div className="flex flex-col items-center text-center gap-2 mb-6">
-              <div className="w-14 h-14 flex items-center justify-center drop-shadow-lg">
-                <img src={bananaDnaIcon} alt="Brand DNA" className="w-14 h-14 object-contain" />
+            <div className="flex items-center justify-center gap-4 mb-6">
+              <div className="w-28 h-28 flex-shrink-0 flex items-center justify-center drop-shadow-lg">
+                <img src={bananaDnaIcon} alt="Brand DNA" className="w-28 h-28 object-contain" />
               </div>
               <div>
                 <h3 className="text-2xl font-bold text-white mb-1">Your Brand Has DNA — We Decode It</h3>
@@ -502,8 +502,8 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
 
           {/* Cinematic Video Workflow */}
           <div className="mb-12">
-            <div className="flex flex-col items-center text-center gap-2 mb-6">
-              <div className="w-14 h-14 rounded-xl overflow-hidden shadow-lg shadow-orange-500/30">
+            <div className="flex items-center justify-center gap-4 mb-6">
+              <div className="w-28 h-28 flex-shrink-0 rounded-xl overflow-hidden shadow-lg shadow-orange-500/30">
                 <img src={iconCinematic} alt="Cinematic Video" className="w-full h-full object-cover" />
               </div>
               <div>
@@ -573,8 +573,8 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
 
           {/* Food Social Workflow */}
           <div className="mb-12">
-            <div className="flex flex-col items-center text-center gap-2 mb-6">
-              <div className="w-14 h-14 rounded-xl overflow-hidden shadow-lg shadow-red-500/30">
+            <div className="flex items-center justify-center gap-4 mb-6">
+              <div className="w-28 h-28 flex-shrink-0 rounded-xl overflow-hidden shadow-lg shadow-red-500/30">
                 <img src={iconFoodSocial} alt="Food Social" className="w-full h-full object-cover" />
               </div>
               <div>
@@ -641,8 +641,8 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
 
           {/* Social Posters (Facebook) Workflow */}
           <div className="mb-12">
-            <div className="flex flex-col items-center text-center gap-2 mb-6">
-              <div className="w-14 h-14 rounded-xl overflow-hidden shadow-lg shadow-blue-500/30">
+            <div className="flex items-center justify-center gap-4 mb-6">
+              <div className="w-28 h-28 flex-shrink-0 rounded-xl overflow-hidden shadow-lg shadow-blue-500/30">
                 <img src={iconSocialPosters} alt="Social Posters" className="w-full h-full object-cover" />
               </div>
               <div>
@@ -710,8 +710,8 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
 
           {/* Email Campaign Workflow */}
           <div>
-            <div className="flex flex-col items-center text-center gap-2 mb-6">
-              <div className="w-14 h-14 rounded-xl overflow-hidden shadow-lg shadow-purple-500/30">
+            <div className="flex items-center justify-center gap-4 mb-6">
+              <div className="w-28 h-28 flex-shrink-0 rounded-xl overflow-hidden shadow-lg shadow-purple-500/30">
                 <img src={iconEmail} alt="Email Campaigns" className="w-full h-full object-cover" />
               </div>
               <div>
