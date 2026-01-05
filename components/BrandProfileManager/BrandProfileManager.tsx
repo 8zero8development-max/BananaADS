@@ -53,6 +53,15 @@ const BrandProfileManager: React.FC<BrandProfileManagerProps> = ({
         id: `brand_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`,
         name: profileName.trim(),
         brandDna: brief.brandDna!,
+        // Save all AI-researched brand identity data
+        brandName: brief.brandName,
+        productName: brief.productName,
+        targetAudience: brief.targetAudience,
+        tone: brief.tone,
+        keyFeatures: brief.keyFeatures,
+        researchSources: brief.researchSources,
+        productUrl: brief.productUrl,
+        // Visual assets
         logoImage: brief.logoImage,
         moodBoard: brief.moodBoard,
         createdAt: now,
@@ -199,7 +208,13 @@ const BrandProfileManager: React.FC<BrandProfileManagerProps> = ({
                         <h4 className="text-sm font-medium text-white/90 truncate">{profile.name}</h4>
                         <div className="flex items-center gap-2 text-xs text-white/40">
                           <span>{formatDate(profile.updatedAt)}</span>
-                          {profile.brandDna.brandArchetype && (
+                          {profile.brandName && (
+                            <>
+                              <span className="text-white/20">|</span>
+                              <span className="truncate text-yellow-400/70">{profile.brandName}</span>
+                            </>
+                          )}
+                          {profile.brandDna?.brandArchetype && (
                             <>
                               <span className="text-white/20">|</span>
                               <span className="truncate">{profile.brandDna.brandArchetype}</span>
@@ -248,7 +263,30 @@ const BrandProfileManager: React.FC<BrandProfileManagerProps> = ({
                       )}
                     </div>
                   </div>
-                  {profile.brandDna.colorPalette && profile.brandDna.colorPalette.length > 0 && (
+                  {/* Show saved research data preview */}
+                  {(profile.targetAudience || (profile.tone && profile.tone.length > 0)) && (
+                    <div className="mt-2 pt-2 border-t border-white/5 space-y-1">
+                      {profile.targetAudience && (
+                        <p className="text-[10px] text-white/50 truncate">
+                          <i className="fa-solid fa-users text-yellow-400/50 mr-1"></i>
+                          {profile.targetAudience}
+                        </p>
+                      )}
+                      {profile.tone && profile.tone.length > 0 && (
+                        <div className="flex flex-wrap gap-1">
+                          {profile.tone.slice(0, 3).map((t, i) => (
+                            <span key={i} className="text-[9px] px-1.5 py-0.5 bg-white/5 rounded text-white/50">
+                              {t}
+                            </span>
+                          ))}
+                          {profile.tone.length > 3 && (
+                            <span className="text-[9px] text-white/30">+{profile.tone.length - 3}</span>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  )}
+                  {profile.brandDna?.colorPalette && profile.brandDna.colorPalette.length > 0 && (
                     <div className="flex gap-1 mt-2 pt-2 border-t border-white/5">
                       {profile.brandDna.colorPalette.slice(0, 5).map((color, i) => {
                         const isValidCssColor = color.startsWith('#') || 
