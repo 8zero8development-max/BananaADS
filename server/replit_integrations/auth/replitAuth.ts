@@ -61,10 +61,25 @@ async function upsertUser(claims: any) {
 }
 
 function getExternalDomain(req: any): string {
+  // Priority 1: Use custom AUTH_DOMAIN if set (for custom domains like bananaads.agency)
+  if (process.env.AUTH_DOMAIN) {
+    return process.env.AUTH_DOMAIN;
+  }
+  
+  // Priority 2: Use the actual host from the request (handles custom domains automatically)
+  // This gets the domain the user is actually accessing from
+  const host = req.get('host');
+  if (host && !host.includes('localhost')) {
+    // Strip port if present
+    return host.split(':')[0];
+  }
+  
+  // Priority 3: Fall back to REPLIT_DOMAINS for dev environment
   const domains = process.env.REPLIT_DOMAINS?.split(',') || [];
   if (domains.length > 0) {
     return domains[0];
   }
+  
   return req.hostname;
 }
 
