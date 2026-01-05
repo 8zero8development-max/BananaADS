@@ -3,14 +3,16 @@ import ReactDOM from 'react-dom/client';
 import App from './App';
 import LandingPage from './LandingPage';
 import AdminApp from './admin/AdminApp';
+import AuthPage from './components/Auth/AuthPage';
 import ErrorBoundary from './components/ErrorBoundary';
 import { useAuth } from './hooks/useAuth';
 import './styles.css';
 
 const AuthenticatedRoot: React.FC = () => {
-  const { user, isLoading, isAuthenticated, login, logout } = useAuth();
+  const { user, isLoading, isAuthenticated, isAdmin } = useAuth();
   const [showApp, setShowApp] = useState(false);
   const [showAdmin, setShowAdmin] = useState(false);
+  const [showAuth, setShowAuth] = useState(false);
 
   useEffect(() => {
     const checkHash = () => {
@@ -33,30 +35,53 @@ const AuthenticatedRoot: React.FC = () => {
   }
 
   if (showAdmin) {
+    if (!isAuthenticated) {
+      return (
+        <AuthPage 
+          onSuccess={() => {
+            window.location.reload();
+          }} 
+        />
+      );
+    }
+    if (!isAdmin) {
+      return (
+        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-yellow-50 to-yellow-100">
+          <div className="bg-white rounded-2xl shadow-xl p-8 max-w-md w-full mx-4 text-center">
+            <h2 className="text-2xl font-bold text-gray-800 mb-4">Access Denied</h2>
+            <p className="text-gray-600 mb-6">You don't have admin access.</p>
+            <button
+              onClick={() => window.location.hash = ''}
+              className="w-full bg-yellow-500 hover:bg-yellow-600 text-white font-semibold py-3 px-6 rounded-lg transition-colors"
+            >
+              Go to Home
+            </button>
+          </div>
+        </div>
+      );
+    }
     return <AdminApp />;
+  }
+
+  if (showAuth) {
+    return (
+      <AuthPage 
+        onSuccess={() => {
+          setShowAuth(false);
+          setShowApp(true);
+        }} 
+      />
+    );
   }
 
   if (showApp) {
     if (!isAuthenticated) {
       return (
-        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-yellow-50 to-yellow-100">
-          <div className="bg-white rounded-2xl shadow-xl p-8 max-w-md w-full mx-4 text-center">
-            <h2 className="text-2xl font-bold text-gray-800 mb-4">Sign In Required</h2>
-            <p className="text-gray-600 mb-6">Please sign in to access the Banana Ads platform.</p>
-            <button
-              onClick={login}
-              className="w-full bg-yellow-500 hover:bg-yellow-600 text-white font-semibold py-3 px-6 rounded-lg transition-colors"
-            >
-              Sign In
-            </button>
-            <button
-              onClick={() => setShowApp(false)}
-              className="mt-4 text-gray-500 hover:text-gray-700 text-sm"
-            >
-              Back to Home
-            </button>
-          </div>
-        </div>
+        <AuthPage 
+          onSuccess={() => {
+            setShowApp(true);
+          }} 
+        />
       );
     }
     return <App onBackToLanding={() => setShowApp(false)} />;
@@ -68,7 +93,7 @@ const AuthenticatedRoot: React.FC = () => {
         if (isAuthenticated) {
           setShowApp(true);
         } else {
-          login();
+          setShowAuth(true);
         }
       }} 
     />

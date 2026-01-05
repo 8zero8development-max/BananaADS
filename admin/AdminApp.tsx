@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { AdminService, AdminWidget, SystemHealth, UserAnalytics } from '../services/adminService';
 import UsageAnalytics from '../components/admin/UsageAnalytics';
 import FeatureUsage from '../components/admin/FeatureUsage';
+import UserManagement from '../components/admin/UserManagement';
+import { useAuth } from '../hooks/useAuth';
 
 type TimeRange = 'day' | 'week' | 'month' | 'year';
 
@@ -163,8 +165,10 @@ const UserActivityWidget: React.FC = () => {
 };
 
 const AdminApp: React.FC = () => {
+  const { user, logout } = useAuth();
   const [widgets] = useState<AdminWidget[]>(AdminService.getDefaultWidgets());
   const [timeRange, setTimeRange] = useState<TimeRange>('week');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'users'>('users');
 
   const renderWidgetContent = (widget: AdminWidget) => {
     switch (widget.id) {
@@ -189,51 +193,82 @@ const AdminApp: React.FC = () => {
         <div className="flex items-center justify-between mb-8">
           <div>
             <h1 className="text-4xl font-serif gradient-text mb-2">Admin Dashboard</h1>
-            <p className="text-white/50">Monitor your BananaADS platform analytics and system health</p>
+            <p className="text-white/50">
+              Logged in as {user?.name || user?.email}
+            </p>
           </div>
           <div className="flex items-center gap-4">
-            <div className="flex bg-white/5 rounded-full p-1 border border-white/10">
-              {timeRangeOptions.map((range) => (
-                <button
-                  key={range}
-                  onClick={() => setTimeRange(range)}
-                  className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
-                    timeRange === range
-                      ? 'bg-gradient-to-r from-yellow-500 to-orange-500 text-white'
-                      : 'text-white/50 hover:text-white'
-                  }`}
-                >
-                  {range.charAt(0).toUpperCase() + range.slice(1)}
-                </button>
+            <button
+              onClick={() => window.location.hash = ''}
+              className="text-white/60 hover:text-white text-sm"
+            >
+              Back to App
+            </button>
+            <button
+              onClick={logout}
+              className="bg-red-500/20 text-red-400 px-4 py-2 rounded-lg text-sm hover:bg-red-500/30"
+            >
+              Logout
+            </button>
+          </div>
+        </div>
+
+        <div className="flex gap-4 mb-8">
+          <button
+            onClick={() => setActiveTab('users')}
+            className={`px-6 py-3 rounded-lg font-medium transition-all ${
+              activeTab === 'users'
+                ? 'bg-gradient-to-r from-yellow-500 to-orange-500 text-white'
+                : 'bg-white/5 text-white/60 hover:text-white'
+            }`}
+          >
+            User Management
+          </button>
+          <button
+            onClick={() => setActiveTab('dashboard')}
+            className={`px-6 py-3 rounded-lg font-medium transition-all ${
+              activeTab === 'dashboard'
+                ? 'bg-gradient-to-r from-yellow-500 to-orange-500 text-white'
+                : 'bg-white/5 text-white/60 hover:text-white'
+            }`}
+          >
+            Analytics
+          </button>
+        </div>
+
+        {activeTab === 'users' ? (
+          <div className="bg-white/5 rounded-xl border border-white/5 p-6">
+            <UserManagement />
+          </div>
+        ) : (
+          <>
+            <div className="flex justify-end mb-6">
+              <div className="flex bg-white/5 rounded-full p-1 border border-white/10">
+                {timeRangeOptions.map((range) => (
+                  <button
+                    key={range}
+                    onClick={() => setTimeRange(range)}
+                    className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
+                      timeRange === range
+                        ? 'bg-gradient-to-r from-yellow-500 to-orange-500 text-white'
+                        : 'text-white/50 hover:text-white'
+                    }`}
+                  >
+                    {range.charAt(0).toUpperCase() + range.slice(1)}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {widgets.map((widget) => (
+                <WidgetContainer key={widget.id} widget={widget}>
+                  {renderWidgetContent(widget)}
+                </WidgetContainer>
               ))}
             </div>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {widgets.map((widget) => (
-            <WidgetContainer key={widget.id} widget={widget}>
-              {renderWidgetContent(widget)}
-            </WidgetContainer>
-          ))}
-        </div>
-
-        <div className="mt-8 p-6 bg-white/5 rounded-xl border border-white/5">
-          <div className="flex items-center gap-3 mb-4">
-            <div className="w-10 h-10 rounded-lg bg-gradient-to-r from-yellow-500 to-orange-500 flex items-center justify-center">
-              <i className="fa-solid fa-puzzle-piece text-white"></i>
-            </div>
-            <div>
-              <h3 className="text-white font-bold">Extensible Widget System</h3>
-              <p className="text-white/50 text-sm">Add new widgets to customize your dashboard</p>
-            </div>
-          </div>
-          <p className="text-white/40 text-sm">
-            This dashboard uses an extensible widget architecture. New analytics features can be added 
-            by creating new widget components and registering them with the AdminService. Each widget 
-            supports three sizes (small, medium, large) and four categories (analytics, users, system, content).
-          </p>
-        </div>
+          </>
+        )}
       </div>
     </div>
   );
