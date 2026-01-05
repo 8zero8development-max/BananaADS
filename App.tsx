@@ -17,6 +17,8 @@ import { useAdCampaign } from './hooks/useAdCampaign';
 import BananaAdsAssistant from './components/BananaAdsAssistant';
 import HelpSystem from './components/Help/HelpSystem';
 import OnboardingTour, { onboardingSteps } from './components/Onboarding/OnboardingTour';
+import { ModelSelectionDashboard } from './components/ModelSelectionDashboard';
+import { providerManager } from './services/providers';
 
 interface AppProps {
   onBackToLanding?: () => void;
@@ -33,10 +35,11 @@ const AppContent: React.FC<AppProps> = ({ onBackToLanding }) => {
   const [selectedFoodPostIdx, setSelectedFoodPostIdx] = useState<number>(0);
   const [selectedSocialPostIdx, setSelectedSocialPostIdx] = useState<number>(0);
   const [selectedEmailSectionIdx, setSelectedEmailSectionIdx] = useState<number>(0);
-  const [showHelp, setShowHelp] = useState<boolean>(false);
-  const [showOnboarding, setShowOnboarding] = useState(
-    !localStorage.getItem('onboarding-completed')
-  );
+    const [showHelp, setShowHelp] = useState<boolean>(false);
+    const [showModelDashboard, setShowModelDashboard] = useState<boolean>(false);
+    const [showOnboarding, setShowOnboarding] = useState(
+      !localStorage.getItem('onboarding-completed')
+    );
 
   const { showToast } = useToast();
 
@@ -725,9 +728,16 @@ const AppContent: React.FC<AppProps> = ({ onBackToLanding }) => {
           </div>
         </div>
         <div className="flex items-center space-x-6 text-sm font-medium text-white/60">
-          <button onClick={handleReconfigureKey} className="hover:text-banana transition flex items-center gap-2">
-            <i className="fa-solid fa-key"></i> <span className="hidden sm:inline">API Key</span>
-          </button>
+                    <button onClick={handleReconfigureKey} className="hover:text-banana transition flex items-center gap-2">
+                      <i className="fa-solid fa-key"></i> <span className="hidden sm:inline">API Key</span>
+                    </button>
+                    <button 
+                      onClick={() => setShowModelDashboard(true)} 
+                      className="hover:text-banana transition flex items-center gap-2"
+                      title="Configure AI models"
+                    >
+                      <i className="fa-solid fa-sliders"></i> <span className="hidden sm:inline">Models</span>
+                    </button>
           <button 
             onClick={handleClearData}
             className="hover:text-red-400 transition flex items-center gap-2"
@@ -836,6 +846,11 @@ const AppContent: React.FC<AppProps> = ({ onBackToLanding }) => {
       />
 
       <HelpSystem isOpen={showHelp} onClose={() => setShowHelp(false)} />
+
+      <ModelSelectionDashboard 
+        isOpen={showModelDashboard} 
+        onClose={() => setShowModelDashboard(false)} 
+      />
 
       {showOnboarding && (
         <OnboardingTour
