@@ -53,6 +53,27 @@ export interface FacebookScheduleMetadata {
   errorMessage?: string;
 }
 
+export interface GmailScheduleMetadata {
+  recipients: string[];
+  subject: string;
+  scheduledTime?: string; // ISO date string
+  messageId?: string; // Returned from Gmail after sending
+  status: 'pending' | 'scheduled' | 'sent' | 'failed';
+  errorMessage?: string;
+}
+
+export interface EmailCampaignSchedule {
+  id: string;
+  recipients: string[];
+  subject: string;
+  htmlContent: string;
+  scheduledTime: string;
+  status: 'pending' | 'sent' | 'failed';
+  createdAt: string;
+  sentAt?: string;
+  errorMessage?: string;
+}
+
 export interface Scene {
   sceneNumber: number;
   visualPrompt: string;

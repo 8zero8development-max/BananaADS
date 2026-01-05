@@ -284,6 +284,477 @@ app.get('/api/health', (req, res) => {
   res.json({ status: 'ok' });
 });
 
+// ============================================================================
+// Gmail API Endpoints for Email Campaign Scheduling
+// ============================================================================
+
+// In-memory storage for scheduled emails (in production, use database)
+interface ScheduledEmail {
+  id: string;
+  userEmail: string;
+  accessToken: string;
+  refreshToken?: string;
+  to: string[];
+  subject: string;
+  htmlContent: string;
+  scheduledTime: string;
+  status: 'pending' | 'sent' | 'failed';
+  createdAt: string;
+  sentAt?: string;
+  errorMessage?: string;
+}
+
+const scheduledEmails: Map<string, ScheduledEmail> = new Map();
+
+// Google OAuth2 configuration
+const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID || '';
+const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET || '';
+const GMAIL_SCOPES = [
+  'https://www.googleapis.com/auth/gmail.send',
+  'https://www.googleapis.com/auth/gmail.readonly',
+  'https://www.googleapis.com/auth/userinfo.email',
+].join(' ');
+
+// Helper function to get base URL
+function getBaseUrl(): string {
+  const domains = process.env.REPLIT_DOMAINS?.split(',') || [];
+  if (domains.length > 0) {
+    return `https://${domains[0]}`;
+  }
+  return `http://localhost:${PORT}`;
+}
+
+// Gmail OAuth2 - Initiate authentication
+app.get('/api/gmail/auth', (req, res) => {
+  const redirect = req.query.redirect as string || '/';
+  
+  if (!GOOGLE_CLIENT_ID) {
+    return res.status(500).json({ 
+      error: 'Gmail integration not configured. Please set GOOGLE_CLIENT_ID environment variable.' 
+    });
+  }
+
+  const baseUrl = getBaseUrl();
+  const redirectUri = `${baseUrl}/api/gmail/callback`;
+  
+  // Store the original redirect URL in state parameter
+  const state = Buffer.from(JSON.stringify({ redirect })).toString('base64');
+  
+  const authUrl = new URL('https://accounts.google.com/o/oauth2/v2/auth');
+  authUrl.searchParams.set('client_id', GOOGLE_CLIENT_ID);
+  authUrl.searchParams.set('redirect_uri', redirectUri);
+  authUrl.searchParams.set('response_type', 'code');
+  authUrl.searchParams.set('scope', GMAIL_SCOPES);
+  authUrl.searchParams.set('access_type', 'offline');
+  authUrl.searchParams.set('prompt', 'consent');
+  authUrl.searchParams.set('state', state);
+
+  res.redirect(authUrl.toString());
+});
+
+// Gmail OAuth2 - Handle callback
+app.get('/api/gmail/callback', async (req, res) => {
+  const { code, state, error } = req.query;
+
+  if (error) {
+    console.error('Gmail OAuth error:', error);
+    return res.redirect('/?gmail_error=' + encodeURIComponent(error as string));
+  }
+
+  if (!code) {
+    return res.redirect('/?gmail_error=no_code');
+  }
+
+  // Parse the state to get the original redirect URL
+  let redirectUrl = '/';
+  try {
+    const stateData = JSON.parse(Buffer.from(state as string, 'base64').toString());
+    redirectUrl = stateData.redirect || '/';
+  } catch (e) {
+    console.warn('Failed to parse OAuth state');
+  }
+
+  try {
+    const baseUrl = getBaseUrl();
+    const redirectUri = `${baseUrl}/api/gmail/callback`;
+
+    // Exchange code for tokens
+    const tokenResponse = await fetch('https://oauth2.googleapis.com/token', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: new URLSearchParams({
+        code: code as string,
+        client_id: GOOGLE_CLIENT_ID,
+        client_secret: GOOGLE_CLIENT_SECRET,
+        redirect_uri: redirectUri,
+        grant_type: 'authorization_code',
+      }),
+    });
+
+    if (!tokenResponse.ok) {
+      const errorData = await tokenResponse.json().catch(() => ({}));
+      console.error('Token exchange failed:', errorData);
+      return res.redirect(redirectUrl + '?gmail_error=token_exchange_failed');
+    }
+
+    const tokens = await tokenResponse.json();
+    const { access_token, refresh_token } = tokens;
+
+    // Get user email
+    const userInfoResponse = await fetch('https://www.googleapis.com/gmail/v1/users/me/profile', {
+      headers: {
+        'Authorization': `Bearer ${access_token}`,
+      },
+    });
+
+    if (!userInfoResponse.ok) {
+      return res.redirect(redirectUrl + '?gmail_error=failed_to_get_user_info');
+    }
+
+    const userInfo = await userInfoResponse.json();
+    const userEmail = userInfo.emailAddress;
+
+    // Redirect back to the app with tokens in URL params
+    const redirectWithParams = new URL(redirectUrl, baseUrl);
+    redirectWithParams.searchParams.set('gmail_access_token', access_token);
+    if (refresh_token) {
+      redirectWithParams.searchParams.set('gmail_refresh_token', refresh_token);
+    }
+    redirectWithParams.searchParams.set('gmail_email', userEmail);
+
+    res.redirect(redirectWithParams.toString());
+  } catch (error: any) {
+    console.error('Gmail OAuth callback error:', error);
+    res.redirect(redirectUrl + '?gmail_error=' + encodeURIComponent(error.message));
+  }
+});
+
+// Gmail OAuth2 - Refresh access token
+app.post('/api/gmail/refresh', async (req, res) => {
+  const { refreshToken } = req.body;
+
+  if (!refreshToken) {
+    return res.status(400).json({ error: 'Refresh token is required' });
+  }
+
+  if (!GOOGLE_CLIENT_ID || !GOOGLE_CLIENT_SECRET) {
+    return res.status(500).json({ error: 'Gmail integration not configured' });
+  }
+
+  try {
+    const tokenResponse = await fetch('https://oauth2.googleapis.com/token', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: new URLSearchParams({
+        refresh_token: refreshToken,
+        client_id: GOOGLE_CLIENT_ID,
+        client_secret: GOOGLE_CLIENT_SECRET,
+        grant_type: 'refresh_token',
+      }),
+    });
+
+    if (!tokenResponse.ok) {
+      const errorData = await tokenResponse.json().catch(() => ({}));
+      console.error('Token refresh failed:', errorData);
+      return res.status(401).json({ error: 'Failed to refresh token' });
+    }
+
+    const tokens = await tokenResponse.json();
+    res.json({ accessToken: tokens.access_token });
+  } catch (error: any) {
+    console.error('Token refresh error:', error);
+    res.status(500).json({ error: 'Failed to refresh token' });
+  }
+});
+
+// Gmail - Schedule an email for future sending
+app.post('/api/gmail/schedule', async (req, res) => {
+  const { accessToken, refreshToken, userEmail, to, subject, htmlContent, scheduledTime } = req.body;
+
+  if (!accessToken || !userEmail || !to || !subject || !htmlContent || !scheduledTime) {
+    return res.status(400).json({ error: 'Missing required fields' });
+  }
+
+  // Validate scheduled time
+  const scheduledDate = new Date(scheduledTime);
+  const now = new Date();
+  
+  if (scheduledDate <= now) {
+    return res.status(400).json({ error: 'Scheduled time must be in the future' });
+  }
+
+  const maxScheduleTime = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
+  if (scheduledDate > maxScheduleTime) {
+    return res.status(400).json({ error: 'Scheduled time cannot be more than 30 days in the future' });
+  }
+
+  // Create scheduled email entry
+  const emailId = `email_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+  const scheduledEmail: ScheduledEmail = {
+    id: emailId,
+    userEmail,
+    accessToken,
+    refreshToken,
+    to: Array.isArray(to) ? to : [to],
+    subject,
+    htmlContent,
+    scheduledTime,
+    status: 'pending',
+    createdAt: new Date().toISOString(),
+  };
+
+  scheduledEmails.set(emailId, scheduledEmail);
+
+  // Schedule the email to be sent
+  const delay = scheduledDate.getTime() - now.getTime();
+  setTimeout(async () => {
+    await sendScheduledEmail(emailId);
+  }, delay);
+
+  console.log(`Email ${emailId} scheduled for ${scheduledTime} (in ${Math.round(delay / 1000 / 60)} minutes)`);
+
+  res.json({
+    id: emailId,
+    to: scheduledEmail.to,
+    subject: scheduledEmail.subject,
+    scheduledTime: scheduledEmail.scheduledTime,
+    status: scheduledEmail.status,
+    createdAt: scheduledEmail.createdAt,
+  });
+});
+
+// Helper function to send a scheduled email
+async function sendScheduledEmail(emailId: string): Promise<void> {
+  const email = scheduledEmails.get(emailId);
+  if (!email || email.status !== 'pending') {
+    return;
+  }
+
+  try {
+    // Create MIME message
+    const boundary = 'boundary_' + Date.now().toString(16);
+    const mimeMessage = [
+      `From: ${email.userEmail}`,
+      `To: ${email.to.join(', ')}`,
+      `Subject: =?UTF-8?B?${Buffer.from(email.subject).toString('base64')}?=`,
+      'MIME-Version: 1.0',
+      `Content-Type: multipart/alternative; boundary="${boundary}"`,
+      '',
+      `--${boundary}`,
+      'Content-Type: text/plain; charset=UTF-8',
+      'Content-Transfer-Encoding: base64',
+      '',
+      Buffer.from(htmlToPlainText(email.htmlContent)).toString('base64'),
+      '',
+      `--${boundary}`,
+      'Content-Type: text/html; charset=UTF-8',
+      'Content-Transfer-Encoding: base64',
+      '',
+      Buffer.from(email.htmlContent).toString('base64'),
+      '',
+      `--${boundary}--`,
+    ].join('\r\n');
+
+    const raw = Buffer.from(mimeMessage)
+      .toString('base64')
+      .replace(/\+/g, '-')
+      .replace(/\//g, '_')
+      .replace(/=+$/, '');
+
+    // Send via Gmail API
+    const response = await fetch('https://www.googleapis.com/gmail/v1/users/me/messages/send', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${email.accessToken}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ raw }),
+    });
+
+    if (response.status === 401 && email.refreshToken) {
+      // Try to refresh the token
+      const refreshResponse = await fetch('https://oauth2.googleapis.com/token', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: new URLSearchParams({
+          refresh_token: email.refreshToken,
+          client_id: GOOGLE_CLIENT_ID,
+          client_secret: GOOGLE_CLIENT_SECRET,
+          grant_type: 'refresh_token',
+        }),
+      });
+
+      if (refreshResponse.ok) {
+        const tokens = await refreshResponse.json();
+        email.accessToken = tokens.access_token;
+        
+        // Retry sending
+        const retryResponse = await fetch('https://www.googleapis.com/gmail/v1/users/me/messages/send', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${email.accessToken}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ raw }),
+        });
+
+        if (!retryResponse.ok) {
+          throw new Error(`Gmail API error: ${retryResponse.status}`);
+        }
+
+        email.status = 'sent';
+        email.sentAt = new Date().toISOString();
+        console.log(`Scheduled email ${emailId} sent successfully after token refresh`);
+        return;
+      }
+    }
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.error?.message || `Gmail API error: ${response.status}`);
+    }
+
+    email.status = 'sent';
+    email.sentAt = new Date().toISOString();
+    console.log(`Scheduled email ${emailId} sent successfully`);
+  } catch (error: any) {
+    console.error(`Failed to send scheduled email ${emailId}:`, error);
+    email.status = 'failed';
+    email.errorMessage = error.message;
+  }
+}
+
+// Helper function to convert HTML to plain text
+function htmlToPlainText(html: string): string {
+  return html
+    .replace(/<br\s*\/?>/gi, '\n')
+    .replace(/<\/p>/gi, '\n\n')
+    .replace(/<\/div>/gi, '\n')
+    .replace(/<\/h[1-6]>/gi, '\n\n')
+    .replace(/<\/li>/gi, '\n')
+    .replace(/<[^>]+>/g, '')
+    .replace(/&nbsp;/g, ' ')
+    .replace(/&amp;/g, '&')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .trim();
+}
+
+// Gmail - Get scheduled emails for a user
+app.get('/api/gmail/scheduled', (req, res) => {
+  const { email } = req.query;
+
+  if (!email) {
+    return res.status(400).json({ error: 'Email is required' });
+  }
+
+  const userEmails = Array.from(scheduledEmails.values())
+    .filter(e => e.userEmail === email)
+    .map(e => ({
+      id: e.id,
+      to: e.to,
+      subject: e.subject,
+      scheduledTime: e.scheduledTime,
+      status: e.status,
+      createdAt: e.createdAt,
+      sentAt: e.sentAt,
+      errorMessage: e.errorMessage,
+    }));
+
+  res.json({ emails: userEmails });
+});
+
+// Gmail - Cancel a scheduled email
+app.delete('/api/gmail/schedule/:emailId', (req, res) => {
+  const { emailId } = req.params;
+
+  const email = scheduledEmails.get(emailId);
+  if (!email) {
+    return res.status(404).json({ error: 'Scheduled email not found' });
+  }
+
+  if (email.status !== 'pending') {
+    return res.status(400).json({ error: 'Cannot cancel email that is not pending' });
+  }
+
+  scheduledEmails.delete(emailId);
+  console.log(`Scheduled email ${emailId} cancelled`);
+
+  res.json({ success: true });
+});
+
+// Gmail - Send email immediately (proxy to avoid CORS)
+app.post('/api/gmail/send', async (req, res) => {
+  const { accessToken, userEmail, to, subject, htmlContent } = req.body;
+
+  if (!accessToken || !userEmail || !to || !subject || !htmlContent) {
+    return res.status(400).json({ error: 'Missing required fields' });
+  }
+
+  try {
+    // Create MIME message
+    const boundary = 'boundary_' + Date.now().toString(16);
+    const mimeMessage = [
+      `From: ${userEmail}`,
+      `To: ${Array.isArray(to) ? to.join(', ') : to}`,
+      `Subject: =?UTF-8?B?${Buffer.from(subject).toString('base64')}?=`,
+      'MIME-Version: 1.0',
+      `Content-Type: multipart/alternative; boundary="${boundary}"`,
+      '',
+      `--${boundary}`,
+      'Content-Type: text/plain; charset=UTF-8',
+      'Content-Transfer-Encoding: base64',
+      '',
+      Buffer.from(htmlToPlainText(htmlContent)).toString('base64'),
+      '',
+      `--${boundary}`,
+      'Content-Type: text/html; charset=UTF-8',
+      'Content-Transfer-Encoding: base64',
+      '',
+      Buffer.from(htmlContent).toString('base64'),
+      '',
+      `--${boundary}--`,
+    ].join('\r\n');
+
+    const raw = Buffer.from(mimeMessage)
+      .toString('base64')
+      .replace(/\+/g, '-')
+      .replace(/\//g, '_')
+      .replace(/=+$/, '');
+
+    // Send via Gmail API
+    const response = await fetch('https://www.googleapis.com/gmail/v1/users/me/messages/send', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${accessToken}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ raw }),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      return res.status(response.status).json({ 
+        error: errorData.error?.message || `Gmail API error: ${response.status}` 
+      });
+    }
+
+    const result = await response.json();
+    res.json(result);
+  } catch (error: any) {
+    console.error('Gmail send error:', error);
+    res.status(500).json({ error: error.message || 'Failed to send email' });
+  }
+});
+
 // Website analysis endpoint for extracting colors and typography (handles CORS)
 app.post('/api/analyze-website', async (req, res) => {
   try {
