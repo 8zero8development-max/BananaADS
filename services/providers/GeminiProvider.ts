@@ -6,7 +6,9 @@ import {
   TextGenerationOptions,
   ImageGenerationOptions,
   SpeechGenerationOptions,
-  VideoGenerationOptions
+  VideoGenerationOptions,
+  DynamicModelInfo,
+  TaskType
 } from '../../types/providers';
 
 export class GeminiProvider extends BaseProvider {
@@ -264,6 +266,63 @@ export class GeminiProvider extends BaseProvider {
 
       return response.text || '';
     });
+  }
+
+  async listModels(): Promise<DynamicModelInfo[]> {
+    const apiKey = this.getStoredApiKey();
+    if (!apiKey) {
+      return [];
+    }
+
+    try {
+      const response = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models?key=${apiKey}`
+      );
+
+      if (!response.ok) {
+        console.error('Failed to fetch Gemini models:', response.statusText);
+        return [];
+      }
+
+      const data = await response.json();
+      const models: DynamicModelInfo[] = [];
+
+      for (const model of data.models || []) {
+        const capabilities: TaskType[] = [];
+        const methods = model.supportedGenerationMethods || [];
+
+        if (methods.includes('generateContent')) {
+          capabilities.push('textGeneration', 'emailGeneration', 'brandResearch', 'conceptGeneration', 'scriptGeneration');
+        }
+        if (methods.includes('generateImages') || model.name?.includes('image')) {
+          capabilities.push('imageGeneration');
+        }
+        if (methods.includes('generateAudio') || model.name?.includes('tts')) {
+          capabilities.push('speechGeneration');
+        }
+        if (methods.includes('generateVideos') || model.name?.includes('veo')) {
+          capabilities.push('videoGeneration');
+        }
+
+        const modelId = model.name?.replace('models/', '') || model.name;
+        
+        models.push({
+          id: `gemini/${modelId}`,
+          name: model.displayName || modelId,
+          provider: 'gemini',
+          description: model.description,
+          contextWindow: model.inputTokenLimit,
+          maxOutputTokens: model.outputTokenLimit,
+          capabilities,
+          isAvailable: true
+        });
+      }
+
+      return models;
+    } catch (error) {
+      console.error('Error fetching Gemini models:', error);
+      return [];
+    }
   }
 }
 

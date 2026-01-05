@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { providerManager } from '../../services/providers';
+import { providerManager, geminiProvider } from '../../services/providers';
 import {
   ProviderType,
   TaskType,
@@ -8,7 +8,9 @@ import {
   PROVIDER_INFO,
   MODEL_INFO_CATALOG,
   getModelInfo,
-  getModelsForTask
+  getModelsForTask,
+  DynamicModelInfo,
+  ModelInfo
 } from '../../types/providers';
 
 interface ModelSelectionDashboardProps {
@@ -55,11 +57,29 @@ const ModelSelectionDashboard: React.FC<ModelSelectionDashboardProps> = ({ isOpe
     openrouter: false
   });
   const [savingProvider, setSavingProvider] = useState<ProviderType | null>(null);
+  const [dynamicModels, setDynamicModels] = useState<DynamicModelInfo[]>([]);
+  const [loadingModels, setLoadingModels] = useState(false);
 
   useEffect(() => {
     const state = providerManager.getState();
     setTier(state.tier);
     setSelections(state.selections);
+  }, [isOpen]);
+
+  useEffect(() => {
+    if (isOpen && providerManager.hasApiKeyForProvider('gemini')) {
+      setLoadingModels(true);
+      geminiProvider.listModels()
+        .then(models => {
+          setDynamicModels(models);
+        })
+        .catch(err => {
+          console.error('Failed to load dynamic models:', err);
+        })
+        .finally(() => {
+          setLoadingModels(false);
+        });
+    }
   }, [isOpen]);
 
   const handleTierChange = (newTier: TierType) => {
@@ -91,9 +111,31 @@ const ModelSelectionDashboard: React.FC<ModelSelectionDashboardProps> = ({ isOpe
     setApiKeys(prev => ({ ...prev, [provider]: '' }));
   };
 
-  const getAvailableModels = (task: TaskType) => {
+  const getAvailableModels = (task: TaskType): ModelInfo[] => {
+    // If we have dynamically loaded models, use those filtered by task capability
+    if (dynamicModels.length > 0) {
+      const filteredDynamic = dynamicModels
+        .filter(model => model.capabilities?.includes(task))
+        .map(model => ({
+          id: model.id,
+          name: model.name,
+          provider: model.provider,
+          capabilities: model.capabilities || [],
+          description: model.description,
+          maxTokens: model.maxOutputTokens
+        }));
+      
+      if (filteredDynamic.length > 0) {
+        return filteredDynamic;
+      }
+    }
+
+    // Fall back to static model config, filtered by providers with API keys
     const models = getModelsForTask(task, tier);
-    return models;
+    return models.filter(model => {
+      const provider = model.provider;
+      return providerManager.hasApiKeyForProvider(provider);
+    });
   };
 
   if (!isOpen) return null;
