@@ -227,7 +227,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
             <br />
             <span style={{ color: '#C0C0C0' }}>To Do What </span>
             <img src={bananaAiHero} alt="AI Banana" className="inline-block h-20 md:h-24 w-auto align-middle mx-1" />
-            <span style={{ color: '#C0C0C0' }}> AI Can Do</span>
+            <span style={{ color: '#C0C0C0' }}>Can Do</span>
             <br />
             <span style={{ color: '#FFD700' }}>In Minutes</span>
           </h1>
