@@ -5,7 +5,9 @@ import {
   TextGenerationOptions,
   ImageGenerationOptions,
   SpeechGenerationOptions,
-  VideoGenerationOptions
+  VideoGenerationOptions,
+  DynamicModelInfo,
+  TaskType
 } from '../../types/providers';
 
 interface OpenRouterMessage {
@@ -138,25 +140,62 @@ IMPORTANT: You must respond with valid JSON only. Do not include any text before
     throw createNotSupportedError(this.providerType, 'Video generation');
   }
 
-  async listAvailableModels(): Promise<Array<{ id: string; name: string; pricing: { prompt: number; completion: number } }>> {
-    const response = await fetch(`${this.baseUrl}/models`, {
-      method: 'GET',
-      headers: this.getHeaders()
-    });
-
-    if (!response.ok) {
-      throw new Error(`Failed to fetch models: ${response.status}`);
+  async listModels(): Promise<DynamicModelInfo[]> {
+    const apiKey = this.getStoredApiKey();
+    if (!apiKey) {
+      return [];
     }
 
-    const data = await response.json();
-    return data.data.map((model: { id: string; name: string; pricing: { prompt: string; completion: string } }) => ({
-      id: model.id,
-      name: model.name,
-      pricing: {
-        prompt: parseFloat(model.pricing.prompt),
-        completion: parseFloat(model.pricing.completion)
+    try {
+      const response = await fetch(`${this.baseUrl}/models`, {
+        method: 'GET',
+        headers: this.getHeaders()
+      });
+
+      if (!response.ok) {
+        console.error('Failed to fetch OpenRouter models:', response.statusText);
+        return [];
       }
-    }));
+
+      const data = await response.json();
+      const models: DynamicModelInfo[] = [];
+
+      for (const model of data.data || []) {
+        const capabilities: TaskType[] = ['textGeneration'];
+        const modelId = model.id;
+
+        // Most OpenRouter models support text generation
+        // Add more capabilities based on model name patterns
+        if (modelId.includes('gpt-4') || modelId.includes('claude-3') || modelId.includes('opus') || modelId.includes('sonnet')) {
+          capabilities.push('emailGeneration', 'brandResearch', 'conceptGeneration', 'scriptGeneration');
+        } else if (modelId.includes('gpt-3') || modelId.includes('llama') || modelId.includes('mistral') || modelId.includes('haiku')) {
+          capabilities.push('emailGeneration', 'conceptGeneration', 'scriptGeneration');
+        }
+
+        // Check for image generation models
+        if (modelId.includes('dall-e') || modelId.includes('stable-diffusion') || modelId.includes('midjourney') || modelId.includes('flux')) {
+          capabilities.push('imageGeneration');
+        }
+
+        models.push({
+          id: `openrouter/${modelId}`,
+          name: model.name || modelId,
+          provider: 'openrouter',
+          description: model.description || `${model.name} via OpenRouter`,
+          contextWindow: model.context_length,
+          maxOutputTokens: model.top_provider?.max_completion_tokens,
+          inputCostPer1kTokens: model.pricing?.prompt ? parseFloat(model.pricing.prompt) * 1000 : undefined,
+          outputCostPer1kTokens: model.pricing?.completion ? parseFloat(model.pricing.completion) * 1000 : undefined,
+          capabilities,
+          isAvailable: true
+        });
+      }
+
+      return models;
+    } catch (error) {
+      console.error('Error fetching OpenRouter models:', error);
+      return [];
+    }
   }
 }
 

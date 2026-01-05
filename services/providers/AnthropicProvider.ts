@@ -5,7 +5,9 @@ import {
   TextGenerationOptions,
   ImageGenerationOptions,
   SpeechGenerationOptions,
-  VideoGenerationOptions
+  VideoGenerationOptions,
+  DynamicModelInfo,
+  TaskType
 } from '../../types/providers';
 
 interface AnthropicMessage {
@@ -169,6 +171,80 @@ IMPORTANT: You must respond with valid JSON only. Do not include any text before
 
   async generateVideo(_prompt: string, _options?: VideoGenerationOptions): Promise<string> {
     throw createNotSupportedError(this.providerType, 'Video generation');
+  }
+
+  async listModels(): Promise<DynamicModelInfo[]> {
+    const apiKey = this.getStoredApiKey();
+    if (!apiKey) {
+      return [];
+    }
+
+    // Anthropic doesn't have a public models API endpoint
+    // Return a static list of known Claude models
+    const claudeModels: DynamicModelInfo[] = [
+      {
+        id: 'anthropic/claude-3-5-sonnet-20241022',
+        name: 'Claude 3.5 Sonnet',
+        provider: 'anthropic',
+        description: 'Most intelligent Claude model with excellent reasoning',
+        contextWindow: 200000,
+        maxOutputTokens: 8192,
+        inputCostPer1kTokens: 0.003,
+        outputCostPer1kTokens: 0.015,
+        capabilities: ['textGeneration', 'emailGeneration', 'brandResearch', 'conceptGeneration', 'scriptGeneration'],
+        isAvailable: true
+      },
+      {
+        id: 'anthropic/claude-3-5-haiku-20241022',
+        name: 'Claude 3.5 Haiku',
+        provider: 'anthropic',
+        description: 'Fast and affordable Claude model',
+        contextWindow: 200000,
+        maxOutputTokens: 8192,
+        inputCostPer1kTokens: 0.0008,
+        outputCostPer1kTokens: 0.004,
+        capabilities: ['textGeneration', 'emailGeneration', 'conceptGeneration', 'scriptGeneration'],
+        isAvailable: true
+      },
+      {
+        id: 'anthropic/claude-3-opus-20240229',
+        name: 'Claude 3 Opus',
+        provider: 'anthropic',
+        description: 'Most capable Claude 3 model for complex tasks',
+        contextWindow: 200000,
+        maxOutputTokens: 4096,
+        inputCostPer1kTokens: 0.015,
+        outputCostPer1kTokens: 0.075,
+        capabilities: ['textGeneration', 'emailGeneration', 'brandResearch', 'conceptGeneration', 'scriptGeneration'],
+        isAvailable: true
+      },
+      {
+        id: 'anthropic/claude-3-sonnet-20240229',
+        name: 'Claude 3 Sonnet',
+        provider: 'anthropic',
+        description: 'Balanced performance and cost',
+        contextWindow: 200000,
+        maxOutputTokens: 4096,
+        inputCostPer1kTokens: 0.003,
+        outputCostPer1kTokens: 0.015,
+        capabilities: ['textGeneration', 'emailGeneration', 'conceptGeneration', 'scriptGeneration'],
+        isAvailable: true
+      },
+      {
+        id: 'anthropic/claude-3-haiku-20240307',
+        name: 'Claude 3 Haiku',
+        provider: 'anthropic',
+        description: 'Fastest and most affordable Claude 3 model',
+        contextWindow: 200000,
+        maxOutputTokens: 4096,
+        inputCostPer1kTokens: 0.00025,
+        outputCostPer1kTokens: 0.00125,
+        capabilities: ['textGeneration', 'emailGeneration'],
+        isAvailable: true
+      }
+    ];
+
+    return claudeModels;
   }
 }
 
