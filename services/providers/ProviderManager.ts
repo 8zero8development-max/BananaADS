@@ -17,6 +17,7 @@ import { GeminiProvider, geminiProvider } from './GeminiProvider';
 import { OpenAIProvider, openAIProvider } from './OpenAIProvider';
 import { AnthropicProvider, anthropicProvider } from './AnthropicProvider';
 import { OpenRouterProvider, openRouterProvider } from './OpenRouterProvider';
+import { modelAnalyticsService } from './ModelAnalyticsService';
 
 const STORAGE_KEY = 'banana_ads_model_selections';
 
@@ -142,6 +143,36 @@ class ProviderManager {
     });
   }
 
+  private stripProviderPrefix(modelId: string): string {
+    const parts = modelId.split('/');
+    if (parts.length >= 2) {
+      const provider = parts[0];
+      if (provider === 'openrouter') {
+        return parts.slice(1).join('/');
+      }
+      return parts.slice(1).join('/');
+    }
+    return modelId;
+  }
+
+  private async withAnalytics<T>(
+    modelId: string,
+    taskType: TaskType,
+    operation: string,
+    fn: () => Promise<T>
+  ): Promise<T> {
+    const tracker = modelAnalyticsService.startOperation(modelId, taskType, operation);
+    try {
+      const result = await fn();
+      tracker.complete(true);
+      return result;
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      tracker.complete(false, errorMessage);
+      throw error;
+    }
+  }
+
   async generateText(
     task: TaskType,
     prompt: string,
@@ -149,20 +180,26 @@ class ProviderManager {
   ): Promise<string> {
     const modelId = this.getModelForTask(task);
     const provider = this.getProviderForModel(modelId);
+    const strippedModelId = this.stripProviderPrefix(modelId);
     
     if (!provider.hasApiKey()) {
       throw new Error(`API key not configured for ${getProviderFromModelId(modelId)}`);
     }
 
-    try {
-      return await provider.generateText(prompt, options);
-    } catch (error) {
-      const fallbackResult = await this.tryFallback(task, 'text', prompt, options);
-      if (fallbackResult !== null) {
-        return fallbackResult;
+    return this.withAnalytics(modelId, task, `Text generation: ${task}`, async () => {
+      try {
+        if ('generateTextWithModel' in provider) {
+          return await (provider as OpenAIProvider | AnthropicProvider | OpenRouterProvider | GeminiProvider).generateTextWithModel(prompt, strippedModelId, options);
+        }
+        return await provider.generateText(prompt, options);
+      } catch (error) {
+        const fallbackResult = await this.tryFallback(task, 'text', prompt, options);
+        if (fallbackResult !== null) {
+          return fallbackResult;
+        }
+        throw error;
       }
-      throw error;
-    }
+    });
   }
 
   async generateImage(
@@ -185,15 +222,17 @@ class ProviderManager {
       throw new Error(`Image generation not supported by ${getProviderFromModelId(modelId)}`);
     }
 
-    try {
-      return await provider.generateImage(prompt, options);
-    } catch (error) {
-      const fallbackResult = await this.tryFallback(task, 'image', prompt, options);
-      if (fallbackResult !== null) {
-        return fallbackResult;
+    return this.withAnalytics(modelId, task, `Image generation: ${task}`, async () => {
+      try {
+        return await provider.generateImage(prompt, options);
+      } catch (error) {
+        const fallbackResult = await this.tryFallback(task, 'image', prompt, options);
+        if (fallbackResult !== null) {
+          return fallbackResult;
+        }
+        throw error;
       }
-      throw error;
-    }
+    });
   }
 
   async generateSpeech(
@@ -216,15 +255,17 @@ class ProviderManager {
       throw new Error(`Speech generation not supported by ${getProviderFromModelId(modelId)}`);
     }
 
-    try {
-      return await provider.generateSpeech(text, options);
-    } catch (error) {
-      const fallbackResult = await this.tryFallbackSpeech(task, text, options);
-      if (fallbackResult !== null) {
-        return fallbackResult;
+    return this.withAnalytics(modelId, task, `Speech generation: ${task}`, async () => {
+      try {
+        return await provider.generateSpeech(text, options);
+      } catch (error) {
+        const fallbackResult = await this.tryFallbackSpeech(task, text, options);
+        if (fallbackResult !== null) {
+          return fallbackResult;
+        }
+        throw error;
       }
-      throw error;
-    }
+    });
   }
 
   async generateVideo(
@@ -243,7 +284,9 @@ class ProviderManager {
       throw new Error(`Video generation not supported by ${getProviderFromModelId(modelId)}`);
     }
 
-    return await provider.generateVideo(prompt, options);
+    return this.withAnalytics(modelId, task, `Video generation: ${task}`, async () => {
+      return await provider.generateVideo(prompt, options);
+    });
   }
 
   private async tryFallback(

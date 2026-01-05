@@ -31,6 +31,14 @@ export class GeminiProvider extends BaseProvider {
   }
 
   async generateText(prompt: string, options?: TextGenerationOptions): Promise<string> {
+    return this.generateTextWithModel(prompt, 'gemini-3-flash-preview', options);
+  }
+
+  async generateTextWithModel(
+    prompt: string,
+    model: string,
+    options?: TextGenerationOptions
+  ): Promise<string> {
     const ai = this.getClient();
     
     return this.retry(async () => {
@@ -48,7 +56,7 @@ export class GeminiProvider extends BaseProvider {
       }
 
       const response = await ai.models.generateContent({
-        model: 'gemini-3-flash-preview',
+        model,
         contents: prompt,
         config: Object.keys(config).length > 0 ? config : undefined
       });
