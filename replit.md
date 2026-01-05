@@ -14,6 +14,7 @@ Banana Ads is an AI-powered cinematography agent built with React and Google Gem
 - **Build Tool:** Vite
 - **Backend:** Express.js on port 3001
 - **Database:** PostgreSQL with Drizzle ORM
+- **Authentication:** Replit Auth (OpenID Connect)
 - **AI Integration:** Google Gemini (@google/genai)
 - **Payments:** Stripe with stripe-replit-sync
 - **Testing:** Vitest with React Testing Library
@@ -31,6 +32,14 @@ Banana Ads is an AI-powered cinematography agent built with React and Google Gem
 ## Environment Variables
 - `DATABASE_URL` - PostgreSQL connection string
 - `STRIPE_SECRET_KEY` - Stripe API key (managed by Replit integration)
+- `SESSION_SECRET` - Session encryption key (managed by Replit)
+
+## Authentication
+Users must sign in to access the app. Replit Auth provides:
+- Login with Google, GitHub, Apple, X, or email/password
+- Auth routes: `/api/login`, `/api/logout`, `/api/auth/user`
+- Database tables: `users` (user profiles), `sessions` (session storage)
+- Frontend hook: `useAuth()` in `hooks/useAuth.ts`
 
 ## API Key Management
 Users provide their own Gemini API key which is stored in browser localStorage:
