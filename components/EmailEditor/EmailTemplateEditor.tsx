@@ -1,4 +1,6 @@
 import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react';
+import ReactQuill from 'react-quill-new';
+import 'react-quill-new/dist/quill.snow.css';
 import { AdBrief, AdConcept, Scene } from '../../types';
 import { GeminiService } from '../../services/geminiService';
 import { GmailService } from '../../services/gmailService';
@@ -23,7 +25,7 @@ const EmailTemplateEditor: React.FC<EmailTemplateEditorProps> = ({
   const [isGenerating, setIsGenerating] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [editInstruction, setEditInstruction] = useState('');
-  const [viewMode, setViewMode] = useState<'preview' | 'code'>('preview');
+  const [viewMode, setViewMode] = useState<'preview' | 'code' | 'wysiwyg'>('wysiwyg');
   const [selectedElement, setSelectedElement] = useState<string | null>(null);
   const [showImageEditor, setShowImageEditor] = useState(false);
   const [selectedImageSrc, setSelectedImageSrc] = useState<string>('');
@@ -250,14 +252,23 @@ const EmailTemplateEditor: React.FC<EmailTemplateEditorProps> = ({
     }
   };
 
-  const quickEdits = [
-    { label: 'Change CTA color to brand color', instruction: 'Change the main CTA button color to match the brand primary color' },
-    { label: 'Make header darker', instruction: 'Make the header background darker and more prominent' },
-    { label: 'Increase font size', instruction: 'Increase the body text font size by 2px for better readability' },
-    { label: 'Add more padding', instruction: 'Add more padding around all sections for a more spacious feel' },
-    { label: 'Make CTA larger', instruction: 'Make the CTA button larger and more prominent' },
-    { label: 'Center all content', instruction: 'Center align all text content in the email' },
-  ];
+    const quickEdits = useMemo(() => [
+      { label: 'Change CTA color to brand color', instruction: 'Change the main CTA button color to match the brand primary color', category: 'style' },
+      { label: 'Make header darker', instruction: 'Make the header background darker and more prominent', category: 'style' },
+      { label: 'Increase font size', instruction: 'Increase the body text font size by 2px for better readability', category: 'style' },
+      { label: 'Add more padding', instruction: 'Add more padding around all sections for a more spacious feel', category: 'layout' },
+      { label: 'Make CTA larger', instruction: 'Make the CTA button larger and more prominent', category: 'style' },
+      { label: 'Center all content', instruction: 'Center align all text content in the email', category: 'layout' },
+    ], []);
+
+    const sectionEdits = useMemo(() => [
+      { label: 'Improve Hero Section', instruction: 'Make the hero section more impactful with a larger headline, better contrast, and a more prominent call-to-action button', category: 'hero' },
+      { label: 'Enhance Body Layout', instruction: 'Improve the body section layout with better spacing, clearer hierarchy, and more readable text formatting', category: 'body' },
+      { label: 'Redesign Infographic', instruction: 'Make the infographic section more visually appealing with better data visualization, icons, and color coding', category: 'infographic' },
+      { label: 'Professional Footer', instruction: 'Update the footer with a cleaner design, proper social media icons, and well-organized contact information', category: 'footer' },
+      { label: 'Add Social Links', instruction: 'Add social media icon links (Facebook, Twitter, Instagram, LinkedIn) to the footer section', category: 'footer' },
+      { label: 'Mobile Optimization', instruction: 'Optimize the email layout for mobile devices with larger touch targets, stacked columns, and responsive images', category: 'layout' },
+    ], []);
 
   return (
     <div className="fixed inset-0 z-50 bg-black/90 flex flex-col">
@@ -277,25 +288,33 @@ const EmailTemplateEditor: React.FC<EmailTemplateEditorProps> = ({
         </div>
         
         <div className="flex items-center gap-3">
-          {/* View Mode Toggle */}
-          <div className="flex bg-white/5 rounded-lg p-1">
-            <button
-              onClick={() => setViewMode('preview')}
-              className={`px-3 py-1.5 rounded text-sm font-medium transition ${
-                viewMode === 'preview' ? 'bg-blue-500 text-white' : 'text-white/60 hover:text-white'
-              }`}
-            >
-              <i className="fa-solid fa-eye mr-2"></i>Preview
-            </button>
-            <button
-              onClick={() => setViewMode('code')}
-              className={`px-3 py-1.5 rounded text-sm font-medium transition ${
-                viewMode === 'code' ? 'bg-blue-500 text-white' : 'text-white/60 hover:text-white'
-              }`}
-            >
-              <i className="fa-solid fa-code mr-2"></i>Code
-            </button>
-          </div>
+                    {/* View Mode Toggle */}
+                    <div className="flex bg-white/5 rounded-lg p-1">
+                      <button
+                        onClick={() => setViewMode('wysiwyg')}
+                        className={`px-3 py-1.5 rounded text-sm font-medium transition ${
+                          viewMode === 'wysiwyg' ? 'bg-blue-500 text-white' : 'text-white/60 hover:text-white'
+                        }`}
+                      >
+                        <i className="fa-solid fa-pen-to-square mr-2"></i>WYSIWYG
+                      </button>
+                      <button
+                        onClick={() => setViewMode('preview')}
+                        className={`px-3 py-1.5 rounded text-sm font-medium transition ${
+                          viewMode === 'preview' ? 'bg-blue-500 text-white' : 'text-white/60 hover:text-white'
+                        }`}
+                      >
+                        <i className="fa-solid fa-eye mr-2"></i>Preview
+                      </button>
+                      <button
+                        onClick={() => setViewMode('code')}
+                        className={`px-3 py-1.5 rounded text-sm font-medium transition ${
+                          viewMode === 'code' ? 'bg-blue-500 text-white' : 'text-white/60 hover:text-white'
+                        }`}
+                      >
+                        <i className="fa-solid fa-code mr-2"></i>Code
+                      </button>
+                    </div>
           
           {/* Actions */}
           <button
@@ -379,21 +398,44 @@ const EmailTemplateEditor: React.FC<EmailTemplateEditorProps> = ({
             </div>
           </div>
 
-          {/* Quick Edits */}
-          <div className="p-4 border-b border-white/10">
-            <h4 className="text-xs font-bold text-white/50 uppercase tracking-wider mb-3">Quick Edits</h4>
-            <div className="space-y-2">
-              {quickEdits.map((edit, idx) => (
-                <button
-                  key={idx}
-                  onClick={() => setEditInstruction(edit.instruction)}
-                  className="w-full text-left bg-white/5 hover:bg-white/10 text-white/70 hover:text-white px-3 py-2 rounded-lg text-xs transition"
-                >
-                  {edit.label}
-                </button>
-              ))}
-            </div>
-          </div>
+                    {/* Quick Edits */}
+                    <div className="p-4 border-b border-white/10">
+                      <h4 className="text-xs font-bold text-white/50 uppercase tracking-wider mb-3">Quick Style Edits</h4>
+                      <div className="space-y-2">
+                        {quickEdits.map((edit, idx) => (
+                          <button
+                            key={idx}
+                            onClick={() => setEditInstruction(edit.instruction)}
+                            className="w-full text-left bg-white/5 hover:bg-white/10 text-white/70 hover:text-white px-3 py-2 rounded-lg text-xs transition"
+                          >
+                            {edit.label}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Section-Specific Edits */}
+                    <div className="p-4 border-b border-white/10">
+                      <h4 className="text-xs font-bold text-white/50 uppercase tracking-wider mb-3">Section Edits</h4>
+                      <div className="space-y-2">
+                        {sectionEdits.map((edit, idx) => (
+                          <button
+                            key={idx}
+                            onClick={() => setEditInstruction(edit.instruction)}
+                            className="w-full text-left bg-white/5 hover:bg-white/10 text-white/70 hover:text-white px-3 py-2 rounded-lg text-xs transition flex items-center gap-2"
+                          >
+                            <span className={`w-2 h-2 rounded-full ${
+                              edit.category === 'hero' ? 'bg-yellow-400' :
+                              edit.category === 'body' ? 'bg-blue-400' :
+                              edit.category === 'infographic' ? 'bg-green-400' :
+                              edit.category === 'footer' ? 'bg-purple-400' :
+                              'bg-white/40'
+                            }`}></span>
+                            {edit.label}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
 
           {/* Regenerate */}
           <div className="p-4 mt-auto border-t border-white/10">
@@ -417,37 +459,89 @@ const EmailTemplateEditor: React.FC<EmailTemplateEditorProps> = ({
           </div>
         </div>
 
-        {/* Center - Preview/Code */}
-        <div className="flex-1 bg-zinc-800 overflow-hidden flex flex-col">
-          {isGenerating ? (
-            <div className="flex-1 flex flex-col items-center justify-center">
-              <BananaPro role="writer" size="lg" />
-              <p className="text-white/60 mt-4 text-sm">Generating your email template...</p>
-            </div>
-          ) : viewMode === 'preview' ? (
-            <div className="flex-1 overflow-auto p-4">
-              <div className="max-w-2xl mx-auto bg-white rounded-lg shadow-2xl overflow-hidden">
-                <iframe
-                  ref={iframeRef}
-                  srcDoc={htmlContent}
-                  className="w-full h-[800px] border-0"
-                  title="Email Preview"
-                  onClick={handleIframeClick}
-                />
-              </div>
-            </div>
-          ) : (
-            <div className="flex-1 overflow-hidden p-4">
-              <textarea
-                ref={codeEditorRef}
-                value={htmlContent}
-                onChange={handleCodeChange}
-                className="w-full h-full bg-zinc-900 text-green-400 font-mono text-sm p-4 rounded-lg border border-white/10 resize-none focus:border-blue-500 outline-none"
-                spellCheck={false}
-              />
-            </div>
-          )}
-        </div>
+                {/* Center - Preview/Code/WYSIWYG */}
+                <div className="flex-1 bg-zinc-800 overflow-hidden flex flex-col">
+                  {isGenerating ? (
+                    <div className="flex-1 flex flex-col items-center justify-center">
+                      <BananaPro role="writer" size="lg" />
+                      <p className="text-white/60 mt-4 text-sm">Generating your email template...</p>
+                    </div>
+                  ) : viewMode === 'wysiwyg' ? (
+                    <div className="flex-1 overflow-auto p-4">
+                      <div className="max-w-4xl mx-auto bg-white rounded-lg shadow-2xl overflow-hidden">
+                        <style>{`
+                          .ql-toolbar.ql-snow {
+                            border: none;
+                            border-bottom: 1px solid #e5e7eb;
+                            background: #f9fafb;
+                          }
+                          .ql-container.ql-snow {
+                            border: none;
+                            font-family: inherit;
+                          }
+                          .ql-editor {
+                            min-height: 600px;
+                            font-size: 14px;
+                            line-height: 1.6;
+                          }
+                          .ql-editor img {
+                            max-width: 100%;
+                            height: auto;
+                          }
+                        `}</style>
+                        <ReactQuill
+                          theme="snow"
+                          value={htmlContent}
+                          onChange={setHtmlContent}
+                          modules={{
+                            toolbar: [
+                              [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
+                              ['bold', 'italic', 'underline', 'strike'],
+                              [{ 'color': [] }, { 'background': [] }],
+                              [{ 'align': [] }],
+                              [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+                              ['link', 'image'],
+                              ['blockquote', 'code-block'],
+                              ['clean']
+                            ]
+                          }}
+                          formats={[
+                            'header',
+                            'bold', 'italic', 'underline', 'strike',
+                            'color', 'background',
+                            'align',
+                            'list', 'bullet',
+                            'link', 'image',
+                            'blockquote', 'code-block'
+                          ]}
+                          placeholder="Edit your email content here..."
+                        />
+                      </div>
+                    </div>
+                  ) : viewMode === 'preview' ? (
+                    <div className="flex-1 overflow-auto p-4">
+                      <div className="max-w-2xl mx-auto bg-white rounded-lg shadow-2xl overflow-hidden">
+                        <iframe
+                          ref={iframeRef}
+                          srcDoc={htmlContent}
+                          className="w-full h-[800px] border-0"
+                          title="Email Preview"
+                          onClick={handleIframeClick}
+                        />
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="flex-1 overflow-hidden p-4">
+                      <textarea
+                        ref={codeEditorRef}
+                        value={htmlContent}
+                        onChange={handleCodeChange}
+                        className="w-full h-full bg-zinc-900 text-green-400 font-mono text-sm p-4 rounded-lg border border-white/10 resize-none focus:border-blue-500 outline-none"
+                        spellCheck={false}
+                      />
+                    </div>
+                  )}
+                </div>
 
         {/* Right Panel - Image Editor (conditional) */}
         {showImageEditor && selectedImageSrc && (
