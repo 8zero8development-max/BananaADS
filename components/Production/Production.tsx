@@ -3,6 +3,7 @@ import { AdProject, AppStep, Scene } from '../../types';
 import BananaPro from '../shared/BananaPro';
 import ProgressIndicator, { CompactProgress, InlineProgress } from '../shared/ProgressIndicator';
 import EmailTemplateEditor from '../EmailEditor/EmailTemplateEditor';
+import { FacebookService } from '../../services/facebookService';
 
 interface ProductionProps {
   project: AdProject;
@@ -238,6 +239,251 @@ const FacebookPostMockup = memo<{
 
 FacebookPostMockup.displayName = 'FacebookPostMockup';
 
+interface FacebookScheduleModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  scene: Scene;
+  brandName: string;
+  onSchedule: (pageId: string, accessToken: string, scheduledTime: Date | null) => Promise<void>;
+  isScheduling: boolean;
+}
+
+const FacebookScheduleModal = memo<FacebookScheduleModalProps>(({
+  isOpen,
+  onClose,
+  scene,
+  brandName,
+  onSchedule,
+  isScheduling
+}) => {
+  const [pageId, setPageId] = useState(() => FacebookService.getPageId() || '');
+  const [accessToken, setAccessToken] = useState(() => FacebookService.hasApiKey() ? '••••••••' : '');
+  const [hasExistingToken, setHasExistingToken] = useState(() => FacebookService.hasApiKey());
+  const [scheduledTime, setScheduledTime] = useState<string>('');
+  const [publishNow, setPublishNow] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const handleSubmit = useCallback(async () => {
+    setError(null);
+    
+    if (!pageId.trim()) {
+      setError('Please enter your Facebook Page ID');
+      return;
+    }
+    
+    if (!hasExistingToken && !accessToken.trim()) {
+      setError('Please enter your Facebook Page Access Token');
+      return;
+    }
+    
+    if (!publishNow && !scheduledTime) {
+      setError('Please select a scheduled time');
+      return;
+    }
+
+    if (!hasExistingToken && accessToken.trim() && accessToken !== '••••••••') {
+      FacebookService.setApiKey(accessToken.trim());
+      setHasExistingToken(true);
+    }
+    
+    FacebookService.setPageId(pageId.trim());
+
+    try {
+      const scheduleDate = publishNow ? null : new Date(scheduledTime);
+      await onSchedule(pageId.trim(), accessToken.trim(), scheduleDate);
+      onClose();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to schedule post');
+    }
+  }, [pageId, accessToken, hasExistingToken, scheduledTime, publishNow, onSchedule, onClose]);
+
+  const handleClearToken = useCallback(() => {
+    FacebookService.clearApiKey();
+    setAccessToken('');
+    setHasExistingToken(false);
+  }, []);
+
+  const minDateTime = useMemo(() => {
+    const now = new Date();
+    now.setMinutes(now.getMinutes() + 15);
+    return now.toISOString().slice(0, 16);
+  }, []);
+
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+      <div className="glass rounded-3xl max-w-lg w-full p-6 animate-fade-in">
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center">
+              <i className="fa-brands fa-facebook-f text-white"></i>
+            </div>
+            <div>
+              <h3 className="text-lg font-bold">Schedule to Facebook</h3>
+              <p className="text-xs text-white/50">Post to your Facebook Page</p>
+            </div>
+          </div>
+          <button 
+            onClick={onClose}
+            className="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition"
+          >
+            <i className="fa-solid fa-times"></i>
+          </button>
+        </div>
+
+        <div className="mb-4 p-3 bg-black/30 rounded-xl">
+          <div className="flex items-center gap-3 mb-2">
+            <div className="w-8 h-8 rounded-full bg-gray-600 flex items-center justify-center text-xs font-bold">
+              {brandName.charAt(0).toUpperCase()}
+            </div>
+            <span className="font-medium text-sm">{brandName}</span>
+          </div>
+          <p className="text-xs text-white/70 line-clamp-2">{scene.audioScript}</p>
+          {(scene.imageUrl || scene.videoUrl) && (
+            <div className="mt-2 rounded-lg overflow-hidden h-20 bg-black/50">
+              {scene.videoUrl ? (
+                <video src={scene.videoUrl} className="w-full h-full object-cover" />
+              ) : (
+                <img src={scene.imageUrl} alt="Preview" className="w-full h-full object-cover" />
+              )}
+            </div>
+          )}
+        </div>
+
+        <div className="space-y-4">
+          <div>
+            <label className="text-[10px] uppercase tracking-widest text-white/30 font-bold block mb-2">
+              Facebook Page ID
+            </label>
+            <input
+              type="text"
+              value={pageId}
+              onChange={(e) => setPageId(e.target.value)}
+              placeholder="Enter your Page ID (e.g., 123456789)"
+              className="w-full bg-white/5 border border-yellow-500/30 rounded-xl px-4 py-2.5 text-sm focus:border-yellow-500 outline-none transition"
+            />
+            <p className="text-[10px] text-white/40 mt-1">
+              Find your Page ID in your Facebook Page's About section
+            </p>
+          </div>
+
+          <div>
+            <div className="flex items-center justify-between mb-2">
+              <label className="text-[10px] uppercase tracking-widest text-white/30 font-bold">
+                Page Access Token
+              </label>
+              {hasExistingToken && (
+                <button
+                  onClick={handleClearToken}
+                  className="text-[10px] text-red-400 hover:text-red-300 transition"
+                >
+                  Clear saved token
+                </button>
+              )}
+            </div>
+            <input
+              type="password"
+              value={accessToken}
+              onChange={(e) => {
+                setAccessToken(e.target.value);
+                if (e.target.value !== '••••••••') {
+                  setHasExistingToken(false);
+                }
+              }}
+              placeholder={hasExistingToken ? "Using saved token" : "Enter your Page Access Token"}
+              className="w-full bg-white/5 border border-yellow-500/30 rounded-xl px-4 py-2.5 text-sm focus:border-yellow-500 outline-none transition"
+              disabled={hasExistingToken && accessToken === '••••••••'}
+            />
+            <p className="text-[10px] text-white/40 mt-1">
+              Get a Page Access Token from{' '}
+              <a 
+                href="https://developers.facebook.com/tools/explorer/" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="text-blue-400 hover:underline"
+              >
+                Meta Graph API Explorer
+              </a>
+            </p>
+          </div>
+
+          <div>
+            <label className="text-[10px] uppercase tracking-widest text-white/30 font-bold block mb-2">
+              Publish Time
+            </label>
+            <div className="flex gap-2 mb-2">
+              <button
+                onClick={() => setPublishNow(true)}
+                className={`px-4 py-2 rounded-lg text-xs font-bold transition ${
+                  publishNow
+                    ? 'bg-yellow-500 text-black'
+                    : 'bg-white/10 text-white hover:bg-white/20'
+                }`}
+              >
+                Publish Now
+              </button>
+              <button
+                onClick={() => setPublishNow(false)}
+                className={`px-4 py-2 rounded-lg text-xs font-bold transition ${
+                  !publishNow
+                    ? 'bg-yellow-500 text-black'
+                    : 'bg-white/10 text-white hover:bg-white/20'
+                }`}
+              >
+                Schedule
+              </button>
+            </div>
+            {!publishNow && (
+              <input
+                type="datetime-local"
+                value={scheduledTime}
+                onChange={(e) => setScheduledTime(e.target.value)}
+                min={minDateTime}
+                className="w-full bg-white/5 border border-yellow-500/30 rounded-xl px-4 py-2.5 text-sm focus:border-yellow-500 outline-none transition"
+              />
+            )}
+          </div>
+
+          {error && (
+            <div className="p-3 bg-red-500/20 border border-red-500/30 rounded-xl">
+              <p className="text-red-400 text-sm">{error}</p>
+            </div>
+          )}
+
+          <div className="flex gap-3 pt-2">
+            <button
+              onClick={onClose}
+              className="flex-1 px-4 py-3 rounded-full border border-white/20 text-sm font-medium hover:bg-white/5 transition"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={handleSubmit}
+              disabled={isScheduling || !pageId.trim() || (!hasExistingToken && !accessToken.trim())}
+              className="flex-1 bg-blue-600 hover:bg-blue-700 text-white px-4 py-3 rounded-full text-sm font-bold transition flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {isScheduling ? (
+                <>
+                  <i className="fa-solid fa-spinner fa-spin"></i>
+                  <span>{publishNow ? 'Publishing...' : 'Scheduling...'}</span>
+                </>
+              ) : (
+                <>
+                  <i className="fa-brands fa-facebook-f"></i>
+                  <span>{publishNow ? 'Publish Now' : 'Schedule Post'}</span>
+                </>
+              )}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+});
+
+FacebookScheduleModal.displayName = 'FacebookScheduleModal';
+
 interface FoodSocialLayoutProps {
   project: AdProject;
   setProject: React.Dispatch<React.SetStateAction<AdProject | null>>;
@@ -271,6 +517,41 @@ const FoodSocialLayout = memo<FoodSocialLayoutProps>(({
 }) => {
   const scene = useMemo(() => project.scenes[selectedFoodPostIdx], [project.scenes, selectedFoodPostIdx]);
   const idx = selectedFoodPostIdx;
+  const [showFacebookModal, setShowFacebookModal] = useState(false);
+  const [isSchedulingFacebook, setIsSchedulingFacebook] = useState(false);
+
+  const handleFacebookSchedule = useCallback(async (pageId: string, _accessToken: string, scheduledTime: Date | null) => {
+    setIsSchedulingFacebook(true);
+    try {
+      let response;
+      if (scheduledTime) {
+        response = await FacebookService.schedulePost(scene, pageId, scheduledTime);
+      } else {
+        response = await FacebookService.publishNow(scene, pageId);
+      }
+      
+      setProject(prev => {
+        if (!prev) return null;
+        const newScenes = [...prev.scenes];
+        newScenes[idx] = {
+          ...newScenes[idx],
+          facebookSchedule: {
+            facebookPageId: pageId,
+            scheduledTime: scheduledTime?.toISOString(),
+            postId: response.id || response.post_id,
+            status: scheduledTime ? 'scheduled' : 'published',
+          }
+        };
+        return { ...prev, scenes: newScenes };
+      });
+      
+      setShowFacebookModal(false);
+    } catch (error) {
+      throw error;
+    } finally {
+      setIsSchedulingFacebook(false);
+    }
+  }, [scene, idx, setProject]);
 
   const handleMotionPromptChange = useCallback((value: string) => {
     setProject(prev => {
@@ -414,18 +695,55 @@ const FoodSocialLayout = memo<FoodSocialLayoutProps>(({
                   {scene.isGeneratingVideo ? <BananaPro role="cameraman" size="sm" /> : <i className="fa-solid fa-play"></i>}
                   <span>Animate Social Video</span>
                 </button>
-                {(scene.imageUrl || scene.videoUrl) && (
-                  <button
-                    onClick={() => handleDownload(scene.videoUrl || scene.imageUrl!, `FoodSocial-Post-${idx + 1}${scene.videoUrl ? '.mp4' : '.png'}`)}
-                    className="bg-white/20 backdrop-blur text-white px-3 py-2 rounded-full text-xs font-bold hover:bg-white/30 transition"
-                    title={scene.videoUrl ? "Download Video" : "Download Image"}
-                  >
-                    <i className="fa-solid fa-download"></i>
-                  </button>
-                )}
-              </div>
+                              {(scene.imageUrl || scene.videoUrl) && (
+                                <>
+                                  <button
+                                    onClick={() => handleDownload(scene.videoUrl || scene.imageUrl!, `FoodSocial-Post-${idx + 1}${scene.videoUrl ? '.mp4' : '.png'}`)}
+                                    className="bg-white/20 backdrop-blur text-white px-3 py-2 rounded-full text-xs font-bold hover:bg-white/30 transition"
+                                    title={scene.videoUrl ? "Download Video" : "Download Image"}
+                                  >
+                                    <i className="fa-solid fa-download"></i>
+                                  </button>
+                                  <button
+                                    onClick={() => setShowFacebookModal(true)}
+                                    disabled={isSchedulingFacebook}
+                                    className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-full text-xs font-bold transition flex items-center space-x-1"
+                                    title="Schedule to Facebook"
+                                  >
+                                    <i className="fa-brands fa-facebook-f"></i>
+                                    <span>Schedule</span>
+                                  </button>
+                                </>
+                              )}
+                            </div>
 
-              {scene.isGeneratingVideo && (
+                            {scene.facebookSchedule && (
+                              <div className={`mb-4 p-3 rounded-xl border ${
+                                scene.facebookSchedule.status === 'published' 
+                                  ? 'bg-green-500/10 border-green-500/30' 
+                                  : scene.facebookSchedule.status === 'scheduled'
+                                  ? 'bg-blue-500/10 border-blue-500/30'
+                                  : scene.facebookSchedule.status === 'failed'
+                                  ? 'bg-red-500/10 border-red-500/30'
+                                  : 'bg-yellow-500/10 border-yellow-500/30'
+                              }`}>
+                                <div className="flex items-center gap-2">
+                                  <i className={`fa-brands fa-facebook-f ${
+                                    scene.facebookSchedule.status === 'published' ? 'text-green-400' :
+                                    scene.facebookSchedule.status === 'scheduled' ? 'text-blue-400' :
+                                    scene.facebookSchedule.status === 'failed' ? 'text-red-400' : 'text-yellow-400'
+                                  }`}></i>
+                                  <span className="text-xs font-medium">
+                                    {scene.facebookSchedule.status === 'published' && 'Published to Facebook'}
+                                    {scene.facebookSchedule.status === 'scheduled' && `Scheduled for ${new Date(scene.facebookSchedule.scheduledTime!).toLocaleString()}`}
+                                    {scene.facebookSchedule.status === 'failed' && 'Failed to post'}
+                                    {scene.facebookSchedule.status === 'pending' && 'Pending...'}
+                                  </span>
+                                </div>
+                              </div>
+                            )}
+
+                            {scene.isGeneratingVideo && (
                 <div className="mb-4 p-4 bg-black/40 rounded-xl border border-yellow-500/20">
                   <ProgressIndicator 
                     operation="video" 
@@ -524,6 +842,15 @@ const FoodSocialLayout = memo<FoodSocialLayoutProps>(({
           </div>
         ))}
       </div>
+
+      <FacebookScheduleModal
+        isOpen={showFacebookModal}
+        onClose={() => setShowFacebookModal(false)}
+        scene={scene}
+        brandName={project.brief.brandName}
+        onSchedule={handleFacebookSchedule}
+        isScheduling={isSchedulingFacebook}
+      />
     </div>
   );
 });
@@ -563,6 +890,41 @@ const SocialLayout = memo<SocialLayoutProps>(({
 }) => {
   const scene = useMemo(() => project.scenes[selectedSocialPostIdx], [project.scenes, selectedSocialPostIdx]);
   const idx = selectedSocialPostIdx;
+  const [showFacebookModal, setShowFacebookModal] = useState(false);
+  const [isSchedulingFacebook, setIsSchedulingFacebook] = useState(false);
+
+  const handleFacebookSchedule = useCallback(async (pageId: string, _accessToken: string, scheduledTime: Date | null) => {
+    setIsSchedulingFacebook(true);
+    try {
+      let response;
+      if (scheduledTime) {
+        response = await FacebookService.schedulePost(scene, pageId, scheduledTime);
+      } else {
+        response = await FacebookService.publishNow(scene, pageId);
+      }
+      
+      setProject(prev => {
+        if (!prev) return null;
+        const newScenes = [...prev.scenes];
+        newScenes[idx] = {
+          ...newScenes[idx],
+          facebookSchedule: {
+            facebookPageId: pageId,
+            scheduledTime: scheduledTime?.toISOString(),
+            postId: response.id || response.post_id,
+            status: scheduledTime ? 'scheduled' : 'published',
+          }
+        };
+        return { ...prev, scenes: newScenes };
+      });
+      
+      setShowFacebookModal(false);
+    } catch (error) {
+      throw error;
+    } finally {
+      setIsSchedulingFacebook(false);
+    }
+  }, [scene, idx, setProject]);
 
   const handleMotionPromptChange = useCallback((value: string) => {
     setProject(prev => {
@@ -699,34 +1061,71 @@ const SocialLayout = memo<SocialLayoutProps>(({
                   {scene.isGeneratingVideo ? <BananaPro role="cameraman" size="sm" /> : <i className="fa-solid fa-play"></i>}
                   <span>Animate Social Video</span>
                 </button>
-                {(scene.imageUrl || scene.videoUrl) && (
-                  <button
-                    onClick={() => handleDownload(scene.videoUrl || scene.imageUrl!, `SocialPoster-Post-${idx + 1}${scene.videoUrl ? '.mp4' : '.png'}`)}
-                    className="bg-white/20 backdrop-blur text-white px-3 py-2 rounded-full text-xs font-bold hover:bg-white/30 transition"
-                    title={scene.videoUrl ? "Download Video" : "Download Image"}
-                  >
-                    <i className="fa-solid fa-download"></i>
-                  </button>
-                )}
-              </div>
+                              {(scene.imageUrl || scene.videoUrl) && (
+                                <>
+                                  <button
+                                    onClick={() => handleDownload(scene.videoUrl || scene.imageUrl!, `SocialPoster-Post-${idx + 1}${scene.videoUrl ? '.mp4' : '.png'}`)}
+                                    className="bg-white/20 backdrop-blur text-white px-3 py-2 rounded-full text-xs font-bold hover:bg-white/30 transition"
+                                    title={scene.videoUrl ? "Download Video" : "Download Image"}
+                                  >
+                                    <i className="fa-solid fa-download"></i>
+                                  </button>
+                                  <button
+                                    onClick={() => setShowFacebookModal(true)}
+                                    disabled={isSchedulingFacebook}
+                                    className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-full text-xs font-bold transition flex items-center space-x-1"
+                                    title="Schedule to Facebook"
+                                  >
+                                    <i className="fa-brands fa-facebook-f"></i>
+                                    <span>Schedule</span>
+                                  </button>
+                                </>
+                              )}
+                            </div>
 
-              {scene.isGeneratingVideo && (
-                <div className="mb-4 p-4 bg-black/40 rounded-xl border border-yellow-500/20">
-                  <ProgressIndicator 
-                    operation="video" 
-                    isActive={true} 
-                    state="processing"
-                    size="sm"
-                    customText="Rendering social video"
-                  />
-                </div>
-              )}
+                            {scene.facebookSchedule && (
+                              <div className={`mb-4 p-3 rounded-xl border ${
+                                scene.facebookSchedule.status === 'published' 
+                                  ? 'bg-green-500/10 border-green-500/30' 
+                                  : scene.facebookSchedule.status === 'scheduled'
+                                  ? 'bg-blue-500/10 border-blue-500/30'
+                                  : scene.facebookSchedule.status === 'failed'
+                                  ? 'bg-red-500/10 border-red-500/30'
+                                  : 'bg-yellow-500/10 border-yellow-500/30'
+                              }`}>
+                                <div className="flex items-center gap-2">
+                                  <i className={`fa-brands fa-facebook-f ${
+                                    scene.facebookSchedule.status === 'published' ? 'text-green-400' :
+                                    scene.facebookSchedule.status === 'scheduled' ? 'text-blue-400' :
+                                    scene.facebookSchedule.status === 'failed' ? 'text-red-400' : 'text-yellow-400'
+                                  }`}></i>
+                                  <span className="text-xs font-medium">
+                                    {scene.facebookSchedule.status === 'published' && 'Published to Facebook'}
+                                    {scene.facebookSchedule.status === 'scheduled' && `Scheduled for ${new Date(scene.facebookSchedule.scheduledTime!).toLocaleString()}`}
+                                    {scene.facebookSchedule.status === 'failed' && 'Failed to post'}
+                                    {scene.facebookSchedule.status === 'pending' && 'Pending...'}
+                                  </span>
+                                </div>
+                              </div>
+                            )}
 
-              <details className="group">
-                <summary className="text-[10px] uppercase tracking-widest text-white/30 font-bold cursor-pointer hover:text-white/50 transition flex items-center gap-2 mb-2">
-                  <i className="fa-solid fa-chevron-right text-[8px] transition-transform group-open:rotate-90"></i>
-                  Advanced Prompts
-                </summary>
+                            {scene.isGeneratingVideo && (
+                              <div className="mb-4 p-4 bg-black/40 rounded-xl border border-yellow-500/20">
+                                <ProgressIndicator 
+                                  operation="video" 
+                                  isActive={true} 
+                                  state="processing"
+                                  size="sm"
+                                  customText="Rendering social video"
+                                />
+                              </div>
+                            )}
+
+                            <details className="group">
+                              <summary className="text-[10px] uppercase tracking-widest text-white/30 font-bold cursor-pointer hover:text-white/50 transition flex items-center gap-2 mb-2">
+                                <i className="fa-solid fa-chevron-right text-[8px] transition-transform group-open:rotate-90"></i>
+                                Advanced Prompts
+                              </summary>
                 <div className="space-y-3 pl-4 border-l border-white/10">
                   <div>
                     <div className="flex justify-between items-center mb-1">
@@ -804,6 +1203,15 @@ const SocialLayout = memo<SocialLayoutProps>(({
           </div>
         ))}
       </div>
+
+      <FacebookScheduleModal
+        isOpen={showFacebookModal}
+        onClose={() => setShowFacebookModal(false)}
+        scene={scene}
+        brandName={project.brief.brandName}
+        onSchedule={handleFacebookSchedule}
+        isScheduling={isSchedulingFacebook}
+      />
     </div>
   );
 });
