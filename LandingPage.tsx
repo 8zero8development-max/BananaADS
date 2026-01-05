@@ -888,7 +888,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
       </section>
 
       <section id="features" className="py-16 px-8">
-        <div className="max-w-5xl mx-auto">
+        <div className="max-w-3xl mx-auto">
           <div className="text-center mb-10">
             <h2 className="text-3xl md:text-4xl font-serif mb-3 leading-tight">
               <span className="bg-gradient-to-r from-white to-gray-400 bg-clip-text text-transparent">
@@ -900,19 +900,42 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
             </p>
           </div>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="space-y-4">
             {features.map((feature, idx) => (
               <div
                 key={idx}
-                className="group bg-white/[0.02] hover:bg-white/[0.05] border border-yellow-500/10 hover:border-yellow-500/30 rounded-xl p-6 transition-all duration-300"
+                className="group flex items-start gap-4 p-4 rounded-xl bg-white/[0.02] hover:bg-white/[0.05] border border-white/5 hover:border-yellow-500/30 transition-all duration-300"
+                style={{ animationDelay: `${idx * 150}ms` }}
               >
-                <div className="text-3xl mb-3">{feature.icon}</div>
-                <h3 className="text-lg font-bold mb-2 text-white group-hover:text-yellow-400 transition">
-                  {feature.title}
-                </h3>
-                <p className="text-white/50 text-sm leading-relaxed">
-                  {feature.description}
-                </p>
+                <div className="flex-shrink-0 w-8 h-8 rounded-lg bg-gradient-to-br from-yellow-400 to-orange-500 flex items-center justify-center shadow-lg shadow-yellow-500/20 group-hover:scale-110 transition-transform duration-300">
+                  <svg 
+                    className="w-5 h-5 text-black" 
+                    fill="none" 
+                    viewBox="0 0 24 24" 
+                    stroke="currentColor"
+                    strokeWidth={3}
+                  >
+                    <path 
+                      strokeLinecap="round" 
+                      strokeLinejoin="round" 
+                      d="M5 13l4 4L19 7"
+                      className="animate-[checkmark_0.4s_ease-in-out_forwards]"
+                      style={{ 
+                        strokeDasharray: 24,
+                        strokeDashoffset: 24,
+                        animation: `checkmark 0.4s ease-in-out ${idx * 150 + 300}ms forwards`
+                      }}
+                    />
+                  </svg>
+                </div>
+                <div className="flex-1">
+                  <h3 className="text-lg font-bold text-white group-hover:text-yellow-400 transition-colors duration-300">
+                    {feature.title}
+                  </h3>
+                  <p className="text-white/50 text-sm leading-relaxed mt-1">
+                    {feature.description}
+                  </p>
+                </div>
               </div>
             ))}
           </div>
