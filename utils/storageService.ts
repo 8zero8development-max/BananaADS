@@ -1,6 +1,8 @@
-import { AppStep, AdBrief, AdConcept, AdProject, ProductionType, Scene } from '../types';
+import { AppStep, AdBrief, AdConcept, AdProject, ProductionType, Scene, BrandDna } from '../types';
 
 const STORAGE_PREFIX = 'bananaads_';
+const BRAND_PROFILE_PREFIX = 'bananaads_brand_';
+
 const STORAGE_KEYS = {
   STEP: `${STORAGE_PREFIX}step`,
   BRIEF: `${STORAGE_PREFIX}brief`,
@@ -9,6 +11,16 @@ const STORAGE_KEYS = {
   PRODUCTION_TYPE: `${STORAGE_PREFIX}productionType`,
   VERSION: `${STORAGE_PREFIX}version`,
 } as const;
+
+export interface BrandProfile {
+  id: string;
+  name: string;
+  brandDna: BrandDna;
+  logoImage?: string;
+  moodBoard?: string;
+  createdAt: string;
+  updatedAt: string;
+}
 
 const CURRENT_VERSION = '1.1';
 
@@ -165,5 +177,69 @@ export function hasSavedState(): boolean {
     return savedVersion === CURRENT_VERSION && stepStr !== null;
   } catch {
     return false;
+  }
+}
+
+export function saveBrandProfile(profile: BrandProfile): void {
+  try {
+    const key = `${BRAND_PROFILE_PREFIX}${profile.id}`;
+    localStorage.setItem(key, JSON.stringify(profile));
+  } catch (error) {
+    if (error instanceof DOMException && error.name === 'QuotaExceededError') {
+      console.warn('localStorage quota exceeded when saving brand profile.');
+      throw new Error('Storage quota exceeded. Try deleting some saved brand profiles.');
+    }
+    console.error('Failed to save brand profile:', error);
+    throw error;
+  }
+}
+
+export function loadBrandProfiles(): BrandProfile[] {
+  try {
+    const profiles: BrandProfile[] = [];
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key && key.startsWith(BRAND_PROFILE_PREFIX)) {
+        const data = localStorage.getItem(key);
+        if (data) {
+          try {
+            const profile = JSON.parse(data) as BrandProfile;
+            profiles.push(profile);
+          } catch {
+            console.warn(`Failed to parse brand profile at key: ${key}`);
+          }
+        }
+      }
+    }
+    return profiles.sort((a, b) => 
+      new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
+    );
+  } catch (error) {
+    console.error('Failed to load brand profiles:', error);
+    return [];
+  }
+}
+
+export function deleteBrandProfile(id: string): void {
+  try {
+    const key = `${BRAND_PROFILE_PREFIX}${id}`;
+    localStorage.removeItem(key);
+  } catch (error) {
+    console.error('Failed to delete brand profile:', error);
+    throw error;
+  }
+}
+
+export function getBrandProfile(id: string): BrandProfile | null {
+  try {
+    const key = `${BRAND_PROFILE_PREFIX}${id}`;
+    const data = localStorage.getItem(key);
+    if (data) {
+      return JSON.parse(data) as BrandProfile;
+    }
+    return null;
+  } catch (error) {
+    console.error('Failed to get brand profile:', error);
+    return null;
   }
 }
