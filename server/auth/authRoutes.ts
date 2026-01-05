@@ -20,6 +20,8 @@ export function setupAuthMiddleware(app: Express) {
     tableName: 'sessions',
   });
 
+  const isProd = process.env.NODE_ENV === 'production' || !!process.env.REPLIT_DEPLOYMENT;
+
   app.set('trust proxy', 1);
   
   app.use(session({
@@ -27,11 +29,13 @@ export function setupAuthMiddleware(app: Express) {
     store: sessionStore,
     resave: false,
     saveUninitialized: false,
+    name: 'banana.sid',
     cookie: {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production' || !!process.env.REPLIT_DEPLOYMENT,
+      secure: isProd,
       maxAge: SESSION_TTL,
-      sameSite: 'lax',
+      sameSite: isProd ? 'none' : 'lax',
+      path: '/',
     },
   }));
 }
