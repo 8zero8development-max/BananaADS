@@ -10,7 +10,7 @@ import { storage } from './storage';
 import { stripeService } from './stripeService';
 import { db } from './db';
 import { sql } from 'drizzle-orm';
-import { setupAuth, registerAuthRoutes } from './replit_integrations/auth';
+import { setupAuthMiddleware, registerAuthRoutes } from './auth/authRoutes';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -911,7 +911,7 @@ app.post('/api/analyze-website', async (req, res) => {
 async function start() {
   await initDatabase();
   
-  await setupAuth(app);
+  setupAuthMiddleware(app);
   registerAuthRoutes(app);
   
   await initStripe();
