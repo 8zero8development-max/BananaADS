@@ -179,6 +179,42 @@ export class AuthService {
     const { passwordHash, ...safeUser } = user;
     return safeUser;
   }
+
+  async ensureAdminExists(): Promise<void> {
+    const adminEmail = 'admin@8zero8.co.uk';
+    const adminPassword = 'Admin123!';
+    
+    const [existingAdmin] = await db
+      .select()
+      .from(users)
+      .where(eq(users.email, adminEmail))
+      .limit(1);
+
+    if (!existingAdmin) {
+      console.log('Creating default admin user...');
+      const passwordHash = await this.hashPassword(adminPassword);
+      
+      await db
+        .insert(users)
+        .values({
+          email: adminEmail,
+          passwordHash,
+          name: 'Admin',
+          businessType: 'Agency',
+          jobRole: 'Administrator',
+          isActive: true,
+          isAdmin: true,
+        });
+      
+      console.log('Default admin user created: admin@8zero8.co.uk');
+    } else if (!existingAdmin.isAdmin) {
+      await db
+        .update(users)
+        .set({ isAdmin: true })
+        .where(eq(users.email, adminEmail));
+      console.log('Updated existing user to admin');
+    }
+  }
 }
 
 export const authService = new AuthService();

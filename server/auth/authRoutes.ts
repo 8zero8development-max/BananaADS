@@ -34,7 +34,7 @@ export function setupAuthMiddleware(app: Express) {
       httpOnly: true,
       secure: isProd,
       maxAge: SESSION_TTL,
-      sameSite: isProd ? 'none' : 'lax',
+      sameSite: 'lax',
       path: '/',
     },
   }));

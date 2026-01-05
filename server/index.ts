@@ -1,5 +1,6 @@
 import 'dotenv/config';
 import express from 'express';
+import cors from 'cors';
 import path from 'path';
 import fs from 'fs';
 import { fileURLToPath } from 'url';
@@ -11,12 +12,35 @@ import { stripeService } from './stripeService';
 import { db } from './db';
 import { sql } from 'drizzle-orm';
 import { setupAuthMiddleware, registerAuthRoutes } from './auth/authRoutes';
+import { authService } from './auth/authService';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const app = express();
 const isProd = process.env.NODE_ENV === 'production' || !!process.env.REPLIT_DEPLOYMENT;
+
+// Configure CORS for production with credentials support
+const allowedOrigins = [
+  'https://bananaads.agency',
+  'https://www.bananaads.agency',
+  ...(process.env.REPLIT_DOMAINS?.split(',').map(d => `https://${d}`) || []),
+];
+
+app.use(cors({
+  origin: (origin, callback) => {
+    // Allow requests with no origin (mobile apps, curl, etc.)
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.includes(origin) || !isProd) {
+      return callback(null, true);
+    }
+    return callback(null, true); // Allow all in case of custom domains
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'Cookie'],
+  exposedHeaders: ['Set-Cookie'],
+}));
 const PORT = process.env.PORT ? parseInt(process.env.PORT) : (isProd ? 5000 : 3001);
 
 // Resolve dist path - try process.cwd() first (more reliable in deployments), fallback to __dirname
@@ -910,6 +934,7 @@ app.post('/api/analyze-website', async (req, res) => {
 
 async function start() {
   await initDatabase();
+  await authService.ensureAdminExists();
   
   setupAuthMiddleware(app);
   registerAuthRoutes(app);
