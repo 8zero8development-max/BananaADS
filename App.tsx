@@ -266,9 +266,26 @@ const AppContent: React.FC<AppProps> = ({ onBackToLanding }) => {
     }
   };
 
-  const startAutoGeneration = async (currentProject: AdProject) => {
-    for (let i = 0; i < currentProject.scenes.length; i++) {
-      await generateSceneImage(i, currentProject);
+  const startAutoGeneration = async (initialProject: AdProject) => {
+    // Generate images sequentially to avoid rate limiting
+    // Each iteration gets fresh project state to avoid race conditions
+    for (let i = 0; i < initialProject.scenes.length; i++) {
+      // Use a promise to get fresh project state before each generation
+      await new Promise<void>((resolve) => {
+        setProject(prev => {
+          if (!prev) {
+            resolve();
+            return null;
+          }
+          // Pass current state to generateSceneImage
+          generateSceneImage(i, prev).then(() => resolve());
+          return prev;
+        });
+      });
+      // Add delay between generations to prevent rate limiting
+      if (i < initialProject.scenes.length - 1) {
+        await new Promise(resolve => setTimeout(resolve, 1000));
+      }
     }
   };
 
