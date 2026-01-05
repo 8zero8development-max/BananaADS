@@ -159,7 +159,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
   const pricingPlans = [
     {
       name: 'Monthly',
-      price: '£11.99',
+      price: '£14.99',
       period: '/month',
       description: 'For creators and small brands',
       features: ['5 campaigns per month', 'Storyboards + scripts', 'Mood boards', 'Cheaper than one Canva Pro mistake'],
@@ -169,7 +169,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
     },
     {
       name: 'Lifetime',
-      price: '£59.99',
+      price: '£69.99',
       period: ' one-time',
       description: 'For people who understand leverage',
       features: ['Everything included', 'Video generation (Veo)', 'API access', 'Custom integrations', 'Because early movers win'],
@@ -179,8 +179,8 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
     },
     {
       name: 'Yearly',
-      price: '£24.99',
-      period: '/month',
+      price: '£124.99',
+      period: '/anual',
       description: 'For businesses that run ads properly',
       features: ['Unlimited campaigns', 'Priority support', 'Export everything', 'This replaces freelancers'],
       cta: 'Sign Up Now',
@@ -369,7 +369,6 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
           <p className="text-2xl text-yellow-400 font-bold mt-2">It looks intentional.</p>
         </div>
       </section>
-
       <section className="py-10 px-8 border-t border-white/5">
         <div className="max-w-5xl mx-auto">
           <div className="flex items-center justify-center gap-4 mb-6">
@@ -378,7 +377,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
               {' '}
               <span className="bg-gradient-to-r from-white to-gray-400 bg-clip-text text-transparent">
                 One Input.
-              </span>
+              </span> 
             </h2>
           </div>
           <div className="relative hidden md:block">
