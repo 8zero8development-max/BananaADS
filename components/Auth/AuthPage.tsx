@@ -104,14 +104,14 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onSuccess }) => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-yellow-50 to-white flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl shadow-xl p-8 w-full max-w-md">
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900 flex items-center justify-center p-4">
+      <div className="bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 shadow-2xl p-8 w-full max-w-md">
         <div className="text-center mb-8">
           <div className="flex items-center justify-center gap-2 mb-4">
             <span className="text-4xl">🍌</span>
-            <h1 className="text-2xl font-bold text-gray-900">Banana Ads</h1>
+            <h1 className="text-2xl font-bold text-white">Banana Ads</h1>
           </div>
-          <p className="text-gray-600">
+          <p className="text-white/60">
             {isSignup ? 'Create your account to get started' : 'Sign in to your account'}
           </p>
         </div>
@@ -120,7 +120,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onSuccess }) => {
           {isSignup && (
             <>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-white/70 mb-1">
                   Full Name *
                 </label>
                 <input
@@ -129,13 +129,13 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onSuccess }) => {
                   value={formData.name}
                   onChange={handleChange}
                   required
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent"
+                  className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder-white/40 focus:ring-2 focus:ring-yellow-500 focus:border-transparent transition-all"
                   placeholder="John Doe"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-white/70 mb-1">
                   Business Type *
                 </label>
                 <select
@@ -143,17 +143,17 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onSuccess }) => {
                   value={formData.businessType}
                   onChange={handleChange}
                   required
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent"
+                  className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white focus:ring-2 focus:ring-yellow-500 focus:border-transparent transition-all"
                 >
-                  <option value="">Select business type</option>
+                  <option value="" className="bg-gray-900">Select business type</option>
                   {BUSINESS_TYPES.map(type => (
-                    <option key={type} value={type}>{type}</option>
+                    <option key={type} value={type} className="bg-gray-900">{type}</option>
                   ))}
                 </select>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-white/70 mb-1">
                   Job Role *
                 </label>
                 <select
@@ -161,17 +161,17 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onSuccess }) => {
                   value={formData.jobRole}
                   onChange={handleChange}
                   required
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent"
+                  className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white focus:ring-2 focus:ring-yellow-500 focus:border-transparent transition-all"
                 >
-                  <option value="">Select your role</option>
+                  <option value="" className="bg-gray-900">Select your role</option>
                   {JOB_ROLES.map(role => (
-                    <option key={role} value={role}>{role}</option>
+                    <option key={role} value={role} className="bg-gray-900">{role}</option>
                   ))}
                 </select>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-white/70 mb-1">
                   Phone Number (optional)
                 </label>
                 <input
@@ -179,7 +179,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onSuccess }) => {
                   name="phoneNumber"
                   value={formData.phoneNumber}
                   onChange={handleChange}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent"
+                  className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder-white/40 focus:ring-2 focus:ring-yellow-500 focus:border-transparent transition-all"
                   placeholder="+1 (555) 123-4567"
                 />
               </div>
@@ -187,7 +187,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onSuccess }) => {
           )}
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-white/70 mb-1">
               Email Address *
             </label>
             <input
@@ -196,13 +196,14 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onSuccess }) => {
               value={formData.email}
               onChange={handleChange}
               required
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent"
+              autoComplete="email"
+              className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder-white/40 focus:ring-2 focus:ring-yellow-500 focus:border-transparent transition-all"
               placeholder="you@example.com"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-white/70 mb-1">
               Password *
             </label>
             <input
@@ -212,14 +213,15 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onSuccess }) => {
               onChange={handleChange}
               required
               minLength={8}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent"
+              autoComplete={isSignup ? "new-password" : "current-password"}
+              className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder-white/40 focus:ring-2 focus:ring-yellow-500 focus:border-transparent transition-all"
               placeholder="At least 8 characters"
             />
           </div>
 
           {isSignup && (
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-white/70 mb-1">
                 Confirm Password *
               </label>
               <input
@@ -229,14 +231,15 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onSuccess }) => {
                 onChange={handleChange}
                 required
                 minLength={8}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent"
+                autoComplete="new-password"
+                className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder-white/40 focus:ring-2 focus:ring-yellow-500 focus:border-transparent transition-all"
                 placeholder="Confirm your password"
               />
             </div>
           )}
 
           {(error || authError) && (
-            <div className="bg-red-50 text-red-600 px-4 py-3 rounded-lg text-sm">
+            <div className="bg-red-500/10 border border-red-500/30 text-red-400 px-4 py-3 rounded-lg text-sm">
               {error || authError}
             </div>
           )}
@@ -244,7 +247,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onSuccess }) => {
           <button
             type="submit"
             disabled={isLoading}
-            className="w-full bg-yellow-400 hover:bg-yellow-500 text-gray-900 font-semibold py-3 px-4 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-400 hover:to-orange-400 text-gray-900 font-semibold py-3 px-4 rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-yellow-500/25"
           >
             {isLoading ? (
               <span className="flex items-center justify-center gap-2">
@@ -266,7 +269,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onSuccess }) => {
               setIsSignup(!isSignup);
               setError(null);
             }}
-            className="text-yellow-600 hover:text-yellow-700 font-medium"
+            className="text-yellow-400 hover:text-yellow-300 font-medium transition-colors"
           >
             {isSignup
               ? 'Already have an account? Sign in'

@@ -43,28 +43,27 @@ const AuthenticatedRoot: React.FC = () => {
   if (showAdmin) {
     if (!isAuthenticated) {
       return (
-        <div className="min-h-screen bg-gradient-to-b from-yellow-50 to-white">
-          <div className="text-center pt-8 mb-4">
-            <h2 className="text-2xl font-bold text-gray-800">Admin Login</h2>
-            <p className="text-gray-600">Sign in with your admin account</p>
-          </div>
-          <AuthPage 
-            onSuccess={() => {
-              window.location.reload();
-            }} 
-          />
-        </div>
+        <AuthPage 
+          onSuccess={() => {
+            window.location.reload();
+          }} 
+        />
       );
     }
     if (!isAdmin) {
       return (
-        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-yellow-50 to-yellow-100">
-          <div className="bg-white rounded-2xl shadow-xl p-8 max-w-md w-full mx-4 text-center">
-            <h2 className="text-2xl font-bold text-gray-800 mb-4">Access Denied</h2>
-            <p className="text-gray-600 mb-6">You don't have admin access. You are logged in as: {user?.email}</p>
+        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-900 via-black to-gray-900">
+          <div className="bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 shadow-2xl p-8 max-w-md w-full mx-4 text-center">
+            <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-red-500/20 flex items-center justify-center">
+              <svg className="w-8 h-8 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+              </svg>
+            </div>
+            <h2 className="text-2xl font-bold text-white mb-2">Access Denied</h2>
+            <p className="text-white/60 mb-6">You don't have admin access.<br/>Logged in as: {user?.email}</p>
             <button
               onClick={() => window.location.hash = ''}
-              className="w-full bg-yellow-500 hover:bg-yellow-600 text-white font-semibold py-3 px-6 rounded-lg transition-colors"
+              className="w-full bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-400 hover:to-orange-400 text-gray-900 font-semibold py-3 px-6 rounded-lg transition-all shadow-lg shadow-yellow-500/25"
             >
               Go to Home
             </button>
