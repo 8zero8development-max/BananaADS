@@ -908,14 +908,6 @@ app.post('/api/analyze-website', async (req, res) => {
   }
 });
 
-if (isProd) {
-  const distPath = resolveDistPath();
-  app.use(express.static(distPath));
-  app.get('/{*splat}', (req, res) => {
-    res.sendFile(path.join(distPath, 'index.html'));
-  });
-}
-
 async function start() {
   await initDatabase();
   
@@ -923,6 +915,15 @@ async function start() {
   registerAuthRoutes(app);
   
   await initStripe();
+  
+  // Static file serving MUST come after all API routes are registered
+  if (isProd) {
+    const distPath = resolveDistPath();
+    app.use(express.static(distPath));
+    app.get('/{*splat}', (req, res) => {
+      res.sendFile(path.join(distPath, 'index.html'));
+    });
+  }
   
   app.listen(PORT, '0.0.0.0', () => {
     console.log(`Backend server running on http://0.0.0.0:${PORT}`);
