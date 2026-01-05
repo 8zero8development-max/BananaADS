@@ -4,7 +4,7 @@ import { decodeBase64, decodeAudioData } from './utils/audioUtils';
 import { validateBrief, validateResearchInput } from './utils/validation';
 import { compressImageFile } from './utils/imageOptimization';
 import { useAuth } from './hooks/useAuth';
-import { BrandProfile } from './utils/storageService';
+import { BrandProfile, ensureStringArray } from './utils/storageService';
 
 import ApiKeyConfig from './components/shared/ApiKeyConfig';
 import StepIndicator from './components/shared/StepIndicator';
@@ -142,6 +142,9 @@ const AppContent: React.FC<AppProps> = ({ onBackToLanding }) => {
           let researchData;
           let updatedBrief = { ...brief };
       
+          // Preserve user-uploaded logo - only use AI-fetched logo if none exists
+          const existingLogo = brief.logoImage;
+          
           if (productionType === 'food-social') {
         const desc = brief.keyFeatures.join(', ');
         researchData = await providerManager.autoFillFoodBrief(desc, brief.productUrl || '');
@@ -152,7 +155,7 @@ const AppContent: React.FC<AppProps> = ({ onBackToLanding }) => {
           targetAudience: researchData.targetAudience || updatedBrief.targetAudience,
           tone: researchData.tone || updatedBrief.tone,
           keyFeatures: researchData.keyFeatures || updatedBrief.keyFeatures,
-          logoImage: researchData.logoImage || updatedBrief.logoImage,
+          logoImage: existingLogo || researchData.logoImage || updatedBrief.logoImage,
         };
       } else {
         researchData = await providerManager.researchBrand(brief.brandName, brief.productName);
@@ -161,7 +164,7 @@ const AppContent: React.FC<AppProps> = ({ onBackToLanding }) => {
           targetAudience: researchData.targetAudience || updatedBrief.targetAudience,
           tone: researchData.tone || updatedBrief.tone,
           keyFeatures: researchData.keyFeatures || updatedBrief.keyFeatures,
-          logoImage: researchData.logoImage || updatedBrief.logoImage,
+          logoImage: existingLogo || researchData.logoImage || updatedBrief.logoImage,
           researchSources: researchData.researchSources
         };
       }
@@ -738,9 +741,9 @@ const AppContent: React.FC<AppProps> = ({ onBackToLanding }) => {
       brandName: profile.brandName || '',
       productName: profile.productName ?? prev.productName,
       targetAudience: profile.targetAudience ?? '',
-      tone: profile.tone ?? [],
-      keyFeatures: profile.keyFeatures ?? [],
-      researchSources: profile.researchSources ?? [],
+      tone: ensureStringArray(profile.tone),
+      keyFeatures: ensureStringArray(profile.keyFeatures),
+      researchSources: ensureStringArray(profile.researchSources),
       productUrl: profile.productUrl ?? prev.productUrl,
       // Restore Brand DNA
       brandDna: profile.brandDna,
