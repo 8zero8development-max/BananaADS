@@ -18,6 +18,7 @@ import BananaAdsAssistant from './components/BananaAdsAssistant';
 import HelpSystem from './components/Help/HelpSystem';
 import OnboardingTour, { onboardingSteps } from './components/Onboarding/OnboardingTour';
 import { ModelSelectionDashboard } from './components/ModelSelectionDashboard';
+import { ModelAnalyticsDashboard } from './components/ModelAnalyticsDashboard';
 import { providerManager } from './services/providers';
 
 interface AppProps {
@@ -35,9 +36,10 @@ const AppContent: React.FC<AppProps> = ({ onBackToLanding }) => {
   const [selectedFoodPostIdx, setSelectedFoodPostIdx] = useState<number>(0);
   const [selectedSocialPostIdx, setSelectedSocialPostIdx] = useState<number>(0);
   const [selectedEmailSectionIdx, setSelectedEmailSectionIdx] = useState<number>(0);
-    const [showHelp, setShowHelp] = useState<boolean>(false);
-    const [showModelDashboard, setShowModelDashboard] = useState<boolean>(false);
-    const [showOnboarding, setShowOnboarding] = useState(
+        const [showHelp, setShowHelp] = useState<boolean>(false);
+      const [showModelDashboard, setShowModelDashboard] = useState<boolean>(false);
+      const [showAnalyticsDashboard, setShowAnalyticsDashboard] = useState<boolean>(false);
+      const [showOnboarding, setShowOnboarding] = useState(
       !localStorage.getItem('onboarding-completed')
     );
 
@@ -731,15 +733,22 @@ const AppContent: React.FC<AppProps> = ({ onBackToLanding }) => {
                     <button onClick={handleReconfigureKey} className="hover:text-banana transition flex items-center gap-2">
                       <i className="fa-solid fa-key"></i> <span className="hidden sm:inline">API Key</span>
                     </button>
+                              <button 
+                                onClick={() => setShowModelDashboard(true)} 
+                                className="hover:text-banana transition flex items-center gap-2"
+                                title="Configure AI models"
+                              >
+                                <i className="fa-solid fa-sliders"></i> <span className="hidden sm:inline">Models</span>
+                              </button>
+                              <button 
+                                onClick={() => setShowAnalyticsDashboard(true)} 
+                                className="hover:text-banana transition flex items-center gap-2"
+                                title="View model analytics"
+                              >
+                                <i className="fa-solid fa-chart-bar"></i> <span className="hidden sm:inline">Analytics</span>
+                              </button>
                     <button 
-                      onClick={() => setShowModelDashboard(true)} 
-                      className="hover:text-banana transition flex items-center gap-2"
-                      title="Configure AI models"
-                    >
-                      <i className="fa-solid fa-sliders"></i> <span className="hidden sm:inline">Models</span>
-                    </button>
-          <button 
-            onClick={handleClearData}
+                      onClick={handleClearData}
             className="hover:text-red-400 transition flex items-center gap-2"
             title="Clear all saved data"
           >
@@ -847,12 +856,17 @@ const AppContent: React.FC<AppProps> = ({ onBackToLanding }) => {
 
       <HelpSystem isOpen={showHelp} onClose={() => setShowHelp(false)} />
 
-      <ModelSelectionDashboard 
-        isOpen={showModelDashboard} 
-        onClose={() => setShowModelDashboard(false)} 
-      />
+            <ModelSelectionDashboard 
+              isOpen={showModelDashboard} 
+              onClose={() => setShowModelDashboard(false)} 
+            />
 
-      {showOnboarding && (
+            <ModelAnalyticsDashboard 
+              isOpen={showAnalyticsDashboard} 
+              onClose={() => setShowAnalyticsDashboard(false)} 
+            />
+
+            {showOnboarding && (
         <OnboardingTour
           steps={onboardingSteps}
           onComplete={() => setShowOnboarding(false)}
