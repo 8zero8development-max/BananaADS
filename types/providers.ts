@@ -93,6 +93,48 @@ export interface ProviderCapabilities {
   structuredOutput: boolean;
 }
 
+export interface ModelUsageRecord {
+  id: string;
+  timestamp: number;
+  modelId: string;
+  modelName: string;
+  provider: ProviderType;
+  taskType: TaskType;
+  operation: string;
+  inputTokens?: number;
+  outputTokens?: number;
+  durationMs: number;
+  success: boolean;
+  error?: string;
+  estimatedCost?: number;
+}
+
+export interface ModelAnalytics {
+  totalRequests: number;
+  successfulRequests: number;
+  failedRequests: number;
+  totalTokensUsed: number;
+  totalEstimatedCost: number;
+  averageResponseTime: number;
+  usageByModel: Record<string, number>;
+  usageByTask: Record<TaskType, number>;
+  usageByProvider: Record<ProviderType, number>;
+  recentUsage: ModelUsageRecord[];
+}
+
+export interface DynamicModelInfo {
+  id: string;
+  name: string;
+  provider: ProviderType;
+  description?: string;
+  contextWindow?: number;
+  maxOutputTokens?: number;
+  inputCostPer1kTokens?: number;
+  outputCostPer1kTokens?: number;
+  capabilities?: string[];
+  isAvailable: boolean;
+}
+
 export const MODEL_CONFIG: Record<TaskType, { free: string[]; paid: string[] }> = {
   textGeneration: {
     free: [
