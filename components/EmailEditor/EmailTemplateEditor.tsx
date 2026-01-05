@@ -1,10 +1,47 @@
 import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import ReactQuill from 'react-quill-new';
 import 'react-quill-new/dist/quill.snow.css';
+import DOMPurify from 'dompurify';
 import { AdBrief, AdConcept, Scene } from '../../types';
 import { GeminiService } from '../../services/geminiService';
 import { GmailService } from '../../services/gmailService';
 import BananaPro from '../shared/BananaPro';
+
+// Configure DOMPurify for email-safe HTML
+const DOMPURIFY_CONFIG: DOMPurify.Config = {
+  ALLOWED_TAGS: [
+    'html', 'head', 'body', 'style', 'title', 'meta',
+    'div', 'span', 'p', 'br', 'hr',
+    'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
+    'a', 'img',
+    'table', 'thead', 'tbody', 'tfoot', 'tr', 'th', 'td',
+    'ul', 'ol', 'li',
+    'strong', 'b', 'em', 'i', 'u', 's', 'strike',
+    'blockquote', 'pre', 'code',
+    'center', 'font'
+  ],
+  ALLOWED_ATTR: [
+    'href', 'src', 'alt', 'title', 'width', 'height',
+    'style', 'class', 'id', 'name',
+    'align', 'valign', 'bgcolor', 'color', 'border',
+    'cellpadding', 'cellspacing', 'colspan', 'rowspan',
+    'target', 'rel'
+  ],
+  ALLOW_DATA_ATTR: true,
+  // Allow inline styles for email formatting
+  FORCE_BODY: false,
+  // Prevent script execution
+  FORBID_TAGS: ['script', 'iframe', 'object', 'embed', 'form', 'input', 'button'],
+  FORBID_ATTR: ['onerror', 'onload', 'onclick', 'onmouseover', 'onfocus', 'onblur']
+};
+
+/**
+ * Sanitize HTML content to prevent XSS attacks
+ * Used before rendering user-generated or AI-generated HTML in preview
+ */
+function sanitizeHtml(html: string): string {
+  return DOMPurify.sanitize(html, DOMPURIFY_CONFIG);
+}
 
 interface EmailTemplateEditorProps {
   brief: AdBrief;
@@ -523,14 +560,15 @@ const EmailTemplateEditor: React.FC<EmailTemplateEditorProps> = ({
                       <div className="max-w-2xl mx-auto bg-white rounded-lg shadow-2xl overflow-hidden">
                         <iframe
                           ref={iframeRef}
-                          srcDoc={htmlContent}
+                          srcDoc={sanitizeHtml(htmlContent)}
                           className="w-full h-[800px] border-0"
                           title="Email Preview"
                           onClick={handleIframeClick}
+                          sandbox="allow-same-origin"
                         />
                       </div>
                     </div>
-                  ) : (
+                  ): (
                     <div className="flex-1 overflow-hidden p-4">
                       <textarea
                         ref={codeEditorRef}

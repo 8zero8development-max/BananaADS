@@ -1,4 +1,5 @@
 import { AppStep, AdBrief, AdConcept, AdProject, ProductionType, Scene, BrandDna } from '../types';
+import { StorageQuotaError } from './errors';
 
 const STORAGE_PREFIX = 'bananaads_';
 const BRAND_PROFILE_PREFIX = 'bananaads_brand_';
@@ -11,6 +12,31 @@ const STORAGE_KEYS = {
   PRODUCTION_TYPE: `${STORAGE_PREFIX}productionType`,
   VERSION: `${STORAGE_PREFIX}version`,
 } as const;
+
+// Event types for storage quota exceeded notifications
+export type StorageQuotaCallback = (options: {
+  onExport: () => void;
+  onClearOldData: () => void;
+  onContinueWithoutSave: () => void;
+}) => void;
+
+// Callback to notify UI about quota exceeded
+let quotaExceededCallback: StorageQuotaCallback | null = null;
+
+/**
+ * Register a callback to be notified when storage quota is exceeded
+ * This allows the UI to show a modal with options for the user
+ */
+export function onStorageQuotaExceeded(callback: StorageQuotaCallback): void {
+  quotaExceededCallback = callback;
+}
+
+/**
+ * Clear the quota exceeded callback
+ */
+export function clearStorageQuotaCallback(): void {
+  quotaExceededCallback = null;
+}
 
 export interface BrandProfile {
   id: string;
@@ -114,8 +140,63 @@ export function resetQuotaFlag(): void {
   quotaExceeded = false;
 }
 
+/**
+ * Export state to a downloadable JSON file
+ * Used as a recovery option when storage quota is exceeded
+ */
+export function exportStateToFile(state: SavedState): void {
+  try {
+    const dataStr = JSON.stringify(state, null, 2);
+    const blob = new Blob([dataStr], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `bananaads-backup-${new Date().toISOString().slice(0, 10)}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  } catch (error) {
+    console.error('Failed to export state:', error);
+    throw new Error('Failed to export your work. Please try again.');
+  }
+}
+
+/**
+ * Clear old brand profiles to free up storage space
+ * Keeps the most recent 3 profiles
+ */
+export function clearOldBrandProfiles(): void {
+  try {
+    const profiles = loadBrandProfiles();
+    // Keep only the 3 most recent profiles
+    const profilesToDelete = profiles.slice(3);
+    profilesToDelete.forEach(profile => {
+      deleteBrandProfile(profile.id);
+    });
+    // Reset quota flag after clearing data
+    quotaExceeded = false;
+  } catch (error) {
+    console.error('Failed to clear old brand profiles:', error);
+  }
+}
+
+// Track the last state for export purposes
+let lastSavedState: SavedState | null = null;
+
+/**
+ * Get the last saved state (useful for export when quota is exceeded)
+ */
+export function getLastSavedState(): SavedState | null {
+  return lastSavedState;
+}
+
 export function saveState(state: SavedState): void {
+  // Store the state for potential export
+  lastSavedState = state;
+  
   if (quotaExceeded) {
+    // If quota was exceeded, don't try to save but don't lose the state
     return;
   }
 
@@ -131,13 +212,35 @@ export function saveState(state: SavedState): void {
   } catch (error) {
     if (error instanceof DOMException && error.name === 'QuotaExceededError') {
       quotaExceeded = true;
-      console.warn('localStorage quota exceeded. Auto-save disabled until page refresh or data is cleared.');
-      try {
-        clearState();
-        console.info('Cleared localStorage to free up space. You may need to re-enter your data.');
-      } catch {
-        // Ignore errors during cleanup
+      console.warn('localStorage quota exceeded. Auto-save disabled.');
+      
+      // Notify the UI about quota exceeded so it can show a modal
+      // DO NOT automatically clear data - let the user decide
+      if (quotaExceededCallback) {
+        quotaExceededCallback({
+          onExport: () => exportStateToFile(state),
+          onClearOldData: () => {
+            clearOldBrandProfiles();
+            // Try saving again after clearing old data
+            quotaExceeded = false;
+            saveState(state);
+          },
+          onContinueWithoutSave: () => {
+            // User chose to continue without saving
+            // Data is still in memory via lastSavedState
+            console.info('Continuing without auto-save. Your work is still in memory.');
+          }
+        });
+      } else {
+        // No callback registered, log a warning but don't delete data
+        console.error(
+          'Storage quota exceeded! Your work is still in memory but cannot be saved. ' +
+          'Please export your work or clear some browser storage.'
+        );
       }
+      
+      // Throw error so callers know save failed
+      throw new StorageQuotaError('Storage quota exceeded. Please export your work or clear old data.');
     } else {
       console.error('Failed to save state to localStorage:', error);
     }

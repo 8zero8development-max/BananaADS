@@ -6,6 +6,10 @@
 const GMAIL_ACCESS_TOKEN_KEY = 'banana_ads_gmail_access_token';
 const GMAIL_REFRESH_TOKEN_KEY = 'banana_ads_gmail_refresh_token';
 const GMAIL_USER_EMAIL_KEY = 'banana_ads_gmail_user_email';
+const GMAIL_OAUTH_LOCK_KEY = 'banana_ads_gmail_oauth_lock';
+
+// Track if OAuth callback is being processed to prevent race conditions
+let oauthCallbackInProgress = false;
 
 export interface GmailSendOptions {
   to: string[];
@@ -153,28 +157,64 @@ export class GmailService {
 
   /**
    * Handles the OAuth callback by extracting tokens from URL params
+   * Uses a lock mechanism to prevent race conditions when multiple components
+   * call this method simultaneously
    */
   static handleOAuthCallback(): boolean {
+    // Prevent concurrent processing of OAuth callback
+    if (oauthCallbackInProgress) {
+      return this.isAuthenticated();
+    }
+
     const urlParams = new URLSearchParams(window.location.search);
     const accessToken = urlParams.get('gmail_access_token');
     const refreshToken = urlParams.get('gmail_refresh_token');
     const email = urlParams.get('gmail_email');
 
     if (accessToken && email) {
-      this.setAccessToken(accessToken);
-      if (refreshToken) {
-        this.setRefreshToken(refreshToken);
+      // Set lock to prevent race conditions
+      oauthCallbackInProgress = true;
+      
+      try {
+        // Check if we've already processed this callback (using sessionStorage as a lock)
+        const lockValue = sessionStorage.getItem(GMAIL_OAUTH_LOCK_KEY);
+        const currentLockValue = `${accessToken.slice(0, 10)}_${Date.now()}`;
+        
+        if (lockValue && lockValue.startsWith(accessToken.slice(0, 10))) {
+          // Already processed this token, just return current auth state
+          return this.isAuthenticated();
+        }
+        
+        // Set the lock before storing tokens
+        sessionStorage.setItem(GMAIL_OAUTH_LOCK_KEY, currentLockValue);
+        
+        // Store tokens atomically (all or nothing)
+        this.setAccessToken(accessToken);
+        if (refreshToken) {
+          this.setRefreshToken(refreshToken);
+        }
+        this.setUserEmail(email);
+        
+        // Clean up URL params only after tokens are stored
+        const url = new URL(window.location.href);
+        url.searchParams.delete('gmail_access_token');
+        url.searchParams.delete('gmail_refresh_token');
+        url.searchParams.delete('gmail_email');
+        window.history.replaceState({}, document.title, url.toString());
+        
+        return true;
+      } finally {
+        // Release the lock
+        oauthCallbackInProgress = false;
+        // Clear the lock after a short delay to allow for page reloads
+        setTimeout(() => {
+          try {
+            sessionStorage.removeItem(GMAIL_OAUTH_LOCK_KEY);
+          } catch {
+            // Ignore errors during cleanup
+          }
+        }, 5000);
       }
-      this.setUserEmail(email);
-      
-      // Clean up URL params
-      const url = new URL(window.location.href);
-      url.searchParams.delete('gmail_access_token');
-      url.searchParams.delete('gmail_refresh_token');
-      url.searchParams.delete('gmail_email');
-      window.history.replaceState({}, document.title, url.toString());
-      
-      return true;
     }
     return false;
   }

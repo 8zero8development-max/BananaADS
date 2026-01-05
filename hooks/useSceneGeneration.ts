@@ -116,21 +116,34 @@ export function useSceneGeneration({
       return { ...prev, scenes };
     });
 
+    let audioCtx: AudioContext | null = null;
     try {
       const base64Audio = await GeminiService.generateVoiceover(
         project.scenes[idx].audioScript, 
         project.brief.voiceName
       );
-      const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 24000 });
+      audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 24000 });
       const decodedData = decodeBase64(base64Audio);
       const audioBuffer = await decodeAudioData(decodedData, audioCtx, 24000, 1);
       
       const source = audioCtx.createBufferSource();
       source.buffer = audioBuffer;
       source.connect(audioCtx.destination);
+      
+      // Close AudioContext after playback ends to prevent memory leak
+      source.onended = () => {
+        if (audioCtx) {
+          audioCtx.close().catch(console.error);
+        }
+      };
+      
       source.start();
     } catch (error) {
       console.error("Error generating voiceover:", error);
+      // Close AudioContext on error to prevent memory leak
+      if (audioCtx) {
+        audioCtx.close().catch(console.error);
+      }
     } finally {
       setProject(prev => {
         if (!prev) return null;
