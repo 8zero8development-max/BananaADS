@@ -21,6 +21,8 @@ import OnboardingTour, { onboardingSteps } from './components/Onboarding/Onboard
 import { ModelSelectionDashboard } from './components/ModelSelectionDashboard';
 import { ModelAnalyticsDashboard } from './components/ModelAnalyticsDashboard';
 import { providerManager } from './services/providers';
+import ModelStatusIndicator from './components/ModelStatusIndicator/ModelStatusIndicator';
+import { ProviderType } from './types/providers';
 
 interface AppProps {
   onBackToLanding?: () => void;
@@ -38,12 +40,18 @@ const AppContent: React.FC<AppProps> = ({ onBackToLanding }) => {
   const [selectedFoodPostIdx, setSelectedFoodPostIdx] = useState<number>(0);
   const [selectedSocialPostIdx, setSelectedSocialPostIdx] = useState<number>(0);
   const [selectedEmailSectionIdx, setSelectedEmailSectionIdx] = useState<number>(0);
-        const [showHelp, setShowHelp] = useState<boolean>(false);
-      const [showModelDashboard, setShowModelDashboard] = useState<boolean>(false);
-      const [showAnalyticsDashboard, setShowAnalyticsDashboard] = useState<boolean>(false);
-      const [showOnboarding, setShowOnboarding] = useState(
-      !localStorage.getItem('onboarding-completed')
-    );
+            const [showHelp, setShowHelp] = useState<boolean>(false);
+          const [showModelDashboard, setShowModelDashboard] = useState<boolean>(false);
+          const [showAnalyticsDashboard, setShowAnalyticsDashboard] = useState<boolean>(false);
+          const [showOnboarding, setShowOnboarding] = useState(
+          !localStorage.getItem('onboarding-completed')
+        );
+      const [activeModel, setActiveModel] = useState<{
+        isActive: boolean;
+        modelName: string;
+        provider: ProviderType;
+        operation: string;
+      }>({ isActive: false, modelName: '', provider: 'gemini', operation: '' });
 
   const { showToast } = useToast();
 
@@ -68,21 +76,27 @@ const AppContent: React.FC<AppProps> = ({ onBackToLanding }) => {
       return;
     }
 
-    setLoading(true);
-    try {
-      let generatedConcepts;
+        setLoading(true);
+        setActiveModel({ isActive: true, modelName: 'Gemini Flash', provider: 'gemini', operation: 'Generating concepts...' });
+        showToast('Gemini AI is generating your ad concepts...', 'info');
+        try {
+          let generatedConcepts;
       
-      if (productionType === 'food-social') {
-        const dna = await GeminiService.researchBrandDna(brief);
-        setBrief(prev => ({ ...prev, brandDna: dna, visualStyle: dna.visualStyle }));
-        generatedConcepts = await GeminiService.generateFoodSocialConcepts({ ...brief, brandDna: dna, visualStyle: dna.visualStyle });
-      } else if (productionType === 'email') {
-        const dna = await GeminiService.researchBrandDna(brief);
-        setBrief(prev => ({ ...prev, brandDna: dna, visualStyle: dna.visualStyle }));
-        generatedConcepts = await GeminiService.generateEmailCampaign({ ...brief, brandDna: dna, visualStyle: dna.visualStyle });
-      } else {
-        generatedConcepts = await GeminiService.generateConcepts(brief);
-      }
+          if (productionType === 'food-social') {
+            setActiveModel({ isActive: true, modelName: 'Gemini Flash', provider: 'gemini', operation: 'Analyzing brand DNA...' });
+            const dna = await GeminiService.researchBrandDna(brief);
+            setBrief(prev => ({ ...prev, brandDna: dna, visualStyle: dna.visualStyle }));
+            setActiveModel({ isActive: true, modelName: 'Gemini Flash', provider: 'gemini', operation: 'Generating food social concepts...' });
+            generatedConcepts = await GeminiService.generateFoodSocialConcepts({ ...brief, brandDna: dna, visualStyle: dna.visualStyle });
+          } else if (productionType === 'email') {
+            setActiveModel({ isActive: true, modelName: 'Gemini Flash', provider: 'gemini', operation: 'Analyzing brand DNA...' });
+            const dna = await GeminiService.researchBrandDna(brief);
+            setBrief(prev => ({ ...prev, brandDna: dna, visualStyle: dna.visualStyle }));
+            setActiveModel({ isActive: true, modelName: 'Gemini Flash', provider: 'gemini', operation: 'Generating email campaign...' });
+            generatedConcepts = await GeminiService.generateEmailCampaign({ ...brief, brandDna: dna, visualStyle: dna.visualStyle });
+          } else {
+            generatedConcepts = await GeminiService.generateConcepts(brief);
+          }
       
       setConcepts(generatedConcepts);
       setStep(AppStep.CONCEPTS);
@@ -100,13 +114,14 @@ const AppContent: React.FC<AppProps> = ({ onBackToLanding }) => {
       });
       await Promise.allSettled(previewPromises);
       setGeneratingPreviews(false);
-    } catch (error) {
-      console.error("Error generating concepts:", error);
-      showToast("Failed to generate concepts. Please try again.", 'error');
-    } finally {
-      setLoading(false);
-    }
-  };
+      } catch (error) {
+        console.error("Error generating concepts:", error);
+        showToast("Failed to generate concepts. Please try again.", 'error');
+      } finally {
+        setLoading(false);
+        setActiveModel({ isActive: false, modelName: '', provider: 'gemini', operation: '' });
+      }
+    };
 
   const handleStartBriefing = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -120,12 +135,14 @@ const AppContent: React.FC<AppProps> = ({ onBackToLanding }) => {
       return;
     }
     
-    setResearching(true);
-    try {
-      let researchData;
-      let updatedBrief = { ...brief };
+        setResearching(true);
+        setActiveModel({ isActive: true, modelName: 'Gemini Pro', provider: 'gemini', operation: 'Researching brand...' });
+        showToast('Gemini AI is researching your brand...', 'info');
+        try {
+          let researchData;
+          let updatedBrief = { ...brief };
       
-      if (productionType === 'food-social') {
+          if (productionType === 'food-social') {
         const desc = brief.keyFeatures.join(', ');
         researchData = await GeminiService.autoFillFoodBrief(desc, brief.productUrl || '');
         updatedBrief = {
@@ -181,13 +198,14 @@ const AppContent: React.FC<AppProps> = ({ onBackToLanding }) => {
         setGeneratingMoodBoard(false);
       }
       
-    } catch (error: any) {
-      console.error("Research failed", error);
-      showToast(`Research failed: ${error.message || "Unknown error"}`, 'error');
-    } finally {
-      setResearching(false);
-    }
-  };
+      } catch (error: any) {
+        console.error("Research failed", error);
+        showToast(`Research failed: ${error.message || "Unknown error"}`, 'error');
+      } finally {
+        setResearching(false);
+        setActiveModel({ isActive: false, modelName: '', provider: 'gemini', operation: '' });
+      }
+    };
 
   const handleGenerateMoodBoard = async () => {
     setGeneratingMoodBoard(true);
@@ -719,18 +737,24 @@ const AppContent: React.FC<AppProps> = ({ onBackToLanding }) => {
 
   return (
     <div className="min-h-screen pb-20">
-      <nav className="fixed top-0 w-full z-50 glass border-b border-yellow-500/10 py-4 px-8 flex justify-between items-center">
-        <div className="flex items-center space-x-4">
-          {onBackToLanding && (
-            <button onClick={onBackToLanding} className="text-white/40 hover:text-white transition">
-              <i className="fa-solid fa-arrow-left"></i>
-            </button>
-          )}
-          <div className="flex items-center space-x-2">
-            <span className="text-2xl">🍌</span>
-            <span className="font-bold text-xl tracking-tight"><span className="text-banana">BANANA</span><span className="text-white">ADS</span></span>
-          </div>
-        </div>
+            <nav className="fixed top-0 w-full z-50 glass border-b border-yellow-500/10 py-4 px-8 flex justify-between items-center">
+              <div className="flex items-center space-x-4">
+                {onBackToLanding && (
+                  <button onClick={onBackToLanding} className="text-white/40 hover:text-white transition">
+                    <i className="fa-solid fa-arrow-left"></i>
+                  </button>
+                )}
+                <div className="flex items-center space-x-2">
+                  <span className="text-2xl">🍌</span>
+                  <span className="font-bold text-xl tracking-tight"><span className="text-banana">BANANA</span><span className="text-white">ADS</span></span>
+                </div>
+                <ModelStatusIndicator
+                  isActive={loading || researching || generatingMoodBoard || generatingPreviews}
+                  modelName={activeModel.modelName || 'Gemini AI'}
+                  provider={activeModel.provider}
+                  operation={activeModel.operation || (researching ? 'Researching brand...' : loading ? 'Generating...' : generatingMoodBoard ? 'Creating mood board...' : generatingPreviews ? 'Generating previews...' : '')}
+                />
+              </div>
         <div className="flex items-center space-x-6 text-sm font-medium text-white/60">
                     <button onClick={handleReconfigureKey} className="hover:text-banana transition flex items-center gap-2">
                       <i className="fa-solid fa-key"></i> <span className="hidden sm:inline">API Key</span>
