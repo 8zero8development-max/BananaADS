@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { AdBrief, ProductionType } from '../../types';
 import BananaPro from '../shared/BananaPro';
 import { InlineProgress } from '../shared/ProgressIndicator';
+import BrandProfileManager from '../BrandProfileManager/BrandProfileManager';
+import { BrandProfile } from '../../utils/storageService';
 
 import cinematicVideoIcon from '@assets/icons/cinematic-video.png';
 import socialPostersIcon from '@assets/icons/social-posters.png';
@@ -19,6 +21,7 @@ interface BriefingFormProps {
   onImageUpload: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onLogoUpload: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onDownload: (url: string, filename: string) => void;
+  onLoadBrandProfile: (profile: BrandProfile) => void;
   isGenerating: boolean;
   isResearching: boolean;
   isGeneratingMoodBoard: boolean;
@@ -124,6 +127,7 @@ const BriefingForm: React.FC<BriefingFormProps> = ({
   onImageUpload,
   onLogoUpload,
   onDownload,
+  onLoadBrandProfile,
   isGenerating,
   isResearching,
   isGeneratingMoodBoard
@@ -461,6 +465,14 @@ const BriefingForm: React.FC<BriefingFormProps> = ({
 
       <div className="lg:pl-8 lg:border-l border-white/5 flex flex-col">
         <h2 className="text-2xl font-serif mb-6 text-white/80">Visual Identity</h2>
+        
+        <div className="mb-6">
+          <BrandProfileManager
+            brief={brief}
+            onLoadProfile={onLoadBrandProfile}
+          />
+        </div>
+
         {brief.brandName ? (
           <div className="flex-grow flex flex-col gap-6">
             <div className="flex-grow relative">

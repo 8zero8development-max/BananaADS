@@ -4,6 +4,7 @@ import { decodeBase64, decodeAudioData } from './utils/audioUtils';
 import { validateBrief, validateResearchInput } from './utils/validation';
 import { compressImageFile } from './utils/imageOptimization';
 import { useAuth } from './hooks/useAuth';
+import { BrandProfile } from './utils/storageService';
 
 import ApiKeyConfig from './components/shared/ApiKeyConfig';
 import StepIndicator from './components/shared/StepIndicator';
@@ -730,6 +731,17 @@ const AppContent: React.FC<AppProps> = ({ onBackToLanding }) => {
     setStep(targetStep);
   }, [setStep]);
 
+  const handleLoadBrandProfile = useCallback((profile: BrandProfile) => {
+    setBrief(prev => ({
+      ...prev,
+      brandDna: profile.brandDna,
+      visualStyle: profile.brandDna.visualStyle,
+      logoImage: profile.logoImage || prev.logoImage,
+      moodBoard: profile.moodBoard || prev.moodBoard,
+    }));
+    showToast(`Loaded brand profile: ${profile.name}`, 'success');
+  }, [setBrief, showToast]);
+
   if (!isConfigured) {
     return <ApiKeyConfig onConfigured={() => setIsConfigured(true)} />;
   }
@@ -851,6 +863,7 @@ const AppContent: React.FC<AppProps> = ({ onBackToLanding }) => {
             onImageUpload={handleImageUpload}
             onLogoUpload={handleLogoUpload}
             onDownload={handleDownload}
+            onLoadBrandProfile={handleLoadBrandProfile}
             isGenerating={loading}
             isResearching={researching}
             isGeneratingMoodBoard={generatingMoodBoard}
