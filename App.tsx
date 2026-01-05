@@ -734,10 +734,20 @@ const AppContent: React.FC<AppProps> = ({ onBackToLanding }) => {
   const handleLoadBrandProfile = useCallback((profile: BrandProfile) => {
     setBrief(prev => ({
       ...prev,
+      // Restore all AI-researched brand identity data
+      brandName: profile.brandName || '',
+      productName: profile.productName ?? prev.productName,
+      targetAudience: profile.targetAudience ?? '',
+      tone: profile.tone ?? [],
+      keyFeatures: profile.keyFeatures ?? [],
+      researchSources: profile.researchSources ?? [],
+      productUrl: profile.productUrl ?? prev.productUrl,
+      // Restore Brand DNA
       brandDna: profile.brandDna,
-      visualStyle: profile.brandDna.visualStyle,
-      logoImage: profile.logoImage || prev.logoImage,
-      moodBoard: profile.moodBoard || prev.moodBoard,
+      visualStyle: profile.brandDna?.visualStyle ?? prev.visualStyle,
+      // Restore visual assets
+      logoImage: profile.logoImage,
+      moodBoard: profile.moodBoard,
     }));
     showToast(`Loaded brand profile: ${profile.name}`, 'success');
   }, [setBrief, showToast]);

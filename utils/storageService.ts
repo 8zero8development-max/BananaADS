@@ -16,8 +16,18 @@ export interface BrandProfile {
   id: string;
   name: string;
   brandDna: BrandDna;
+  // Core brand identity fields from AI research
+  brandName: string;
+  productName?: string;
+  targetAudience?: string;
+  tone?: string[];
+  keyFeatures?: string[];
+  researchSources?: string[];
+  productUrl?: string;
+  // Visual assets
   logoImage?: string;
   moodBoard?: string;
+  // Metadata
   createdAt: string;
   updatedAt: string;
 }
