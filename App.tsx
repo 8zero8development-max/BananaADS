@@ -692,6 +692,35 @@ const AppContent: React.FC<AppProps> = ({ onBackToLanding }) => {
       
       doc.save(`${project.brief.brandName.replace(/\s+/g, '_')}_Campaign.pdf`);
     } else {
+      // Determine section title and content labels based on project type
+      const sectionTitle = project.projectType === 'video' 
+        ? 'Cinematic Storyboard'
+        : project.projectType === 'email'
+        ? 'Email Campaign'
+        : 'Social Campaign';
+      
+      const itemLabel = project.projectType === 'video'
+        ? 'Scene'
+        : project.projectType === 'email'
+        ? ['Hero', 'Body', 'Infographic', 'Footer']
+        : 'Post';
+      
+      const contentLabel = project.projectType === 'email' 
+        ? 'Content' 
+        : project.projectType === 'video' 
+        ? 'Script' 
+        : 'Caption';
+
+      const getItemTitle = (index: number, sceneNumber: number) => {
+        if (project.projectType === 'email') {
+          return Array.isArray(itemLabel) ? (itemLabel[index] || `Section ${index + 1}`) : `Section ${index + 1}`;
+        }
+        if (project.projectType === 'social' || project.projectType === 'food-social') {
+          return `Post ${index + 1}`;
+        }
+        return `Scene ${sceneNumber}`;
+      };
+
       const htmlContent = `<!DOCTYPE html>
         <html lang="en">
         <head>
@@ -704,6 +733,7 @@ const AppContent: React.FC<AppProps> = ({ onBackToLanding }) => {
                 h1 { font-size: 3em; margin: 0; background: linear-gradient(135deg, #facc15, #ea580c); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
                 h2 { color: #888; border-left: 4px solid #facc15; padding-left: 15px; margin-top: 60px; }
                 .meta { color: #666; font-size: 0.9em; margin-top: 10px; }
+                .campaign-type { display: inline-block; background: linear-gradient(135deg, #facc15, #ea580c); color: #000; padding: 4px 12px; border-radius: 20px; font-size: 0.75em; font-weight: bold; text-transform: uppercase; letter-spacing: 1px; margin-top: 15px; }
                 .moodboard-container { margin: 40px 0; border: 1px solid #333; border-radius: 12px; overflow: hidden; }
                 .scene-card { background: #1a1a1a; border-radius: 12px; overflow: hidden; margin-bottom: 40px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
                 .scene-image { width: 100%; display: block; }
@@ -711,6 +741,12 @@ const AppContent: React.FC<AppProps> = ({ onBackToLanding }) => {
                 .scene-number { color: #facc15; font-weight: bold; text-transform: uppercase; letter-spacing: 2px; font-size: 0.8em; }
                 .visual-prompt { font-style: italic; color: #aaa; margin: 15px 0; border-left: 2px solid #333; padding-left: 15px; }
                 .audio-script { font-size: 1.2em; font-weight: 500; color: #fff; margin-top: 20px; }
+                .cta-badge { display: inline-block; background: #facc15; color: #000; padding: 6px 16px; border-radius: 20px; font-size: 0.85em; font-weight: bold; margin-top: 15px; }
+                .post-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 30px; }
+                .social-post { background: #1a1a1a; border-radius: 12px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+                .social-post .scene-image { aspect-ratio: 4/5; object-fit: cover; }
+                .email-section { background: #1a1a1a; border-radius: 12px; overflow: hidden; margin-bottom: 30px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+                .email-section .scene-image { aspect-ratio: 16/9; object-fit: cover; }
                 img { max-width: 100%; height: auto; }
             </style>
         </head>
@@ -721,11 +757,42 @@ const AppContent: React.FC<AppProps> = ({ onBackToLanding }) => {
                     Campaign Concept: <strong>${project.selectedConcept?.title}</strong><br>
                     Tone: ${project.brief.tone.join(', ')} &bull; Audience: ${project.brief.targetAudience}
                 </div>
+                <div class="campaign-type">${sectionTitle}</div>
             </header>
             ${project.brief.moodBoard ? `<section><h2>Visual Identity</h2><div class="moodboard-container"><img src="${project.brief.moodBoard}" alt="Mood Board" /></div></section>` : ''}
             <section>
-                <h2>Cinematic Storyboard</h2>
-                ${project.scenes.map(scene => `<div class="scene-card">${scene.imageUrl ? `<img src="${scene.imageUrl}" class="scene-image" alt="Scene ${scene.sceneNumber}" />` : '<div style="padding:40px; text-align:center; color:#444;">[Image Not Generated]</div>'}<div class="scene-content"><div class="scene-number">Scene ${scene.sceneNumber}</div><div class="visual-prompt">"${scene.visualPrompt}"</div><div class="audio-script">"${scene.audioScript}"</div></div></div>`).join('')}
+                <h2>${sectionTitle}</h2>
+                ${(project.projectType === 'social' || project.projectType === 'food-social') 
+                  ? `<div class="post-grid">${project.scenes.map((scene, idx) => `
+                      <div class="social-post">
+                        ${scene.imageUrl ? `<img src="${scene.imageUrl}" class="scene-image" alt="Post ${idx + 1}" />` : '<div style="padding:40px; text-align:center; color:#444; aspect-ratio:4/5; display:flex; align-items:center; justify-content:center;">[Image Not Generated]</div>'}
+                        <div class="scene-content">
+                          <div class="scene-number">${getItemTitle(idx, scene.sceneNumber)}</div>
+                          ${scene.selectedCta ? `<div class="cta-badge">${scene.selectedCta}</div>` : ''}
+                          <div class="audio-script">"${scene.audioScript}"</div>
+                          ${scene.visualPrompt ? `<div class="visual-prompt">"${scene.visualPrompt}"</div>` : ''}
+                        </div>
+                      </div>`).join('')}</div>`
+                  : project.projectType === 'email'
+                  ? project.scenes.map((scene, idx) => `
+                      <div class="email-section">
+                        ${scene.imageUrl ? `<img src="${scene.imageUrl}" class="scene-image" alt="${getItemTitle(idx, scene.sceneNumber)}" />` : '<div style="padding:40px; text-align:center; color:#444; aspect-ratio:16/9; display:flex; align-items:center; justify-content:center;">[Image Not Generated]</div>'}
+                        <div class="scene-content">
+                          <div class="scene-number">${getItemTitle(idx, scene.sceneNumber)}</div>
+                          <div class="audio-script">"${scene.audioScript}"</div>
+                          ${scene.visualPrompt ? `<div class="visual-prompt">"${scene.visualPrompt}"</div>` : ''}
+                        </div>
+                      </div>`).join('')
+                  : project.scenes.map(scene => `
+                      <div class="scene-card">
+                        ${scene.imageUrl ? `<img src="${scene.imageUrl}" class="scene-image" alt="Scene ${scene.sceneNumber}" />` : '<div style="padding:40px; text-align:center; color:#444;">[Image Not Generated]</div>'}
+                        <div class="scene-content">
+                          <div class="scene-number">Scene ${scene.sceneNumber}</div>
+                          <div class="visual-prompt">"${scene.visualPrompt}"</div>
+                          <div class="audio-script">"${scene.audioScript}"</div>
+                        </div>
+                      </div>`).join('')
+                }
             </section>
             <footer style="text-align:center; color:#444; margin-top:100px; font-size:0.8em;">Generated by Banana Ads AI Agent</footer>
         </body>
@@ -734,7 +801,7 @@ const AppContent: React.FC<AppProps> = ({ onBackToLanding }) => {
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `${project.brief.brandName.replace(/\s+/g, '_')}_Campaign_Dossier.html`;
+      a.download = `${project.brief.brandName.replace(/\s+/g, '_')}_${sectionTitle.replace(/\s+/g, '_')}_Dossier.html`;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
