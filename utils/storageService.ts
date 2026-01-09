@@ -1,5 +1,6 @@
 import { AppStep, AdBrief, AdConcept, AdProject, ProductionType, Scene, BrandDna } from '../types';
 import { StorageQuotaError } from './errors';
+import { sanitizeForStorage, isHtmlContent, safeJsonParse } from './safeJson';
 
 const STORAGE_PREFIX = 'bananaads_';
 const BRAND_PROFILE_PREFIX = 'bananaads_brand_';
@@ -128,12 +129,14 @@ function stripProjectBinaryData(project: AdProject | null): AdProject | null {
 }
 
 function prepareStateForStorage(state: SavedState): SavedState {
-  return {
+  const strippedState = {
     ...state,
     brief: stripBriefBinaryData(state.brief),
     concepts: state.concepts.map(stripConceptBinaryData),
     project: stripProjectBinaryData(state.project),
   };
+  
+  return sanitizeForStorage(strippedState);
 }
 
 export function resetQuotaFlag(): void {
@@ -265,12 +268,19 @@ export function loadState(): SavedState | null {
       return null;
     }
 
-    const step = JSON.parse(stepStr) as AppStep;
-    const brief = JSON.parse(briefStr) as AdBrief;
-    const concepts = conceptsStr ? JSON.parse(conceptsStr) as AdConcept[] : [];
-    const project = projectStr ? JSON.parse(projectStr) as AdProject | null : null;
+    // Check for HTML content in stored data (indicates corruption)
+    if (isHtmlContent(stepStr) || isHtmlContent(briefStr)) {
+      console.error('Detected HTML content in localStorage - data may be corrupted. Clearing state.');
+      clearState();
+      return null;
+    }
+
+    const step = safeJsonParse<AppStep>(stepStr, 'localStorage (step)');
+    const brief = safeJsonParse<AdBrief>(briefStr, 'localStorage (brief)');
+    const concepts = conceptsStr ? safeJsonParse<AdConcept[]>(conceptsStr, 'localStorage (concepts)', []) : [];
+    const project = projectStr ? safeJsonParse<AdProject | null>(projectStr, 'localStorage (project)', null) : null;
     const productionType = productionTypeStr 
-      ? JSON.parse(productionTypeStr) as ProductionType
+      ? safeJsonParse<ProductionType>(productionTypeStr, 'localStorage (productionType)', 'video')
       : 'video';
 
     if (typeof step !== 'number' || brief.brandName === undefined) {
@@ -315,7 +325,8 @@ export function hasSavedState(): boolean {
 export function saveBrandProfile(profile: BrandProfile): void {
   try {
     const key = `${BRAND_PROFILE_PREFIX}${profile.id}`;
-    localStorage.setItem(key, JSON.stringify(profile));
+    const sanitizedProfile = sanitizeForStorage(profile);
+    localStorage.setItem(key, JSON.stringify(sanitizedProfile));
   } catch (error) {
     if (error instanceof DOMException && error.name === 'QuotaExceededError') {
       console.warn('localStorage quota exceeded when saving brand profile.');
@@ -334,8 +345,14 @@ export function loadBrandProfiles(): BrandProfile[] {
       if (key && key.startsWith(BRAND_PROFILE_PREFIX)) {
         const data = localStorage.getItem(key);
         if (data) {
+          // Skip corrupted HTML data
+          if (isHtmlContent(data)) {
+            console.warn(`Detected HTML content in brand profile at key: ${key} - removing corrupted data`);
+            localStorage.removeItem(key);
+            continue;
+          }
           try {
-            const profile = JSON.parse(data) as BrandProfile;
+            const profile = safeJsonParse<BrandProfile>(data, `localStorage (${key})`);
             profiles.push(profile);
           } catch {
             console.warn(`Failed to parse brand profile at key: ${key}`);
@@ -367,7 +384,13 @@ export function getBrandProfile(id: string): BrandProfile | null {
     const key = `${BRAND_PROFILE_PREFIX}${id}`;
     const data = localStorage.getItem(key);
     if (data) {
-      return JSON.parse(data) as BrandProfile;
+      // Check for corrupted HTML data
+      if (isHtmlContent(data)) {
+        console.warn(`Detected HTML content in brand profile at key: ${key} - removing corrupted data`);
+        localStorage.removeItem(key);
+        return null;
+      }
+      return safeJsonParse<BrandProfile>(data, `localStorage (${key})`, null) as BrandProfile | null;
     }
     return null;
   } catch (error) {
