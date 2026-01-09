@@ -100,6 +100,23 @@ export class NetworkError extends Error {
 }
 
 /**
+ * Error class for JSON parsing failures (e.g., when API returns HTML instead of JSON)
+ */
+export class JsonParseError extends Error {
+  constructor(
+    message: string,
+    public rawContent?: string,
+    public source?: string
+  ) {
+    super(message);
+    this.name = 'JsonParseError';
+    if (Error.captureStackTrace) {
+      Error.captureStackTrace(this, JsonParseError);
+    }
+  }
+}
+
+/**
  * Type guard to check if an error is an ApiError
  */
 export function isApiError(error: unknown): error is ApiError {
@@ -142,6 +159,13 @@ export function isNetworkError(error: unknown): error is NetworkError {
 }
 
 /**
+ * Type guard to check if an error is a JsonParseError
+ */
+export function isJsonParseError(error: unknown): error is JsonParseError {
+  return error instanceof JsonParseError;
+}
+
+/**
  * Converts an unknown error to a human-readable message
  */
 export function getHumanReadableError(error: unknown): string {
@@ -153,7 +177,7 @@ export function getHumanReadableError(error: unknown): string {
       return `Validation error for ${error.field}: ${error.message}`;
     }
     if (isAuthenticationError(error)) {
-      return error.provider 
+      return error.provider
         ? `${error.provider} authentication failed: ${error.message}`
         : `Authentication failed: ${error.message}`;
     }
@@ -166,6 +190,10 @@ export function getHumanReadableError(error: unknown): string {
     }
     if (isNetworkError(error)) {
       return error.isTimeout ? `Request timed out: ${error.message}` : `Network error: ${error.message}`;
+    }
+    if (isJsonParseError(error)) {
+      const sourceMsg = error.source ? ` from ${error.source}` : '';
+      return `Invalid response${sourceMsg}: ${error.message}`;
     }
     return error.message;
   }

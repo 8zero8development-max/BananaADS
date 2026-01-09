@@ -1,4 +1,5 @@
 import { Scene } from "../types";
+import { safeResponseJson } from "../utils/safeJson";
 
 const API_KEY_STORAGE_KEY = 'banana_ads_facebook_api_key';
 const PAGE_ID_STORAGE_KEY = 'banana_ads_facebook_page_id';
@@ -123,11 +124,11 @@ export class FacebookService {
       );
 
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
+        const errorData = await safeResponseJson<{ error?: { message?: string } }>(response, 'Facebook API (getPageInfo)', {});
         throw new Error(errorData.error?.message || `Facebook API error: ${response.status}`);
       }
 
-      return response.json();
+      return safeResponseJson<FacebookPageInfo>(response, 'Facebook API (getPageInfo)');
     });
   }
 
@@ -163,11 +164,11 @@ export class FacebookService {
       );
 
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
+        const errorData = await safeResponseJson<{ error?: { message?: string } }>(response, 'Facebook API (uploadPhoto)', {});
         throw new Error(errorData.error?.message || `Facebook API error: ${response.status}`);
       }
 
-      return response.json();
+      return safeResponseJson<{ id: string }>(response, 'Facebook API (uploadPhoto)');
     });
   }
 
@@ -202,11 +203,11 @@ export class FacebookService {
       );
 
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
+        const errorData = await safeResponseJson<{ error?: { message?: string } }>(response, 'Facebook API (uploadVideo)', {});
         throw new Error(errorData.error?.message || `Facebook API error: ${response.status}`);
       }
 
-      return response.json();
+      return safeResponseJson<{ id: string }>(response, 'Facebook API (uploadVideo)');
     });
   }
 
@@ -247,11 +248,11 @@ export class FacebookService {
         );
 
         if (!response.ok) {
-          const errorData = await response.json().catch(() => ({}));
+          const errorData = await safeResponseJson<{ error?: { message?: string } }>(response, 'Facebook API (createPagePost video)', {});
           throw new Error(errorData.error?.message || `Facebook API error: ${response.status}`);
         }
 
-        return response.json();
+        return safeResponseJson<FacebookPostResponse>(response, 'Facebook API (createPagePost video)');
       }
 
       if (imageUrl) {
@@ -282,11 +283,11 @@ export class FacebookService {
         );
 
         if (!response.ok) {
-          const errorData = await response.json().catch(() => ({}));
+          const errorData = await safeResponseJson<{ error?: { message?: string } }>(response, 'Facebook API (createPagePost image)', {});
           throw new Error(errorData.error?.message || `Facebook API error: ${response.status}`);
         }
 
-        return response.json();
+        return safeResponseJson<FacebookPostResponse>(response, 'Facebook API (createPagePost image)');
       }
 
       const params = new URLSearchParams();
@@ -310,11 +311,11 @@ export class FacebookService {
       );
 
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
+        const errorData = await safeResponseJson<{ error?: { message?: string } }>(response, 'Facebook API (createPagePost feed)', {});
         throw new Error(errorData.error?.message || `Facebook API error: ${response.status}`);
       }
 
-      return response.json();
+      return safeResponseJson<FacebookPostResponse>(response, 'Facebook API (createPagePost feed)');
     });
   }
 
@@ -373,11 +374,11 @@ export class FacebookService {
       );
 
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
+        const errorData = await safeResponseJson<{ error?: { message?: string } }>(response, 'Facebook API (getScheduledPosts)', {});
         throw new Error(errorData.error?.message || `Facebook API error: ${response.status}`);
       }
 
-      return response.json();
+      return safeResponseJson<{ data: FacebookPostResponse[] }>(response, 'Facebook API (getScheduledPosts)');
     });
   }
 
@@ -396,11 +397,11 @@ export class FacebookService {
       );
 
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
+        const errorData = await safeResponseJson<{ error?: { message?: string } }>(response, 'Facebook API (deleteScheduledPost)', {});
         throw new Error(errorData.error?.message || `Facebook API error: ${response.status}`);
       }
 
-      return response.json();
+      return safeResponseJson<{ success: boolean }>(response, 'Facebook API (deleteScheduledPost)');
     });
   }
 }

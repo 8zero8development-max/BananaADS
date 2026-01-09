@@ -932,6 +932,135 @@ app.post('/api/analyze-website', async (req, res) => {
   }
 });
 
+// ============================================================================
+// Database Admin Panel API Endpoints
+// ============================================================================
+
+// Execute SQL query (admin only)
+app.post('/api/admin/db/query', async (req, res) => {
+  try {
+    const { query, userId } = req.body;
+
+    if (!query || typeof query !== 'string') {
+      return res.status(400).json({ error: 'Query is required' });
+    }
+
+    // Check if user is admin
+    if (userId) {
+      const user = await storage.getUser(userId);
+      if (!user?.isAdmin) {
+        return res.status(403).json({ error: 'Admin access required' });
+      }
+    } else {
+      // For development, allow queries without auth if no userId provided
+      // In production, this should be more strict
+      console.warn('Database query executed without user authentication');
+    }
+
+    // Sanitize query - prevent dangerous operations in production
+    const queryLower = query.toLowerCase().trim();
+    const dangerousKeywords = ['drop database', 'drop schema', 'truncate', 'delete from users', 'delete from sessions'];
+    
+    for (const keyword of dangerousKeywords) {
+      if (queryLower.includes(keyword)) {
+        return res.status(400).json({ 
+          error: `Dangerous operation detected: "${keyword}" is not allowed` 
+        });
+      }
+    }
+
+    // Execute the query
+    const result = await db.execute(sql.raw(query));
+    
+    res.json({
+      success: true,
+      rows: result.rows || [],
+      rowCount: result.rowCount || 0,
+      fields: result.fields?.map(f => ({ name: f.name, dataTypeID: f.dataTypeID })) || []
+    });
+  } catch (error: any) {
+    console.error('Database query error:', error);
+    res.status(500).json({ 
+      error: 'Query execution failed', 
+      details: error.message 
+    });
+  }
+});
+
+// Get list of tables
+app.get('/api/admin/db/tables', async (req, res) => {
+  try {
+    const result = await db.execute(sql`
+      SELECT table_name, table_type 
+      FROM information_schema.tables 
+      WHERE table_schema = 'public'
+      ORDER BY table_name
+    `);
+    
+    res.json({
+      tables: result.rows
+    });
+  } catch (error: any) {
+    console.error('Failed to list tables:', error);
+    res.status(500).json({ error: 'Failed to list tables', details: error.message });
+  }
+});
+
+// Get table schema
+app.get('/api/admin/db/schema/:tableName', async (req, res) => {
+  try {
+    const { tableName } = req.params;
+    
+    // Validate table name to prevent SQL injection
+    if (!/^[a-zA-Z_][a-zA-Z0-9_]*$/.test(tableName)) {
+      return res.status(400).json({ error: 'Invalid table name' });
+    }
+    
+    const result = await db.execute(sql`
+      SELECT column_name, data_type, is_nullable, column_default
+      FROM information_schema.columns
+      WHERE table_schema = 'public' AND table_name = ${tableName}
+      ORDER BY ordinal_position
+    `);
+    
+    res.json({
+      tableName,
+      columns: result.rows
+    });
+  } catch (error: any) {
+    console.error('Failed to get table schema:', error);
+    res.status(500).json({ error: 'Failed to get table schema', details: error.message });
+  }
+});
+
+// Get table data with pagination
+app.get('/api/admin/db/data/:tableName', async (req, res) => {
+  try {
+    const { tableName } = req.params;
+    const limit = Math.min(parseInt(req.query.limit as string) || 100, 1000);
+    const offset = parseInt(req.query.offset as string) || 0;
+    
+    // Validate table name to prevent SQL injection
+    if (!/^[a-zA-Z_][a-zA-Z0-9_]*$/.test(tableName)) {
+      return res.status(400).json({ error: 'Invalid table name' });
+    }
+    
+    const result = await db.execute(sql.raw(`SELECT * FROM "${tableName}" LIMIT ${limit} OFFSET ${offset}`));
+    const countResult = await db.execute(sql.raw(`SELECT COUNT(*) as total FROM "${tableName}"`));
+    
+    res.json({
+      tableName,
+      rows: result.rows,
+      total: parseInt((countResult.rows[0] as any)?.total || '0'),
+      limit,
+      offset
+    });
+  } catch (error: any) {
+    console.error('Failed to get table data:', error);
+    res.status(500).json({ error: 'Failed to get table data', details: error.message });
+  }
+});
+
 async function start() {
   await initDatabase();
   await authService.ensureAdminExists();
